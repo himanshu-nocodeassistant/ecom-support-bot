@@ -3,8 +3,7 @@ from pydantic import BaseModel
 
 from .agent import handle_message
 
-
-app = FastAPI(title="SupportBot Foundation")
+app = FastAPI(title="SupportBot API")
 
 
 class ChatRequest(BaseModel):
