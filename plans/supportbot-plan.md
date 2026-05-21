@@ -25,11 +25,11 @@ A minimal but working support agent that can answer a few product questions from
 
 ### Acceptance criteria
 
-- [ ] Product questions can be answered from an in-repo knowledge base
-- [ ] Order status questions work for sample order IDs
-- [ ] Session context remembers a prior order ID for follow-up questions
-- [ ] Low-confidence queries create a support ticket instead of bluffing
-- [ ] A new developer can run the project locally with simple setup
+- [x] Product questions can be answered from an in-repo knowledge base
+- [x] Order status questions work for sample order IDs
+- [x] Session context remembers a prior order ID for follow-up questions
+- [x] Low-confidence queries create a support ticket instead of bluffing
+- [x] A new developer can run the project locally with simple setup
 
 ---
 
@@ -47,6 +47,15 @@ Replace keyword retrieval with proper chunking, metadata preservation, embedding
 - [ ] Vector and full-text search both contribute to retrieval
 - [ ] Confidence scoring is visible and affects fallback behavior
 - [ ] Query quality improves on known exact-match and semantic cases
+
+### Progress so far
+
+- [x] Supabase/Postgres schema exists for orders and future knowledge chunks
+- [x] Olist dataset loader and import CLI are working
+- [x] `support_orders` is populated with a real imported data slice
+- [x] Knowledge documents and chunks can be imported into Supabase
+- [x] Product queries can search persisted knowledge chunks
+- [ ] Retrieval is still full-text based and not yet embedding-backed
 
 ---
 

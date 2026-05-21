@@ -29,7 +29,7 @@ Known weaknesses to note in the release:
 - Tool routing is rule-based, not model-driven
 - No streaming
 - No observability
-- Sample data only
+- Knowledge retrieval still uses in-memory documents
 
 ## `v0.2.0-retrieval-upgrade`
 
@@ -40,6 +40,7 @@ Improve answer quality:
 - Embeddings
 - Hybrid retrieval
 - Confidence scoring
+- Persisted knowledge documents and chunks alongside the existing Supabase order data
 
 What to note:
 
@@ -61,6 +62,7 @@ What to note:
 - Which complex flows now work in one turn
 - Where tool misuse still happens
 - What guardrails were added
+- How the tool loop behaves against real imported order data
 
 ## `v0.4.0-streaming-ui`
 

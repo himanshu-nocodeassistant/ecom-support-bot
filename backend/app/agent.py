@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import Any
 
-from .data import KNOWLEDGE_BASE, ORDERS
-
+from .repository import get_repository
 
 SESSION_MEMORY: dict[str, list[dict[str, str]]] = {}
 MAX_HISTORY = 20
@@ -34,19 +33,26 @@ def recall_last_order_id(session_id: str) -> str | None:
 
 
 def extract_order_id(text: str) -> str | None:
-    match = re.search(r"\bORD-\d{4}\b", text.upper())
-    return match.group(0) if match else None
+    uppercase_match = re.search(r"\bORD-\d{4}\b", text.upper())
+    if uppercase_match:
+        return uppercase_match.group(0)
+
+    olist_match = re.search(r"\b[a-f0-9]{32}\b", text.lower())
+    if olist_match:
+        return olist_match.group(0)
+
+    return None
 
 
 def lookup_order(order_id: str) -> dict[str, Any]:
-    order = ORDERS.get(order_id)
+    order = get_repository().get_order(order_id)
     if not order:
         return {"found": False, "message": f"No order found for {order_id}."}
     return {"found": True, "order": order}
 
 
 def request_refund(order_id: str, reason: str) -> dict[str, Any]:
-    order = ORDERS.get(order_id)
+    order = get_repository().get_order(order_id)
     if not order:
         return {"approved": False, "message": f"No order found for {order_id}."}
     if not order["delivered"]:
@@ -73,22 +79,7 @@ def create_ticket(subject: str, description: str, order_id: str | None = None) -
 
 
 def search_knowledge_base(query: str) -> list[dict[str, Any]]:
-    query_words = set(re.findall(r"[a-z0-9]+", query.lower()))
-    ranked = []
-    for doc in KNOWLEDGE_BASE:
-        haystack = f"{doc['title']} {doc['content']}".lower()
-        score = sum(1 for word in query_words if word in haystack)
-        if score:
-            ranked.append(
-                {
-                    "id": doc["id"],
-                    "title": doc["title"],
-                    "category": doc["category"],
-                    "score": score,
-                    "content": doc["content"],
-                }
-            )
-    return sorted(ranked, key=lambda item: item["score"], reverse=True)[:3]
+    return get_repository().search_knowledge(query)
 
 
 def handle_message(session_id: str, message: str) -> dict[str, Any]:
@@ -99,7 +90,7 @@ def handle_message(session_id: str, message: str) -> dict[str, Any]:
 
     if any(phrase in lower for phrase in ["where is my order", "order status", "track my order"]):
         if not order_id:
-            reply = "Please share your order ID in the format ORD-1001 so I can look it up."
+            reply = "Please share your order ID so I can look it up."
         else:
             result = lookup_order(order_id)
             tool_events.append(ToolEvent("lookup_order", {"order_id": order_id}, result))
@@ -135,11 +126,9 @@ def handle_message(session_id: str, message: str) -> dict[str, Any]:
         tool_events.append(
             ToolEvent("search_knowledge_base", {"query": message}, {"matches": results})
         )
-        if results and results[0]["score"] >= 2:
+        if results and results[0]["score"] >= 0.25:
             top = results[0]
-            reply = (
-                f"Here’s the best answer I found from {top['title']}: {top['content']}"
-            )
+            reply = f"Here’s the best answer I found from {top['title']}: {top['content']}"
         else:
             result = create_ticket("Low-confidence support query", message, order_id)
             tool_events.append(
