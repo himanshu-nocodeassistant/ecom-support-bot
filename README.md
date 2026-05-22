@@ -1,42 +1,44 @@
 # SupportBot
 
-This repo includes:
+An e-commerce customer support agent built in phases to demonstrate how AI support systems work under the hood — knowledge retrieval, order lookup, session memory, escalation, and model-driven tool orchestration. Each phase is a working demo, not a toy.
 
-- A Python backend with a minimal support agent
-- Knowledge retrieval over a small in-repo knowledge base
-- Deterministic order lookup and refund/ticket tool stubs
-- Session-scoped memory
-- A repository layer that can switch between in-memory data and Postgres-backed data
-- A Supabase-backed order store seeded from the Olist dataset
-- An Olist dataset loader, knowledge import CLI, and SQL schema for Supabase
-- A roadmap for upgrading the system release by release
+**Stack:** Python, FastAPI, Claude API (Haiku), Voyage AI embeddings, Supabase/Postgres + pgvector
 
-## What exists today
+## What exists today (Phase 3)
 
-- `backend/app/main.py`: FastAPI entrypoint
-- `backend/app/agent.py`: core support-agent logic
-- `backend/app/repository.py`: storage boundary for in-memory and Postgres-backed reads
-- `backend/app/data_loader.py`: Olist normalization and import logic
-- `backend/knowledge/`: source markdown files for persisted support knowledge
-- `backend/app/cli.py`: dataset summarize/export/import commands
-- `backend/sql/schema.sql`: Supabase/Postgres schema
-- `backend/app/data.py`: fallback sample orders and knowledge base
-- `backend/tests/test_support_bot.py`: baseline tests
-- `backend/tests/test_data_loader.py`: dataset loader coverage
-- `plans/supportbot-plan.md`: phased implementation plan
-- `docs/release-roadmap.md`: GitHub release sequence
-- `docs/improvement-log.md`: place to note what changed and what it unlocked
+### Agent
+- `backend/app/agent.py` — model-driven tool loop using Claude API; four formal tool schemas; deterministic fallback when no API key is set
+- `backend/app/main.py` — FastAPI entrypoint with `/health` and `/api/chat`
 
-Current scope:
+### Retrieval
+- `backend/app/repository.py` — storage boundary; hybrid search (30% full-text + 70% cosine similarity via Voyage AI) when Postgres + API key are available; falls back to full-text, then in-memory keyword search
+- `backend/knowledge/` — source markdown files for persisted support knowledge
+- `backend/app/data.py` — fallback sample orders and knowledge base (no external deps needed)
 
-- No vector database
-- No hybrid retrieval
-- No Claude tool loop
-- No streaming
-- No Helicone
-- No RAG showcase UI
+### Data
+- `backend/app/data_loader.py` — Olist dataset normalization and Voyage AI embedding generation
+- `backend/app/cli.py` — summarize, export, import-orders, import-knowledge, compare-retrieval commands
+- `backend/sql/schema.sql` — Supabase/Postgres schema (orders, knowledge_documents, knowledge_chunks + pgvector)
 
-## Local run
+### Config & tests
+- `backend/app/config.py` — reads `.env`; `SUPPORTBOT_DATA_BACKEND`, `DATABASE_URL`, `VOYAGE_API_KEY`, `ANTHROPIC_API_KEY`
+- `backend/tests/` — unit tests (no external deps); integration tests for hybrid retrieval quality
+- `plans/supportbot-plan.md` — phased implementation plan
+- `docs/` — improvement log and release roadmap
+
+## Current capabilities
+
+| Capability | Status |
+|---|---|
+| Product questions from knowledge base | ✅ Hybrid semantic + keyword retrieval |
+| Order status lookup | ✅ Supabase (10k Olist rows) + in-memory fallback |
+| Refund flow with delivery validation | ✅ Model-driven, multi-step |
+| Escalation to support ticket | ✅ Conversational, contextual ticket subject |
+| Session memory across turns | ✅ Full conversation context passed to model |
+| Multi-step tool chains in one message | ✅ Claude chains tools automatically |
+| Confidence-based fallback | ✅ 0.25 threshold; escalates rather than guessing |
+
+## Local run (no external deps)
 
 Install dependencies:
 
@@ -53,42 +55,75 @@ uvicorn backend.app.main:app --reload
 Run tests:
 
 ```bash
-python3 -m unittest discover -s backend/tests
+python3.11 -m pytest backend/tests/ -v -k "not HybridSearch"
 ```
 
-## Data setup
+Without `.env` set, the bot uses in-memory data and deterministic routing — no API keys required.
 
-The app now supports real order lookups against Supabase through `.env`:
+## Full setup (Supabase + Voyage AI + Claude)
 
-1. Set `SUPPORTBOT_DATA_BACKEND=postgres`
-2. Set `DATABASE_URL` to your Supabase Postgres connection string
-3. Set `OLIST_DATASET_DIR` to the local Olist CSV directory
-4. Apply [schema.sql](/Users/himanshusharma/Code/Codex/ecom-support-bot/backend/sql/schema.sql)
-5. Import orders with the CLI
+Copy and fill in `.env`:
 
-Current verified state:
+```
+SUPPORTBOT_DATA_BACKEND=postgres
+DATABASE_URL=<supabase-postgres-url>
+VOYAGE_API_KEY=<voyage-api-key>
+ANTHROPIC_API_KEY=<anthropic-api-key>
+```
 
-- Supabase connection works
-- Schema is applied
-- `support_orders` contains `10,000` imported Olist rows
-- `knowledge_documents` contains `4` imported files
-- `knowledge_chunks` contains `6` imported chunks
-- The agent can resolve real 32-character Olist order IDs
-- Product questions can be answered from persisted knowledge chunks in Supabase
-
-Example commands:
+Apply the schema, then import data:
 
 ```bash
-python3 -m backend.app.cli summarize-olist --dataset-dir ./data-set --limit 5
-python3 -m backend.app.cli export-orders --dataset-dir ./data-set --output ./local/normalized_orders.csv --limit 1000
-python3 -m backend.app.cli import-orders --dataset-dir ./data-set --limit 1000
-python3 -m backend.app.cli import-knowledge --knowledge-dir ./backend/knowledge
+# Apply schema in Supabase SQL editor
+# backend/sql/schema.sql
+
+# Import orders from Olist dataset
+python3.11 -m backend.app.cli import-orders --dataset-dir ./data-set --limit 10000
+
+# Import and embed knowledge docs
+python3.11 -m backend.app.cli import-knowledge --knowledge-dir ./backend/knowledge
 ```
 
-Example live lookup:
+Run full test suite (hits Supabase + Voyage):
 
+```bash
+python3.11 -m pytest backend/tests/ -v
+```
+
+Compare keyword vs hybrid retrieval:
+
+```bash
+python3.11 -m backend.app.cli compare-retrieval
+```
+
+## Example requests
+
+Product question (semantic retrieval):
 ```bash
 curl -s -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id":"demo-real","message":"Where is my order 000229ec398224ef6ca0657da4fc703e?"}'
+  -d '{"session_id":"demo","message":"Can I get my money back?"}' | jq
 ```
+
+Multi-step refund in one message:
+```bash
+curl -s -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"session_id":"demo","message":"My order ORD-1002 arrived damaged, I want a refund."}' | jq
+```
+
+Real Olist order lookup:
+```bash
+curl -s -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"session_id":"demo","message":"Where is order 000229ec398224ef6ca0657da4fc703e?"}' | jq
+```
+
+## Verified state
+
+- Supabase connected; schema applied
+- `support_orders` — 10,000 imported Olist rows
+- `knowledge_documents` — 4 imported files
+- `knowledge_chunks` — 6 chunks with 512-dim Voyage embeddings + HNSW index
+- Hybrid search: "Can I get my money back?" → refund policy (score 0.266); keyword search → no result
+- Agentic loop: single message "arrived damaged, want refund" → `lookup_order` + `request_refund` chained automatically

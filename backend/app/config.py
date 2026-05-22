@@ -11,6 +11,7 @@ class Settings:
     database_url: str | None
     olist_dataset_dir: str | None
     voyage_api_key: str | None
+    anthropic_api_key: str | None
 
 
 def _read_env_file() -> dict[str, str]:
@@ -41,4 +42,5 @@ def get_settings() -> Settings:
             env_values.get("OLIST_DATASET_DIR"),
         ),
         voyage_api_key=os.getenv("VOYAGE_API_KEY", env_values.get("VOYAGE_API_KEY")),
+        anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", env_values.get("ANTHROPIC_API_KEY")),
     )
