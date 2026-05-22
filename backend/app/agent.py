@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from dataclasses import dataclass
 from typing import Any
 
 from .config import get_settings
-from .repository import get_repository
+from .data import KNOWLEDGE_BASE, ORDERS
+from .repository import InMemoryRepository, PostgresRepository, get_repository
 
 SESSION_MEMORY: dict[str, list[dict[str, Any]]] = {}
 
@@ -86,6 +88,11 @@ class ToolEvent:
     output: dict[str, Any]
 
 
+# ---------------------------------------------------------------------------
+# Tool implementations
+# ---------------------------------------------------------------------------
+
+
 def lookup_order(order_id: str) -> dict[str, Any]:
     order = get_repository().get_order(order_id)
     if not order:
@@ -120,30 +127,64 @@ def create_ticket(subject: str, description: str, order_id: str | None = None) -
     }
 
 
-def search_knowledge_base(query: str) -> list[dict[str, Any]]:
-    return get_repository().search_knowledge(query)
+def search_knowledge_base(query: str, repo=None) -> list[dict[str, Any]]:
+    r = repo if repo is not None else get_repository()
+    return r.search_knowledge(query)
 
 
-def _execute_tool(name: str, inputs: dict[str, Any]) -> dict[str, Any] | list[Any]:
+def _execute_tool(name: str, inputs: dict[str, Any], repo=None) -> dict[str, Any] | list[Any]:
     if name == "lookup_order":
         return lookup_order(**inputs)
     if name == "request_refund":
         return request_refund(**inputs)
     if name == "search_knowledge_base":
-        return search_knowledge_base(**inputs)
+        return search_knowledge_base(repo=repo, **inputs)
     if name == "create_ticket":
         return create_ticket(**inputs)
     return {"error": f"Unknown tool: {name}"}
 
 
-def handle_message(session_id: str, message: str) -> dict[str, Any]:
+# ---------------------------------------------------------------------------
+# Repository selection by mode
+# ---------------------------------------------------------------------------
+
+
+def _repo_for_mode(mode: str):
+    """Return the repository instance appropriate for the requested mode."""
+    settings = get_settings()
+    fallback = InMemoryRepository(orders=ORDERS, knowledge_documents=KNOWLEDGE_BASE)
+
+    if mode == "phase1":
+        return fallback
+
+    if mode in ("phase2", "phase3", "phase4"):
+        if settings.data_backend == "postgres" and settings.database_url:
+            return PostgresRepository(
+                database_url=settings.database_url,
+                fallback=fallback,
+                voyage_api_key=settings.voyage_api_key
+                if mode != "phase2" or settings.voyage_api_key
+                else None,
+            )
+        return fallback
+
+    return get_repository()
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 / 4 — Claude agent tool loop (synchronous)
+# ---------------------------------------------------------------------------
+
+
+def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[str, Any]:
     settings = get_settings()
 
-    if not settings.anthropic_api_key:
-        return _handle_message_deterministic(session_id, message)
+    if mode in ("phase1", "phase2") or not settings.anthropic_api_key:
+        return _handle_message_deterministic(session_id, message, mode=mode)
 
     import anthropic
 
+    repo = _repo_for_mode(mode)
     history = SESSION_MEMORY.setdefault(session_id, [])
     history.append({"role": "user", "content": message})
 
@@ -173,7 +214,7 @@ def handle_message(session_id: str, message: str) -> dict[str, Any]:
         tool_result_blocks: list[dict[str, Any]] = []
         for block in assistant_content:
             if block.type == "tool_use":
-                result = _execute_tool(block.name, dict(block.input))
+                result = _execute_tool(block.name, dict(block.input), repo=repo)
                 tool_events.append(ToolEvent(block.name, dict(block.input), result))
                 tool_result_blocks.append(
                     {
@@ -193,12 +234,164 @@ def handle_message(session_id: str, message: str) -> dict[str, Any]:
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
         ],
         "session_id": session_id,
+        "mode": mode,
     }
 
 
 # ---------------------------------------------------------------------------
-# Deterministic fallback — used when no Anthropic API key is configured
-# (keeps in-memory tests and local-only demos working without an API key)
+# Phase 4 — SSE streaming generator
+# ---------------------------------------------------------------------------
+
+
+async def handle_message_stream(session_id: str, message: str):
+    """Async generator yielding SSE-formatted event strings for Phase 4."""
+    settings = get_settings()
+
+    if not settings.anthropic_api_key:
+        result = _handle_message_deterministic(session_id, message, mode="phase3")
+        yield _sse("token", {"text": result["reply"]})
+        for e in result["tool_events"]:
+            yield _sse(
+                "tool_result", {"name": e["name"], "input": e["input"], "output": e["output"]}
+            )
+        yield _sse("done", {"session_id": session_id, "tool_count": len(result["tool_events"])})
+        return
+
+    import anthropic
+
+    repo = _repo_for_mode("phase4")
+    history = SESSION_MEMORY.setdefault(session_id, [])
+    history.append({"role": "user", "content": message})
+
+    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+    tool_events: list[ToolEvent] = []
+    messages: list[dict[str, Any]] = list(history)
+
+    try:
+        while True:
+            # Collect the full response for tool handling, stream tokens as they arrive
+            tool_result_blocks: list[dict[str, Any]] = []
+            assistant_content = []
+            stop_reason = None
+
+            with client.messages.stream(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1024,
+                system=SYSTEM_PROMPT,
+                tools=TOOLS,
+                messages=messages,
+            ) as stream:
+                current_tool_use: dict[str, Any] | None = None
+                current_input_json = ""
+
+                for event in stream:
+                    etype = event.type
+
+                    if etype == "content_block_start":
+                        block = event.content_block
+                        if block.type == "tool_use":
+                            current_tool_use = {"id": block.id, "name": block.name}
+                            current_input_json = ""
+                            yield _sse("tool_start", {"name": block.name})
+                        elif block.type == "text":
+                            current_tool_use = None
+
+                    elif etype == "content_block_delta":
+                        delta = event.delta
+                        if delta.type == "text_delta":
+                            yield _sse("token", {"text": delta.text})
+                        elif delta.type == "input_json_delta":
+                            current_input_json += delta.partial_json
+
+                    elif etype == "content_block_stop":
+                        if current_tool_use is not None:
+                            try:
+                                parsed_input = (
+                                    json.loads(current_input_json) if current_input_json else {}
+                                )
+                            except json.JSONDecodeError:
+                                parsed_input = {}
+                            current_tool_use["input"] = parsed_input
+                            result = _execute_tool(
+                                current_tool_use["name"], parsed_input, repo=repo
+                            )
+                            tool_events.append(
+                                ToolEvent(current_tool_use["name"], parsed_input, result)
+                            )
+                            yield _sse(
+                                "tool_result",
+                                {
+                                    "name": current_tool_use["name"],
+                                    "input": parsed_input,
+                                    "output": result,
+                                },
+                            )
+                            tool_result_blocks.append(
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": current_tool_use["id"],
+                                    "content": json.dumps(result),
+                                }
+                            )
+                            current_tool_use = None
+
+                final_message = stream.get_final_message()
+                assistant_content = final_message.content
+                stop_reason = final_message.stop_reason
+
+            messages.append({"role": "assistant", "content": assistant_content})
+
+            if stop_reason != "tool_use":
+                break
+
+            messages.append({"role": "user", "content": tool_result_blocks})
+
+        SESSION_MEMORY[session_id] = messages
+        yield _sse(
+            "done",
+            {
+                "session_id": session_id,
+                "tool_count": len(tool_events),
+            },
+        )
+
+    except Exception as exc:
+        yield _sse("error", {"message": str(exc)})
+
+
+def _sse(event: str, data: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+# ---------------------------------------------------------------------------
+# Compare — run phase1, phase2, phase3 concurrently
+# ---------------------------------------------------------------------------
+
+
+async def handle_compare(message: str) -> dict[str, Any]:
+    loop = asyncio.get_event_loop()
+
+    def run(mode: str) -> dict[str, Any]:
+        import uuid
+
+        session_id = f"compare-{mode}-{uuid.uuid4().hex[:8]}"
+        return handle_message(session_id, message, mode=mode)
+
+    results = await asyncio.gather(
+        loop.run_in_executor(None, run, "phase1"),
+        loop.run_in_executor(None, run, "phase2"),
+        loop.run_in_executor(None, run, "phase3"),
+    )
+
+    return {
+        "phase1": results[0],
+        "phase2": results[1],
+        "phase3": results[2],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Deterministic fallback — phase1 and phase2, and no-API-key path
 # ---------------------------------------------------------------------------
 
 _STOP_WORDS = {
@@ -256,8 +449,11 @@ def _extract_order_id(text: str) -> str | None:
     return None
 
 
-def _handle_message_deterministic(session_id: str, message: str) -> dict[str, Any]:
+def _handle_message_deterministic(
+    session_id: str, message: str, mode: str = "phase1"
+) -> dict[str, Any]:
     _remember_fallback(session_id, "user", message)
+    repo = _repo_for_mode(mode)
     tool_events: list[ToolEvent] = []
     order_id = _extract_order_id(message) or _recall_last_order_id(session_id)
     lower = message.lower()
@@ -296,7 +492,7 @@ def _handle_message_deterministic(session_id: str, message: str) -> dict[str, An
         )
         reply = f"{result['message']} Reference: {result['ticket_id']}."
     else:
-        results = search_knowledge_base(message)
+        results = search_knowledge_base(message, repo=repo)
         tool_events.append(
             ToolEvent("search_knowledge_base", {"query": message}, {"matches": results})
         )
@@ -324,4 +520,5 @@ def _handle_message_deterministic(session_id: str, message: str) -> dict[str, An
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
         ],
         "session_id": session_id,
+        "mode": mode,
     }
