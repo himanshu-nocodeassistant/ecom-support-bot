@@ -43,19 +43,10 @@ Replace keyword retrieval with proper chunking, metadata preservation, embedding
 
 ### Acceptance criteria
 
-- [ ] Knowledge documents are chunked with metadata
-- [ ] Vector and full-text search both contribute to retrieval
-- [ ] Confidence scoring is visible and affects fallback behavior
-- [ ] Query quality improves on known exact-match and semantic cases
-
-### Progress so far
-
-- [x] Supabase/Postgres schema exists for orders and future knowledge chunks
-- [x] Olist dataset loader and import CLI are working
-- [x] `support_orders` is populated with a real imported data slice
-- [x] Knowledge documents and chunks can be imported into Supabase
-- [x] Product queries can search persisted knowledge chunks
-- [ ] Retrieval is still full-text based and not yet embedding-backed
+- [x] Knowledge documents are chunked with metadata
+- [x] Vector and full-text search both contribute to retrieval
+- [x] Confidence scoring is visible and affects fallback behavior
+- [x] Query quality improves on known exact-match and semantic cases
 
 ---
 
@@ -69,10 +60,10 @@ Move from deterministic routing to a model-driven tool loop that can chain order
 
 ### Acceptance criteria
 
-- [ ] Tool definitions are formalized and validated
-- [ ] Multi-step queries can trigger multiple tool calls
-- [ ] Refund flows validate eligibility and return references
-- [ ] Conversation memory supports follow-up queries without repeated identification
+- [x] Tool definitions are formalized and validated
+- [x] Multi-step queries can trigger multiple tool calls
+- [x] Refund flows validate eligibility and return references
+- [x] Conversation memory supports follow-up queries without repeated identification
 
 ---
 
