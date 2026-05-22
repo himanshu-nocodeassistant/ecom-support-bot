@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SupportBot</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --accent: #6c63ff;
+    --accent2: #4ecdc4;
+    --text: #e8eaf0;
+    --text-muted: #7b8099;
+    --user-bubble: #6c63ff;
+    --bot-bubble: #1e2235;
+    --tool-bg: #151825;
+    --tool-border: #2a2e45;
+    --badge-p1: #e67e22;
+    --badge-p2: #27ae60;
+    --badge-p3: #6c63ff;
+    --badge-p4: #4ecdc4;
+    --error: #e74c3c;
+    --radius: 12px;
+    --radius-sm: 6px;
+    font-size: 15px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Nav ── */
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+    color: var(--accent);
+    margin-right: 12px;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .tab-btn:hover { background: var(--surface2); color: var(--text); }
+  .tab-btn.active { background: var(--surface2); color: var(--text); }
+
+  /* ── Panels ── */
+  .panel { display: none; flex: 1; overflow: hidden; }
+  .panel.active { display: flex; flex-direction: column; }
+
+  /* ── Chat panel ── */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .mode-label { font-size: 13px; color: var(--text-muted); }
+  .phase-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .phase-tab {
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .phase-tab:hover { border-color: var(--accent); color: var(--text); }
+  .phase-tab[data-phase="phase1"].active { background: var(--badge-p1); border-color: var(--badge-p1); color: #fff; }
+  .phase-tab[data-phase="phase2"].active { background: var(--badge-p2); border-color: var(--badge-p2); color: #fff; }
+  .phase-tab[data-phase="phase3"].active { background: var(--badge-p3); border-color: var(--badge-p3); color: #fff; }
+  .phase-tab[data-phase="phase4"].active { background: var(--badge-p4); border-color: var(--badge-p4); color: #000; }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .msg-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .avatar.bot { background: var(--accent); color: #fff; }
+  .avatar.user { background: var(--surface2); color: var(--text-muted); }
+
+  .bubble {
+    max-width: 68%;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    line-height: 1.55;
+    font-size: 14px;
+  }
+  .bubble.user {
+    background: var(--user-bubble);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .bubble.bot {
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+
+  /* Tool event card */
+  .tool-card {
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    max-width: 68%;
+    margin-left: 40px;
+  }
+  .tool-card .tool-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .tool-card .tool-name .icon { font-size: 14px; }
+  .tool-io { color: var(--text-muted); }
+  .tool-io summary { cursor: pointer; user-select: none; }
+  .tool-io summary:hover { color: var(--text); }
+  .tool-io pre {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: "SF Mono", "Fira Code", monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .error-msg {
+    color: var(--error);
+    font-size: 13px;
+    padding: 8px 12px;
+    background: rgba(231,76,60,0.1);
+    border: 1px solid rgba(231,76,60,0.3);
+    border-radius: var(--radius-sm);
+    margin-left: 40px;
+    max-width: 68%;
+  }
+
+  /* Input bar */
+  .input-bar {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .input-bar textarea {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 14px;
+    resize: none;
+    outline: none;
+    height: 44px;
+    max-height: 140px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .input-bar textarea:focus { border-color: var(--accent); }
+  .input-bar textarea::placeholder { color: var(--text-muted); }
+  .send-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .send-btn:not(:disabled):hover { opacity: 0.85; }
+
+  /* ── Compare panel ── */
+  #compare-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .compare-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .compare-header h2 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+  .compare-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .compare-input-row input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .compare-input-row input:focus { border-color: var(--accent); }
+  .compare-input-row input::placeholder { color: var(--text-muted); }
+  .compare-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .compare-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .compare-btn:not(:disabled):hover { opacity: 0.85; }
+
+  .demo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 12px;
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--text); }
+
+  .compare-cards-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .compare-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    min-height: 100%;
+  }
+
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .phase-badge {
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    letter-spacing: 0.3px;
+  }
+  .badge-p1 { background: rgba(230,126,34,0.2); color: var(--badge-p1); border: 1px solid rgba(230,126,34,0.4); }
+  .badge-p2 { background: rgba(39,174,96,0.2); color: var(--badge-p2); border: 1px solid rgba(39,174,96,0.4); }
+  .badge-p3 { background: rgba(108,99,255,0.2); color: var(--badge-p3); border: 1px solid rgba(108,99,255,0.4); }
+  .capability-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  .card-body { padding: 14px 16px; flex: 1; }
+  .card-reply {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .card-tools { display: flex; flex-direction: column; gap: 6px; }
+  .card-tools-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .card-tool-item {
+    background: var(--tool-bg);
+    border: 1px solid var(--tool-border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .card-tool-name {
+    color: var(--accent2);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 2px;
+  }
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(78,205,196,0.15);
+    border: 1px solid rgba(78,205,196,0.3);
+    border-radius: 4px;
+    color: var(--accent2);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    margin-left: 6px;
+  }
+  .no-tools { font-size: 13px; color: var(--text-muted); font-style: italic; }
+
+  .compare-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    gap: 8px;
+    font-size: 14px;
+  }
+  .compare-placeholder .icon { font-size: 36px; opacity: 0.4; }
+
+  .compare-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 12px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">⚡ SupportBot</span>
+  <button class="tab-btn active" data-tab="chat">Chat</button>
+  <button class="tab-btn" data-tab="compare">Compare Phases</button>
+</nav>
+
+<!-- ── Chat Panel ── -->
+<div class="panel active" id="chat-panel">
+  <div class="chat-header">
+    <span class="mode-label">Mode:</span>
+    <div class="phase-tabs">
+      <button class="phase-tab" data-phase="phase1">Phase 1</button>
+      <button class="phase-tab" data-phase="phase2">Phase 2</button>
+      <button class="phase-tab" data-phase="phase3">Phase 3</button>
+      <button class="phase-tab active" data-phase="phase4">Phase 4 ✦</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input-bar">
+    <textarea id="chat-input" placeholder="Ask about your order, returns, or products…" rows="1"></textarea>
+    <button class="send-btn" id="send-btn" title="Send">➤</button>
+  </div>
+</div>
+
+<!-- ── Compare Panel ── -->
+<div class="panel" id="compare-panel">
+  <div class="compare-header">
+    <h2>Compare Phases — same query, three execution paths</h2>
+    <div class="compare-input-row">
+      <input type="text" id="compare-input" placeholder="Type a question to run across all three phases…">
+      <button class="compare-btn" id="compare-btn">Run comparison</button>
+    </div>
+    <div class="demo-chips">
+      <button class="chip" data-query="Can I get a refund?">Can I get a refund?</button>
+      <button class="chip" data-query="Where is my order ORD-1001?">Where is my order ORD-1001?</button>
+      <button class="chip" data-query="Does the portable blender have a safety lock?">Does the portable blender have a safety lock?</button>
+      <button class="chip" data-query="How long does delivery take?">How long does delivery take?</button>
+    </div>
+  </div>
+  <div class="compare-cards-area" id="compare-cards-area">
+    <div class="compare-placeholder">
+      <span class="icon">⟳</span>
+      <span>Run a query to see how each phase responds</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+
+function el(id) { return document.getElementById(id); }
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function sessionId() {
+  if (!window._sid) window._sid = 'sess-' + Math.random().toString(36).slice(2);
+  return window._sid;
+}
+
+function scrollBottom() {
+  const m = el('messages');
+  m.scrollTop = m.scrollHeight;
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    el(btn.dataset.tab + '-panel').classList.add('active');
+  });
+});
+
+// ── Phase tab switching ────────────────────────────────────────────────────
+
+let activePhase = 'phase4';
+
+document.querySelectorAll('.phase-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.phase-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activePhase = btn.dataset.phase;
+    // Reset session when switching phases so context doesn't bleed
+    window._sid = 'sess-' + Math.random().toString(36).slice(2);
+  });
+});
+
+// ── Chat DOM helpers ───────────────────────────────────────────────────────
+
+function appendUserBubble(text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `
+    <div class="bubble user">${escHtml(text)}</div>
+    <div class="avatar user">U</div>
+  `;
+  el('messages').appendChild(row);
+  scrollBottom();
+}
+
+function appendTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg-row typing-row';
+  row.innerHTML = `
+    <div class="avatar bot">S</div>
+    <div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  `;
+  el('messages').appendChild(row);
+  scrollBottom();
+  return row;
+}
+
+function removeTyping() {
+  document.querySelectorAll('.typing-row').forEach(r => r.remove());
+}
+
+function appendBotBubble(text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `
+    <div class="avatar bot">S</div>
+    <div class="bubble bot">${escHtml(text)}</div>
+  `;
+  el('messages').appendChild(row);
+  scrollBottom();
+  return row.querySelector('.bubble');
+}
+
+function appendStreamingBubble() {
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `<div class="avatar bot">S</div><div class="bubble bot streaming-bubble"></div>`;
+  el('messages').appendChild(row);
+  scrollBottom();
+  return row.querySelector('.streaming-bubble');
+}
+
+function appendToolCard(toolName, input, output) {
+  const icons = { lookup_order: '🔍', request_refund: '💸', search_knowledge_base: '📚', create_ticket: '🎫' };
+  const icon = icons[toolName] || '⚙️';
+  const card = document.createElement('div');
+  card.className = 'tool-card';
+  card.innerHTML = `
+    <div class="tool-name"><span class="icon">${icon}</span><strong>${escHtml(toolName)}</strong></div>
+    <div class="tool-io">
+      <details>
+        <summary>input / output</summary>
+        <pre>${escHtml(JSON.stringify({input, output}, null, 2))}</pre>
+      </details>
+    </div>
+  `;
+  el('messages').appendChild(card);
+  scrollBottom();
+}
+
+function appendToolStart(toolName) {
+  const icons = { lookup_order: '🔍', request_refund: '💸', search_knowledge_base: '📚', create_ticket: '🎫' };
+  const icon = icons[toolName] || '⚙️';
+  const card = document.createElement('div');
+  card.className = 'tool-card';
+  card.dataset.toolName = toolName;
+  card.innerHTML = `
+    <div class="tool-name"><span class="icon">${icon}</span><strong>${escHtml(toolName)}</strong><span style="color:var(--text-muted);font-size:11px;margin-left:auto">running…</span></div>
+  `;
+  el('messages').appendChild(card);
+  scrollBottom();
+  return card;
+}
+
+function updateToolCard(card, input, output) {
+  const icons = { lookup_order: '🔍', request_refund: '💸', search_knowledge_base: '📚', create_ticket: '🎫' };
+  const toolName = card.dataset.toolName;
+  const icon = icons[toolName] || '⚙️';
+  card.innerHTML = `
+    <div class="tool-name"><span class="icon">${icon}</span><strong>${escHtml(toolName)}</strong></div>
+    <div class="tool-io">
+      <details>
+        <summary>input / output</summary>
+        <pre>${escHtml(JSON.stringify({input, output}, null, 2))}</pre>
+      </details>
+    </div>
+  `;
+}
+
+function appendError(msg) {
+  const div = document.createElement('div');
+  div.className = 'error-msg';
+  div.textContent = '⚠ ' + msg;
+  el('messages').appendChild(div);
+  scrollBottom();
+}
+
+// ── Send message ───────────────────────────────────────────────────────────
+
+let sending = false;
+
+async function sendMessage() {
+  if (sending) return;
+  const input = el('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  sending = true;
+  input.value = '';
+  input.style.height = '44px';
+  el('send-btn').disabled = true;
+
+  appendUserBubble(text);
+
+  if (activePhase === 'phase4') {
+    await sendStreaming(text);
+  } else {
+    await sendBatch(text);
+  }
+
+  sending = false;
+  el('send-btn').disabled = false;
+  input.focus();
+}
+
+async function sendBatch(text) {
+  const typingRow = appendTyping();
+
+  try {
+    const res = await fetch(`${API}/api/chat`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ session_id: sessionId(), message: text, mode: activePhase }),
+    });
+    removeTyping();
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    for (const evt of (data.tool_events || [])) {
+      appendToolCard(evt.name, evt.input, evt.output);
+    }
+    appendBotBubble(data.reply);
+  } catch (e) {
+    removeTyping();
+    appendError(e.message);
+  }
+}
+
+async function sendStreaming(text) {
+  // Show typing indicator until first token
+  const typingRow = appendTyping();
+  let bubble = null;
+  let firstToken = true;
+  const pendingToolCards = new Map(); // tool_name → card element (for start → result pairing)
+
+  try {
+    const res = await fetch(`${API}/api/chat/stream`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ session_id: sessionId(), message: text }),
+    });
+
+    if (!res.ok) {
+      removeTyping();
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+
+      // Parse SSE frames
+      const frames = buf.split('\n\n');
+      buf = frames.pop(); // last incomplete frame stays in buffer
+
+      for (const frame of frames) {
+        if (!frame.trim()) continue;
+        const lines = frame.split('\n');
+        let eventType = 'message';
+        let dataStr = '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+          else if (line.startsWith('data: ')) dataStr = line.slice(6).trim();
+        }
+        if (!dataStr) continue;
+        let data;
+        try { data = JSON.parse(dataStr); } catch { continue; }
+
+        if (eventType === 'tool_start') {
+          // Show a "running…" card immediately
+          const card = appendToolStart(data.name);
+          pendingToolCards.set(data.name, card);
+        } else if (eventType === 'tool_result') {
+          // Update the pending card for this tool, or create a new one
+          const card = pendingToolCards.get(data.name);
+          if (card) {
+            updateToolCard(card, data.input, data.output);
+            pendingToolCards.delete(data.name);
+          } else {
+            appendToolCard(data.name, data.input, data.output);
+          }
+        } else if (eventType === 'token') {
+          if (firstToken) {
+            removeTyping();
+            bubble = appendStreamingBubble();
+            firstToken = false;
+          }
+          if (bubble) {
+            bubble.textContent += data.text;
+            scrollBottom();
+          }
+        } else if (eventType === 'done') {
+          if (bubble) bubble.classList.remove('streaming-bubble');
+        } else if (eventType === 'error') {
+          removeTyping();
+          appendError(data.message);
+        }
+      }
+    }
+  } catch (e) {
+    removeTyping();
+    appendError(e.message);
+  }
+}
+
+// ── Input auto-resize + enter key ─────────────────────────────────────────
+
+const chatInput = el('chat-input');
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = '44px';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + 'px';
+});
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+el('send-btn').addEventListener('click', sendMessage);
+
+// ── Compare ───────────────────────────────────────────────────────────────
+
+const PHASE_META = {
+  phase1: {
+    label: 'Phase 1',
+    badgeClass: 'badge-p1',
+    capability: 'Keyword retrieval',
+  },
+  phase2: {
+    label: 'Phase 2',
+    badgeClass: 'badge-p2',
+    capability: 'Hybrid RAG (FTS + embeddings)',
+  },
+  phase3: {
+    label: 'Phase 3',
+    badgeClass: 'badge-p3',
+    capability: 'Claude agent tool loop',
+  },
+};
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    el('compare-input').value = chip.dataset.query;
+    runCompare();
+  });
+});
+
+el('compare-btn').addEventListener('click', runCompare);
+el('compare-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runCompare();
+});
+
+async function runCompare() {
+  const query = el('compare-input').value.trim();
+  if (!query) return;
+
+  const area = el('compare-cards-area');
+  area.innerHTML = `<div class="compare-spinner"><div class="spinner"></div><span>Running all three phases…</span></div>`;
+  el('compare-btn').disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/compare`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ message: query }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    area.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'compare-cards';
+
+    for (const phase of ['phase1', 'phase2', 'phase3']) {
+      const result = data[phase];
+      const meta = PHASE_META[phase];
+      grid.appendChild(buildPhaseCard(phase, meta, result));
+    }
+
+    area.appendChild(grid);
+  } catch (e) {
+    area.innerHTML = `<div class="compare-placeholder"><span class="icon">⚠</span><span>${escHtml(e.message)}</span></div>`;
+  } finally {
+    el('compare-btn').disabled = false;
+  }
+}
+
+function buildPhaseCard(phase, meta, result) {
+  const card = document.createElement('div');
+  card.className = 'phase-card';
+
+  const toolEvents = result.tool_events || [];
+  const toolsHtml = buildToolsHtml(toolEvents);
+
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="phase-badge ${meta.badgeClass}">${escHtml(meta.label)}</span>
+      <span class="capability-label">${escHtml(meta.capability)}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-reply">${escHtml(result.reply || '(no reply)')}</div>
+      ${toolsHtml}
+    </div>
+  `;
+  return card;
+}
+
+function buildToolsHtml(toolEvents) {
+  if (!toolEvents.length) {
+    return `<div class="card-tools"><div class="card-tools-label">Tools</div><div class="no-tools">No tools used</div></div>`;
+  }
+
+  const icons = { lookup_order: '🔍', request_refund: '💸', search_knowledge_base: '📚', create_ticket: '🎫' };
+
+  const items = toolEvents.map(evt => {
+    const icon = icons[evt.name] || '⚙️';
+    // Extract retrieval score if this is a knowledge search
+    let scoreBadge = '';
+    if (evt.name === 'search_knowledge_base') {
+      const matches = evt.output?.matches || [];
+      if (matches.length && matches[0].score != null) {
+        const score = typeof matches[0].score === 'number'
+          ? matches[0].score.toFixed(3)
+          : matches[0].score;
+        scoreBadge = `<span class="score-badge">score ${score}</span>`;
+      }
+    }
+    return `
+      <div class="card-tool-item">
+        <div class="card-tool-name">${icon} <strong>${escHtml(evt.name)}</strong>${scoreBadge}</div>
+        <details>
+          <summary style="font-size:11px;color:var(--text-muted);cursor:pointer">input / output</summary>
+          <pre style="margin-top:4px;padding:4px 6px;background:var(--surface2);border-radius:4px;white-space:pre-wrap;word-break:break-word;font-family:monospace;font-size:11px;color:var(--text)">${escHtml(JSON.stringify({input: evt.input, output: evt.output}, null, 2))}</pre>
+        </details>
+      </div>
+    `;
+  }).join('');
+
+  return `<div class="card-tools"><div class="card-tools-label">Tools</div>${items}</div>`;
+}
+</script>
+</body>
+</html>
