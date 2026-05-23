@@ -24,6 +24,8 @@ class KnowledgeDocument:
     title: str
     category: str
     content: str
+    doc_type: str = "guide"  # 'policy' | 'guide' | 'faq'
+    date_updated: str | None = None  # ISO date string, e.g. "2024-01-15"
 
 
 @dataclass
@@ -193,6 +195,22 @@ def import_orders_to_postgres(
     return len(rows)
 
 
+def _derive_doc_type(stem: str) -> str:
+    if "policy" in stem:
+        return "policy"
+    if "faq" in stem:
+        return "faq"
+    return "guide"
+
+
+def _extract_date_updated(raw: str) -> str | None:
+    """Read optional frontmatter line: `<!-- date_updated: 2024-01-15 -->`"""
+    import re
+
+    match = re.search(r"<!--\s*date_updated:\s*(\d{4}-\d{2}-\d{2})\s*-->", raw)
+    return match.group(1) if match else None
+
+
 def load_knowledge_documents(knowledge_dir: str) -> list[KnowledgeDocument]:
     base = Path(knowledge_dir)
     documents: list[KnowledgeDocument] = []
@@ -202,18 +220,41 @@ def load_knowledge_documents(knowledge_dir: str) -> list[KnowledgeDocument]:
         title = lines[0].removeprefix("# ").strip() if lines else path.stem.replace("-", " ")
         content = "\n".join(line for line in lines[1:]).strip()
         category = "policy" if "policy" in path.stem else "product"
+        doc_type = _derive_doc_type(path.stem)
+        date_updated = _extract_date_updated(raw)
         documents.append(
             KnowledgeDocument(
                 id=path.stem,
                 title=title,
                 category=category,
                 content=content,
+                doc_type=doc_type,
+                date_updated=date_updated,
             )
         )
     return documents
 
 
 def chunk_knowledge_documents(
+    documents: list[KnowledgeDocument],
+    target_chunk_size: int = 220,
+    strategy: str = "fixed",
+) -> list[KnowledgeChunk]:
+    """Chunk documents using the given strategy.
+
+    strategy="fixed"    — paragraph-accumulation up to target_chunk_size chars (original)
+    strategy="semantic" — one sentence-boundary chunk per paragraph; never merges across
+                          paragraph boundaries, preserving natural topic breaks
+    """
+    if strategy == "semantic":
+        return _chunk_semantic(documents)
+    return _chunk_fixed(documents, target_chunk_size)
+
+
+# Current strategy: accumulate paragraphs until target_chunk_size chars
+# Parameters: target_chunk_size=220 chars, paragraph delimiter="\n"
+# Overlap: none
+def _chunk_fixed(
     documents: list[KnowledgeDocument],
     target_chunk_size: int = 220,
 ) -> list[KnowledgeChunk]:
@@ -223,7 +264,12 @@ def chunk_knowledge_documents(
         current_parts: list[str] = []
         current_length = 0
         chunk_index = 0
+        current_section = document.title
         for paragraph in paragraphs:
+            # Track section headers (## Sub-section) to populate source_section
+            if paragraph.startswith("## "):
+                current_section = paragraph.removeprefix("## ").strip()
+                continue
             projected = current_length + len(paragraph) + (1 if current_parts else 0)
             if current_parts and projected > target_chunk_size:
                 chunk_index += 1
@@ -232,7 +278,13 @@ def chunk_knowledge_documents(
                     KnowledgeChunk(
                         document_id=document.id,
                         chunk_text=chunk_text,
-                        metadata={"chunk_index": str(chunk_index), "category": document.category},
+                        metadata={
+                            "chunk_index": str(chunk_index),
+                            "category": document.category,
+                            "doc_type": document.doc_type,
+                            "source_section": current_section,
+                            "chunk_strategy": "fixed",
+                        },
                     )
                 )
                 current_parts = [paragraph]
@@ -246,26 +298,127 @@ def chunk_knowledge_documents(
                 KnowledgeChunk(
                     document_id=document.id,
                     chunk_text=" ".join(current_parts).strip(),
-                    metadata={"chunk_index": str(chunk_index), "category": document.category},
+                    metadata={
+                        "chunk_index": str(chunk_index),
+                        "category": document.category,
+                        "doc_type": document.doc_type,
+                        "source_section": current_section,
+                        "chunk_strategy": "fixed",
+                    },
                 )
             )
     return chunks
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split text into sentences on '. ', '? ', '! ' boundaries."""
+    import re
+
+    parts = re.split(r"(?<=[.?!])\s+", text.strip())
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _chunk_semantic(documents: list[KnowledgeDocument]) -> list[KnowledgeChunk]:
+    """Each paragraph becomes its own chunk, preserving natural topic boundaries.
+
+    If a paragraph contains multiple sentences, each sentence is kept together
+    as a single chunk (no cross-paragraph merging).
+    """
+    chunks: list[KnowledgeChunk] = []
+    for document in documents:
+        paragraphs = [part.strip() for part in document.content.split("\n") if part.strip()]
+        chunk_index = 0
+        current_section = document.title
+        for paragraph in paragraphs:
+            if paragraph.startswith("## "):
+                current_section = paragraph.removeprefix("## ").strip()
+                continue
+            chunk_index += 1
+            chunks.append(
+                KnowledgeChunk(
+                    document_id=document.id,
+                    chunk_text=paragraph,
+                    metadata={
+                        "chunk_index": str(chunk_index),
+                        "category": document.category,
+                        "doc_type": document.doc_type,
+                        "source_section": current_section,
+                        "chunk_strategy": "semantic",
+                    },
+                )
+            )
+    return chunks
+
+
+def deduplicate_chunks(
+    chunks: list[KnowledgeChunk],
+    embeddings: list[list[float]],
+    threshold: float = 0.95,
+) -> tuple[list[KnowledgeChunk], list[list[float]], int]:
+    """Remove near-duplicate chunks where cosine similarity >= threshold.
+
+    Runs at index time so duplicates never enter the database.
+    Returns (kept_chunks, kept_embeddings, n_dropped).
+    """
+    if not chunks:
+        return chunks, embeddings, 0
+
+    import math
+
+    def cosine(a: list[float], b: list[float]) -> float:
+        dot = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(x * x for x in b))
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        return dot / (norm_a * norm_b)
+
+    kept_indices: list[int] = []
+    for i, emb in enumerate(embeddings):
+        is_dup = False
+        for j in kept_indices:
+            if cosine(emb, embeddings[j]) >= threshold:
+                is_dup = True
+                break
+        if not is_dup:
+            kept_indices.append(i)
+
+    n_dropped = len(chunks) - len(kept_indices)
+    return (
+        [chunks[i] for i in kept_indices],
+        [embeddings[i] for i in kept_indices],
+        n_dropped,
+    )
+
+
+def _voyage_embed_with_retry(client, texts: list[str], input_type: str) -> list[list[float]]:
+    import time
+
+    import voyageai
+
+    for attempt in range(5):
+        try:
+            result = client.embed(texts, model="voyage-3-lite", input_type=input_type)
+            return result.embeddings
+        except voyageai.error.RateLimitError:
+            wait = 22 * (attempt + 1)
+            print(f"  Voyage rate limit — waiting {wait}s (attempt {attempt + 1}/5)...", flush=True)
+            time.sleep(wait)
+    raise RuntimeError("Voyage rate limit persists after 5 retries")
 
 
 def embed_texts(texts: list[str], api_key: str) -> list[list[float]]:
     import voyageai
 
     client = voyageai.Client(api_key=api_key)
-    result = client.embed(texts, model="voyage-3-lite", input_type="document")
-    return result.embeddings
+    return _voyage_embed_with_retry(client, texts, "document")
 
 
 def embed_queries(texts: list[str], api_key: str) -> list[list[float]]:
     import voyageai
 
     client = voyageai.Client(api_key=api_key)
-    result = client.embed(texts, model="voyage-3-lite", input_type="query")
-    return result.embeddings
+    return _voyage_embed_with_retry(client, texts, "query")
 
 
 def embed_query(text: str, api_key: str) -> list[float]:
@@ -280,25 +433,34 @@ def import_knowledge_to_postgres(
     database_url: str,
     knowledge_dir: str,
     voyage_api_key: str | None = None,
+    chunk_strategy: str = "fixed",
 ) -> dict[str, int]:
     import json
 
     import psycopg
 
     documents = load_knowledge_documents(knowledge_dir)
-    chunks = chunk_knowledge_documents(documents)
+    chunks = chunk_knowledge_documents(documents, strategy=chunk_strategy)
 
     embeddings: list[list[float]] | None = None
+    n_dropped = 0
     if voyage_api_key:
         embeddings = embed_texts([c.chunk_text for c in chunks], api_key=voyage_api_key)
+        chunks, embeddings, n_dropped = deduplicate_chunks(chunks, embeddings)
+        if n_dropped:
+            import sys
+
+            print(f"  deduplication: dropped {n_dropped} near-duplicate chunk(s)", file=sys.stderr)
 
     document_query = """
-        insert into knowledge_documents (id, title, category, content)
-        values (%s, %s, %s, %s)
+        insert into knowledge_documents (id, title, category, content, doc_type, date_updated)
+        values (%s, %s, %s, %s, %s, %s)
         on conflict (id) do update set
             title = excluded.title,
             category = excluded.category,
-            content = excluded.content
+            content = excluded.content,
+            doc_type = excluded.doc_type,
+            date_updated = excluded.date_updated
     """
     delete_chunks_query = "delete from knowledge_chunks where document_id = %s"
     chunk_query = """
@@ -322,7 +484,14 @@ def import_knowledge_to_postgres(
             for document in documents:
                 cur.execute(
                     document_query,
-                    (document.id, document.title, document.category, document.content),
+                    (
+                        document.id,
+                        document.title,
+                        document.category,
+                        document.content,
+                        document.doc_type,
+                        document.date_updated,
+                    ),
                 )
                 cur.execute(delete_chunks_query, (document.id,))
                 doc_chunks = chunks_by_document[document.id]
@@ -344,4 +513,4 @@ def import_knowledge_to_postgres(
                             chunk_query_no_embedding,
                             (chunk.document_id, chunk.chunk_text, json.dumps(chunk.metadata)),
                         )
-    return {"documents": len(documents), "chunks": len(chunks)}
+    return {"documents": len(documents), "chunks": len(chunks), "dropped_duplicates": n_dropped}

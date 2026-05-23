@@ -1,0 +1,212 @@
+[
+  {
+    "id": "q01",
+    "category": "refund",
+    "query": "How do I request a refund?",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["30 days", "refund", "order ID", "reason", "delivered"]
+  },
+  {
+    "id": "q02",
+    "category": "refund",
+    "query": "My item arrived damaged, can I get my money back?",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["refund", "damaged", "30 days", "eligible"]
+  },
+  {
+    "id": "q03",
+    "category": "refund",
+    "query": "What is the deadline to return something?",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["30 days", "delivery", "refund"]
+  },
+  {
+    "id": "q04",
+    "category": "refund",
+    "query": "Can I get a refund if the product is defective?",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["defective", "refund", "eligible", "30 days"]
+  },
+  {
+    "id": "q05",
+    "category": "refund",
+    "query": "I received the wrong item, what do I do?",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["incorrect", "refund", "30 days", "order ID"]
+  },
+  {
+    "id": "q06",
+    "category": "shipping",
+    "query": "How long does delivery take?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["3", "7", "business days", "standard delivery"]
+  },
+  {
+    "id": "q07",
+    "category": "shipping",
+    "query": "When will my order ship?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["2 business days", "ship", "shipment"]
+  },
+  {
+    "id": "q08",
+    "category": "shipping",
+    "query": "My package is late, what should I do?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["delayed", "tracking", "check tracking"]
+  },
+  {
+    "id": "q09",
+    "category": "shipping",
+    "query": "How quickly do you process and send orders?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["2 business days", "ship", "process"]
+  },
+  {
+    "id": "q10",
+    "category": "shipping",
+    "query": "What is your shipping timeframe?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["3", "7", "business days", "standard"]
+  },
+  {
+    "id": "q11",
+    "category": "product",
+    "query": "How long does the headphone battery last?",
+    "expected_source_title": "Noise-cancelling headphones guide",
+    "acceptable_answer_keywords": ["30 hours", "battery", "charge"]
+  },
+  {
+    "id": "q12",
+    "category": "product",
+    "query": "Does the headset support Bluetooth?",
+    "expected_source_title": "Noise-cancelling headphones guide",
+    "acceptable_answer_keywords": ["Bluetooth", "5.3", "wireless"]
+  },
+  {
+    "id": "q13",
+    "category": "product",
+    "query": "Can I use the headphones with a cable instead of Bluetooth?",
+    "expected_source_title": "Noise-cancelling headphones guide",
+    "acceptable_answer_keywords": ["wired", "audio mode", "cable", "Bluetooth"]
+  },
+  {
+    "id": "q14",
+    "category": "product",
+    "query": "Do the headphones cancel background noise?",
+    "expected_source_title": "Noise-cancelling headphones guide",
+    "acceptable_answer_keywords": ["noise cancellation", "active noise", "ANC"]
+  },
+  {
+    "id": "q15",
+    "category": "product",
+    "query": "How much liquid does the portable blender hold?",
+    "expected_source_title": "Portable blender guide",
+    "acceptable_answer_keywords": ["400ml", "jar", "capacity"]
+  },
+  {
+    "id": "q16",
+    "category": "product",
+    "query": "How do I charge the blender?",
+    "expected_source_title": "Portable blender guide",
+    "acceptable_answer_keywords": ["USB-C", "charging", "charge"]
+  },
+  {
+    "id": "q17",
+    "category": "product",
+    "query": "My blender won't turn on, what should I check?",
+    "expected_source_title": "Portable blender guide",
+    "acceptable_answer_keywords": ["lid", "safety lock", "lid alignment", "secured"]
+  },
+  {
+    "id": "q18",
+    "category": "product",
+    "query": "Is there a safety feature on the blender?",
+    "expected_source_title": "Portable blender guide",
+    "acceptable_answer_keywords": ["safety lock", "lid", "secured", "blending"]
+  },
+  {
+    "id": "q19",
+    "category": "order",
+    "query": "Where is my order?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": ["order ID", "look up", "status", "provide"]
+  },
+  {
+    "id": "q20",
+    "category": "order",
+    "query": "Can you check the status of my package?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": ["order ID", "look up", "status"]
+  },
+  {
+    "id": "q21",
+    "category": "refund",
+    "query": "I want a refund but my order hasn't arrived yet",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["delivered", "wait", "delivery confirmed", "not delivered"]
+  },
+  {
+    "id": "q22",
+    "category": "shipping",
+    "query": "Do you ship internationally?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q23",
+    "category": "off-topic",
+    "query": "What is the capital of France?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q24",
+    "category": "off-topic",
+    "query": "Can you write me a poem?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q25",
+    "category": "multi-intent",
+    "query": "My headphones stopped working and I want a refund, the order arrived last week",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["refund", "order ID", "30 days", "delivered"]
+  },
+  {
+    "id": "q26",
+    "category": "multi-intent",
+    "query": "How long does shipping take and what is your refund policy?",
+    "expected_source_title": "Shipping policy",
+    "acceptable_answer_keywords": ["business days", "refund", "30 days", "shipping"]
+  },
+  {
+    "id": "q27",
+    "category": "product",
+    "query": "What wireless technology does the headset use?",
+    "expected_source_title": "Noise-cancelling headphones guide",
+    "acceptable_answer_keywords": ["Bluetooth", "5.3", "wireless"]
+  },
+  {
+    "id": "q28",
+    "category": "refund",
+    "query": "Give me a refund",
+    "expected_source_title": "Refund policy",
+    "acceptable_answer_keywords": ["order ID", "reason", "refund"]
+  },
+  {
+    "id": "q29",
+    "category": "unanswerable",
+    "query": "What is the warranty period for the blender motor?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q30",
+    "category": "unanswerable",
+    "query": "Do you offer price matching?",
+    "expected_source_title": null,
+    "acceptable_answer_keywords": []
+  }
+]

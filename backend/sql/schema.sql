@@ -14,7 +14,9 @@ create table if not exists knowledge_documents (
     id text primary key,
     title text not null,
     category text not null,
-    content text not null
+    content text not null,
+    doc_type text not null default 'guide',  -- 'policy' | 'guide' | 'faq'
+    date_updated date null                   -- last known content revision date
 );
 
 -- embedding column uses 512 dims (voyage-3-lite)
