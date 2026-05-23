@@ -39,6 +39,9 @@ def main() -> None:
     import_knowledge.add_argument("--knowledge-dir", default="./backend/knowledge")
     import_knowledge.add_argument("--database-url")
     import_knowledge.add_argument("--voyage-api-key")
+    import_knowledge.add_argument(
+        "--chunk-strategy", default="semantic", choices=["fixed", "semantic"]
+    )
 
     args = parser.parse_args()
 
@@ -83,9 +86,11 @@ def main() -> None:
             database_url=database_url,
             knowledge_dir=args.knowledge_dir,
             voyage_api_key=voyage_api_key,
+            chunk_strategy=args.chunk_strategy,
         )
         print(f"imported_documents={result['documents']}")
         print(f"imported_chunks={result['chunks']}")
+        print(f"dropped_duplicates={result.get('dropped_duplicates', 0)}")
         if voyage_api_key:
             print("embeddings=generated")
 

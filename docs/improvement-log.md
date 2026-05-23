@@ -4,6 +4,72 @@ Use this file after each release. Keep it short and honest.
 
 ---
 
+## Phase 5 — Evaluation & Retrieval Showcase
+
+### Release
+
+- Version: `v0.5.0-evaluation`
+- Date: 2026-05-23
+
+### What changed
+
+- Added: `backend/eval/queries.json` — 30 labeled queries across 7 categories (refund, shipping, product, order, multi-intent, off-topic, unanswerable); each row has `expected_source_title` and `acceptable_answer_keywords`
+- Added: `backend/eval/run.py` — full eval runner with `--mode`, `--all-modes`, `--chunking-audit` flags; metrics: precision@3, recall@3, context relevance, latency p50/p95, estimated Voyage cost; writes structured JSON to `backend/eval/results/`
+- Added: `chunk_strategy` param on `chunk_knowledge_documents` and `import_knowledge_to_postgres` — `"fixed"` (220-char accumulation) and `"semantic"` (one paragraph per chunk)
+- Added: `plans/decisions/chunking.md` — decision doc for fixed vs semantic chunking; benchmark via `--chunking-audit`
+- Added: `backend/sql/migrate_5c_metadata.sql` — adds `doc_type`, `date_updated` to `knowledge_documents`; GIN index on `metadata->>'category'`
+- Added: `deduplicate_chunks()` in `data_loader.py` — drops near-duplicate chunks (cosine similarity ≥ 0.95) at index time; logs count to stderr; returned in import result dict
+- Added: `enable_reranking` and `enable_metadata_filter` flags on `PostgresRepository` — Voyage `rerank-2-lite` as post-retrieval step; keyword-based `_infer_category()` for pre-filtering; both off by default, toggled per eval mode
+- Added: `_extract_sources()` in `agent.py` — collects cited source titles from `search_knowledge_base` tool events; suppresses scores < 0.15; attaches `sources` array to every API response and SSE `done` event
+- Added: source chips in `frontend/index.html` — purple chips rendered below each bot reply showing title and score
+- Added: `backend/app/eval_dashboard.py` — server-side HTML generator reading `backend/eval/results/` JSON files
+- Added: `GET /eval` route on FastAPI — color-coded summary table, p50/p95 latency bar chart, per-query drill-down for best mode
+- Improved: `KnowledgeDocument` carries `doc_type` and `date_updated`; every chunk JSONB metadata includes `doc_type`, `source_section`, `chunk_strategy`
+- Improved: eval modes expanded to `keyword`, `fulltext`, `hybrid`, `hybrid+rerank`, `hybrid+rerank+filter`
+
+### Why it matters
+
+- User impact: every bot response now shows which source documents were used; source chips give transparent grounding, not a black-box answer
+- Engineering impact: retrieval quality is now a number, not a demo — `--all-modes` produces a side-by-side comparison table; the `/eval` dashboard makes regressions visible before they ship; deduplication keeps the index clean across re-imports
+
+### What is still weak
+
+- Session memory is still in-process — server restart loses all sessions
+- Answer correctness metric requires a running Claude API call per query to be meaningful; current implementation is keyword-overlap only
+- Eval covers retrieval quality, not end-to-end agent quality (tool selection, multi-step correctness)
+
+---
+
+## Phase 4 — Streaming Product Experience
+
+### Release
+
+- Version: `v0.4.0-streaming-ui`
+- Date: 2026-05-23
+
+### What changed
+
+- Added: `POST /api/chat/stream` — SSE endpoint that emits `tool_start`, `tool_result`, `token`, `done`, `error` events as the agent loop runs
+- Added: `POST /api/compare` — runs phase1, phase2, phase3 concurrently via `asyncio.gather` and returns all three responses in one call
+- Added: `frontend/index.html` — single-file chat UI with Chat tab (streaming) and Compare tab (three-column phase comparison); no build tooling
+- Added: `mode` param on `POST /api/chat` — switches between `phase1`, `phase2`, `phase3`, `phase4` without restarting the server
+- Added: `_repo_for_mode` in `agent.py` — selects the right repository (in-memory vs Postgres+Voyage) based on mode
+- Added: CORS middleware so the HTML file can talk to the API from any origin
+- Added: 17 tests covering all phase modes, compare endpoint, and SSE event format
+
+### Why it matters
+
+- User impact: tool activity is now visible as it happens — users see lookup_order and request_refund cards appear before the reply arrives; perceived latency on multi-tool queries drops significantly
+- Engineering impact: phase comparison is a single API call; any query can be run against all three retrieval and routing strategies simultaneously; the compare tab makes the cumulative improvement visible in one view
+
+### What is still weak
+
+- Session memory is still in-process — server restart loses all sessions
+- Compare tab runs phase1/2/3 only; phase4 streaming doesn't participate by design (compare needs synchronous responses)
+- No evaluation layer — improvements across phases are demonstrated by example, not measured
+
+---
+
 ## Phase 3 — Agent Tool Loop
 
 ### Release

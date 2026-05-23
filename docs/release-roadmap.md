@@ -79,33 +79,95 @@ What remains weak:
 
 ---
 
-## `v0.4.0-streaming-ui` — Next
+## `v0.4.0-streaming-ui` ✅ Complete
 
-Improve the product feel:
+Improved the product feel:
 
-- Frontend chat interface
-- Streaming output (SSE or WebSocket)
-- Tool activity timeline visible in the UI
-- Better UX states (loading, error, escalation)
+- `POST /api/chat/stream` — SSE streaming with `tool_start`, `tool_result`, `token`, `done`, `error` events
+- `POST /api/compare` — runs phase1, phase2, phase3 concurrently and returns all three in one call
+- `frontend/index.html` — single-file Chat UI (streaming) + Compare tab (three-column phase comparison)
+- `mode` param on every request — switch phase without restarting the server
+- CORS middleware; 17 new tests covering all modes and SSE format
 
-Success signals:
+What improved:
 
-- First token appears in under 500ms for a single-tool query
-- Tool calls are visible as they happen, not revealed after the fact
-- The project feels like a coherent product, not an API
+- Tool activity visible as it executes, not only in the final JSON response
+- Compare tab makes the cumulative improvement across phases visible in one query
+- Project feels like a product, not a raw API
+
+What remains weak:
+
+- Session memory still in-process — lost on server restart
+- No evaluation layer — improvements demonstrated by example, not measured systematically
 
 ---
 
-## `v0.5.0-showcase-and-evaluation`
+## `v0.5.0-evaluation` ✅ Complete
 
-Add the educational layer and make each upgrade measurable:
+Made retrieval quality measurable and every upgrade justifiable with numbers:
 
-- Side-by-side retrieval comparison UI (keyword vs hybrid)
-- Repeatable evaluation query set with ground-truth labels
-- Score deltas between phases measured and displayed
-- The repo explains what changed, why it matters, and what comes next
+**5a — Ground truth dataset**
+- `backend/eval/queries.json`: 30 labeled queries across 7 categories
 
-Success signals:
+**5b — Chunking strategy audit**
+- `"fixed"` (220-char accumulation) vs `"semantic"` (one paragraph per chunk)
+- `python -m backend.eval.run --chunking-audit` benchmarks both, writes to `backend/eval/results/`
+- Decision recorded in `plans/decisions/chunking.md`
 
-- A new reader can understand the full system evolution from the README alone
-- Evaluation scores improve monotonically Phase 1 → Phase 2 → Phase 3
+**5c — Metadata enrichment**
+- `doc_type`, `source_section`, `chunk_strategy` in every chunk JSONB metadata
+- `date_updated` on `knowledge_documents`; GIN index on `metadata->>'category'`
+- Migration: `backend/sql/migrate_5c_metadata.sql`
+
+**5d — Deduplication**
+- `deduplicate_chunks()` in `data_loader.py` drops near-duplicates (cosine ≥ 0.95) at index time
+- Count logged and returned in import result
+
+**5e — Advanced retrieval**
+- Voyage `rerank-2-lite` reranking as post-retrieval step (`enable_reranking` flag)
+- Keyword-based category pre-filtering (`enable_metadata_filter` flag)
+- Both off by default, toggled per eval mode
+
+**5f — Citation grounding**
+- `sources` array on every API response and SSE `done` event; scores < 0.15 suppressed
+- Source chips rendered below each bot reply in the UI
+
+**5g/5h — Full metrics + A/B runner**
+- Precision@3, Recall@3, context relevance, latency p50/p95, estimated Voyage cost
+- `python -m backend.eval.run --all-modes` runs all 5 modes and prints comparison table
+- Per-mode JSON in `backend/eval/results/`
+
+**5i — Eval dashboard**
+- `GET /eval` on FastAPI — color-coded summary table, latency bar chart, per-query drill-down
+
+What remains weak:
+
+- Session memory still in-process
+- Answer correctness is keyword-overlap only; LLM-judge scoring deferred
+- Eval covers retrieval quality, not end-to-end agent quality
+
+---
+
+## `v0.6.0-data-benchmark` — Planned
+
+Make every improvement data-backed: committed benchmark numbers, LLM-judge correctness scoring, agent quality fixtures, and a CI regression gate. The goal is a repo where readers see actual metric deltas, not prose claims.
+
+**6a — Baseline benchmark run**
+- Run `--all-modes` against live Supabase+Voyage stack; commit raw JSON results
+- Generate `docs/benchmark.md` — a markdown comparison table readers can inspect
+- This becomes the "before" every future change is measured against
+
+**6b — LLM-judge answer correctness**
+- Replace keyword-overlap correctness with a Claude API call scoring factual accuracy (0–1)
+- Adds a meaningful correctness column to the benchmark table
+- Flags hallucinations and wrong answers that keyword overlap misses
+
+**6c — Agent quality fixtures**
+- 10–15 scripted multi-turn conversations with expected tool sequences
+- Metrics: tool selection accuracy, unnecessary tool calls, correct refusals on unanswerable queries
+- Closes the gap: retrieval quality ≠ agent quality
+
+**6d — Regression gate**
+- GitHub Actions workflow that runs eval on every PR
+- Fails if any metric drops more than a defined threshold from the committed baseline
+- Turns the benchmark from a one-time snapshot into a living guard

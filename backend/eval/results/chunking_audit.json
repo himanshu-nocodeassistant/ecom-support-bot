@@ -1,0 +1,554 @@
+{
+  "fixed": {
+    "strategy": "fixed",
+    "avg_precision_at_3": 0.1014,
+    "p50_latency_s": 2.175,
+    "chunk_count": 6,
+    "per_query": [
+      {
+        "id": "q01",
+        "query": "How do I request a refund?",
+        "precision_at_3": 0.6667,
+        "latency_s": 2.1096,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Shipping policy"
+        ],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q02",
+        "query": "My item arrived damaged, can I get my money back?",
+        "precision_at_3": 0.6667,
+        "latency_s": 2.4741,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Shipping policy"
+        ],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q03",
+        "query": "What is the deadline to return something?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0783,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q04",
+        "query": "Can I get a refund if the product is defective?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0918,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q05",
+        "query": "I received the wrong item, what do I do?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2248,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q06",
+        "query": "How long does delivery take?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.3682,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q07",
+        "query": "When will my order ship?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.1439,
+        "retrieved_titles": [
+          "Shipping policy"
+        ],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q08",
+        "query": "My package is late, what should I do?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1117,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q09",
+        "query": "How quickly do you process and send orders?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0327,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q10",
+        "query": "What is your shipping timeframe?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.3611,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q11",
+        "query": "How long does the headphone battery last?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.037,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q12",
+        "query": "Does the headset support Bluetooth?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0854,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q13",
+        "query": "Can I use the headphones with a cable instead of Bluetooth?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.175,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q14",
+        "query": "Do the headphones cancel background noise?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2248,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q15",
+        "query": "How much liquid does the portable blender hold?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2742,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q16",
+        "query": "How do I charge the blender?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.5523,
+        "retrieved_titles": [
+          "Portable blender guide"
+        ],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q17",
+        "query": "My blender won't turn on, what should I check?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.6024,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q18",
+        "query": "Is there a safety feature on the blender?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1478,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q19",
+        "query": "Where is my order?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.512,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Shipping policy"
+        ],
+        "expected_title": null
+      },
+      {
+        "id": "q20",
+        "query": "Can you check the status of my package?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.4165,
+        "retrieved_titles": [
+          "Shipping policy"
+        ],
+        "expected_title": null
+      },
+      {
+        "id": "q21",
+        "query": "I want a refund but my order hasn't arrived yet",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1067,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q22",
+        "query": "Do you ship internationally?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0799,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q23",
+        "query": "What is the capital of France?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1356,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q24",
+        "query": "Can you write me a poem?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1787,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q25",
+        "query": "My headphones stopped working and I want a refund, the order arrived last week",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2405,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q26",
+        "query": "How long does shipping take and what is your refund policy?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.1959,
+        "retrieved_titles": [
+          "Shipping policy",
+          "Refund policy",
+          "Refund policy"
+        ],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q27",
+        "query": "What wireless technology does the headset use?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0114,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q28",
+        "query": "Give me a refund",
+        "precision_at_3": 0.0,
+        "latency_s": 2.3267,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q29",
+        "query": "What is the warranty period for the blender motor?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1357,
+        "retrieved_titles": [
+          "Portable blender guide",
+          "Portable blender guide",
+          "Noise-cancelling headphones guide"
+        ],
+        "expected_title": null
+      },
+      {
+        "id": "q30",
+        "query": "Do you offer price matching?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0908,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Shipping policy"
+        ],
+        "expected_title": null
+      }
+    ]
+  },
+  "semantic": {
+    "strategy": "semantic",
+    "avg_precision_at_3": 0.1304,
+    "p50_latency_s": 2.1166,
+    "chunk_count": 12,
+    "per_query": [
+      {
+        "id": "q01",
+        "query": "How do I request a refund?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.2402,
+        "retrieved_titles": [
+          "Refund policy"
+        ],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q02",
+        "query": "My item arrived damaged, can I get my money back?",
+        "precision_at_3": 1.0,
+        "latency_s": 2.1245,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Refund policy"
+        ],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q03",
+        "query": "What is the deadline to return something?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.2802,
+        "retrieved_titles": [
+          "Shipping policy",
+          "Shipping policy",
+          "Refund policy"
+        ],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q04",
+        "query": "Can I get a refund if the product is defective?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0153,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q05",
+        "query": "I received the wrong item, what do I do?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0224,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q06",
+        "query": "How long does delivery take?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.116,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q07",
+        "query": "When will my order ship?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.0117,
+        "retrieved_titles": [
+          "Shipping policy"
+        ],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q08",
+        "query": "My package is late, what should I do?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0978,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q09",
+        "query": "How quickly do you process and send orders?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0493,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q10",
+        "query": "What is your shipping timeframe?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0836,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q11",
+        "query": "How long does the headphone battery last?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1237,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q12",
+        "query": "Does the headset support Bluetooth?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2156,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q13",
+        "query": "Can I use the headphones with a cable instead of Bluetooth?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1238,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q14",
+        "query": "Do the headphones cancel background noise?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1837,
+        "retrieved_titles": [],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q15",
+        "query": "How much liquid does the portable blender hold?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0306,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q16",
+        "query": "How do I charge the blender?",
+        "precision_at_3": 0.3333,
+        "latency_s": 2.116,
+        "retrieved_titles": [
+          "Portable blender guide"
+        ],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q17",
+        "query": "My blender won't turn on, what should I check?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2017,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q18",
+        "query": "Is there a safety feature on the blender?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0679,
+        "retrieved_titles": [],
+        "expected_title": "Portable blender guide"
+      },
+      {
+        "id": "q19",
+        "query": "Where is my order?",
+        "precision_at_3": 0.0,
+        "latency_s": 1.9981,
+        "retrieved_titles": [
+          "Refund policy",
+          "Refund policy",
+          "Shipping policy"
+        ],
+        "expected_title": null
+      },
+      {
+        "id": "q20",
+        "query": "Can you check the status of my package?",
+        "precision_at_3": 0.0,
+        "latency_s": 1.9826,
+        "retrieved_titles": [
+          "Shipping policy"
+        ],
+        "expected_title": null
+      },
+      {
+        "id": "q21",
+        "query": "I want a refund but my order hasn't arrived yet",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2523,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q22",
+        "query": "Do you ship internationally?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.4095,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q23",
+        "query": "What is the capital of France?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.3923,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q24",
+        "query": "Can you write me a poem?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0456,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q25",
+        "query": "My headphones stopped working and I want a refund, the order arrived last week",
+        "precision_at_3": 0.0,
+        "latency_s": 2.0108,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q26",
+        "query": "How long does shipping take and what is your refund policy?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1709,
+        "retrieved_titles": [],
+        "expected_title": "Shipping policy"
+      },
+      {
+        "id": "q27",
+        "query": "What wireless technology does the headset use?",
+        "precision_at_3": 0.6667,
+        "latency_s": 2.1166,
+        "retrieved_titles": [
+          "Noise-cancelling headphones guide",
+          "Noise-cancelling headphones guide",
+          "Portable blender guide"
+        ],
+        "expected_title": "Noise-cancelling headphones guide"
+      },
+      {
+        "id": "q28",
+        "query": "Give me a refund",
+        "precision_at_3": 0.0,
+        "latency_s": 2.099,
+        "retrieved_titles": [],
+        "expected_title": "Refund policy"
+      },
+      {
+        "id": "q29",
+        "query": "What is the warranty period for the blender motor?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.2193,
+        "retrieved_titles": [],
+        "expected_title": null
+      },
+      {
+        "id": "q30",
+        "query": "Do you offer price matching?",
+        "precision_at_3": 0.0,
+        "latency_s": 2.1665,
+        "retrieved_titles": [],
+        "expected_title": null
+      }
+    ]
+  },
+  "winner": "semantic",
+  "decision": "Strategy 'semantic' wins with avg_precision@3=0.130 vs 0.101"
+}

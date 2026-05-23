@@ -429,6 +429,31 @@
   }
   .no-tools { font-size: 13px; color: var(--text-muted); font-style: italic; }
 
+  /* Source chips */
+  .source-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+    margin-left: 40px;
+  }
+  .source-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 20px;
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+  }
+  .source-chip .chip-score {
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+
   .compare-placeholder {
     display: flex;
     flex-direction: column;
@@ -659,6 +684,20 @@ function updateToolCard(card, input, output) {
   `;
 }
 
+function appendSourceChips(sources) {
+  if (!sources || !sources.length) return;
+  const row = document.createElement('div');
+  row.className = 'source-chips';
+  for (const s of sources) {
+    const chip = document.createElement('span');
+    chip.className = 'source-chip';
+    chip.innerHTML = `📄 ${escHtml(s.title)} <span class="chip-score">${s.score.toFixed(2)}</span>`;
+    row.appendChild(chip);
+  }
+  el('messages').appendChild(row);
+  scrollBottom();
+}
+
 function appendError(msg) {
   const div = document.createElement('div');
   div.className = 'error-msg';
@@ -712,6 +751,7 @@ async function sendBatch(text) {
       appendToolCard(evt.name, evt.input, evt.output);
     }
     appendBotBubble(data.reply);
+    appendSourceChips(data.sources);
   } catch (e) {
     removeTyping();
     appendError(e.message);
@@ -788,6 +828,7 @@ async function sendStreaming(text) {
           }
         } else if (eventType === 'done') {
           if (bubble) bubble.classList.remove('streaming-bubble');
+          appendSourceChips(data.sources);
         } else if (eventType === 'error') {
           removeTyping();
           appendError(data.message);

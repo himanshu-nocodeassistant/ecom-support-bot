@@ -233,6 +233,7 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
         "tool_events": [
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
         ],
+        "sources": _extract_sources(tool_events),
         "session_id": session_id,
         "mode": mode,
     }
@@ -352,11 +353,40 @@ async def handle_message_stream(session_id: str, message: str):
             {
                 "session_id": session_id,
                 "tool_count": len(tool_events),
+                "sources": _extract_sources(tool_events),
             },
         )
 
     except Exception as exc:
         yield _sse("error", {"message": str(exc)})
+
+
+def _extract_sources(tool_events: list[ToolEvent]) -> list[dict[str, Any]]:
+    """Collect unique cited sources from search_knowledge_base tool results.
+
+    Returns list of {title, category, score} dicts, sorted by score desc.
+    Sources with score < 0.15 are suppressed (too weak to cite confidently).
+    """
+    seen: set[str] = set()
+    sources: list[dict[str, Any]] = []
+    for evt in tool_events:
+        if evt.name != "search_knowledge_base":
+            continue
+        results = evt.output if isinstance(evt.output, list) else []
+        for r in results:
+            title = r.get("title", "")
+            score = float(r.get("score", 0))
+            if score < 0.15 or title in seen:
+                continue
+            seen.add(title)
+            sources.append(
+                {
+                    "title": title,
+                    "category": r.get("category", ""),
+                    "score": round(score, 4),
+                }
+            )
+    return sorted(sources, key=lambda s: s["score"], reverse=True)
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
@@ -519,6 +549,7 @@ def _handle_message_deterministic(
         "tool_events": [
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
         ],
+        "sources": _extract_sources(tool_events),
         "session_id": session_id,
         "mode": mode,
     }
