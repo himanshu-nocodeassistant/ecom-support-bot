@@ -9,6 +9,7 @@ jobs:
     name: Retrieval & Agent Regression Check
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
 
     env:
