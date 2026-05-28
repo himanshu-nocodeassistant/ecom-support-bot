@@ -1,0 +1,117 @@
+[
+  {
+    "id": "af01",
+    "description": "Order status lookup — single turn",
+    "turns": [
+      {"role": "user", "content": "Where is my order ORD-1001?"}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": false
+  },
+  {
+    "id": "af02",
+    "description": "Refund for delivered order — single turn with order ID",
+    "turns": [
+      {"role": "user", "content": "I want a refund for my order ORD-1002, the headphones are broken."}
+    ],
+    "expected_tools": ["lookup_order", "request_refund"],
+    "should_refuse": false
+  },
+  {
+    "id": "af03",
+    "description": "Refund for undelivered order — should NOT approve refund",
+    "turns": [
+      {"role": "user", "content": "Refund my order ORD-1001 please."}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": true,
+    "refuse_reason": "Order ORD-1001 is not yet delivered; refund should be blocked."
+  },
+  {
+    "id": "af04",
+    "description": "Multi-turn: ask order status, then request refund",
+    "turns": [
+      {"role": "user", "content": "What's the status of ORD-1002?"},
+      {"role": "user", "content": "The headphones stopped working. Can I get a refund?"}
+    ],
+    "expected_tools": ["lookup_order", "request_refund"],
+    "should_refuse": false
+  },
+  {
+    "id": "af05",
+    "description": "Knowledge query — shipping policy",
+    "turns": [
+      {"role": "user", "content": "How long does standard shipping take?"}
+    ],
+    "expected_tools": ["search_knowledge_base"],
+    "should_refuse": false
+  },
+  {
+    "id": "af06",
+    "description": "Knowledge query — refund policy",
+    "turns": [
+      {"role": "user", "content": "What is the deadline to request a refund?"}
+    ],
+    "expected_tools": ["search_knowledge_base"],
+    "should_refuse": false
+  },
+  {
+    "id": "af07",
+    "description": "Knowledge query — product feature",
+    "turns": [
+      {"role": "user", "content": "Does the portable blender have a safety lock?"}
+    ],
+    "expected_tools": ["search_knowledge_base"],
+    "should_refuse": false
+  },
+  {
+    "id": "af08",
+    "description": "Out-of-scope question — should create ticket",
+    "turns": [
+      {"role": "user", "content": "Can I change the delivery address after my order was shipped?"}
+    ],
+    "expected_tools": ["create_ticket"],
+    "should_refuse": true,
+    "refuse_reason": "Address change after shipping is not covered; should escalate."
+  },
+  {
+    "id": "af09",
+    "description": "Order ID recalled across turns — no re-identification needed",
+    "turns": [
+      {"role": "user", "content": "My order is ORD-1002. When did it ship?"},
+      {"role": "user", "content": "And can I return it?"}
+    ],
+    "expected_tools": ["lookup_order", "request_refund"],
+    "should_refuse": false
+  },
+  {
+    "id": "af10",
+    "description": "Refund request without order ID — bot should ask for it",
+    "turns": [
+      {"role": "user", "content": "I'd like to return my headphones and get a refund."}
+    ],
+    "expected_tools": [],
+    "should_refuse": false,
+    "expect_clarification": true
+  },
+  {
+    "id": "af11",
+    "description": "Unknown order ID — should not hallucinate order details",
+    "turns": [
+      {"role": "user", "content": "What is the status of order ORD-9999?"}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": true,
+    "refuse_reason": "ORD-9999 does not exist; bot should report not found, not fabricate details."
+  },
+  {
+    "id": "af12",
+    "description": "Completely off-topic query — should create ticket or politely decline",
+    "turns": [
+      {"role": "user", "content": "What is the capital of France?"}
+    ],
+    "expected_tools": [],
+    "should_refuse": true,
+    "refuse_reason": "Off-topic geography question; bot should not answer and should redirect."
+  }
+]

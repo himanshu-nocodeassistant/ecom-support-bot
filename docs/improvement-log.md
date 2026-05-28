@@ -4,6 +4,36 @@ Use this file after each release. Keep it short and honest.
 
 ---
 
+## Phase 6 — Data-Backed Benchmark
+
+### Release
+
+- Version: `v0.6.0-data-benchmark`
+- Date: 2026-05-23
+
+### What changed
+
+- Added: `--llm-judge` flag on eval runner — calls `claude-haiku-4-5-20251001` as judge per query; scores factual accuracy 0–1; emits `answer_correctness_llm` alongside existing keyword score; records per-query judge cost
+- Added: `--benchmark` flag — generates `docs/benchmark.md` (mode × metric markdown table) after any `--all-modes` run; includes regeneration instructions
+- Added: `backend/eval/agent_fixtures.json` — 12 multi-turn fixtures covering: single-turn lookup, delivered/undelivered refund flows, multi-turn order recall, knowledge queries, off-topic refusals, and clarification requests
+- Added: `python -m backend.eval.run --agent-eval` — runs all agent fixtures against the live Claude tool loop; scores tool selection accuracy, extra tool calls, and refusal correctness
+- Added: `backend/eval/check_regression.py` — compares current results against a committed `baseline.json`; exits 1 if any gated metric drops > 10%; run `--save-baseline` to update the floor after deliberate improvements
+- Added: `backend/eval/thresholds.json` — gated metrics list, per-metric drop tolerance, and best_mode designation
+- Added: `.github/workflows/eval.yml` — runs retrieval eval + agent eval + regression check on every PR to main; posts metric delta as a PR comment; fails CI on regression
+
+### Why it matters
+
+- User impact: regressions in answer quality or tool selection are caught before they ship; readers of the repo see actual numbers, not prose claims
+- Engineering impact: keyword-overlap correctness was blind to hallucinations and factual errors — LLM-judge closes that gap; agent fixture eval measures end-to-end quality (tool selection, refusals, multi-turn recall) that retrieval metrics can't see; CI gate turns the benchmark from a one-time snapshot into a living guard
+
+### What is still weak
+
+- Session memory is still in-process — server restart loses all sessions
+- LLM-judge scores retrieved context, not the full agent-generated reply (agent eval does that path instead)
+- `docs/benchmark.md` is generated from live runs — the repo ships the template and CI populates it; first run must be triggered manually
+
+---
+
 ## Phase 5 — Evaluation & Retrieval Showcase
 
 ### Release

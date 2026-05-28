@@ -1,0 +1,15 @@
+{
+  "_comment": "Regression thresholds for CI gate (6d). A PR fails if any metric drops more than `max_drop` from the committed baseline. Edit after a deliberate improvement to raise the floor.",
+  "regression_max_drop": 0.10,
+  "metrics_to_gate": [
+    "avg_precision_at_3",
+    "avg_recall_at_3",
+    "avg_context_relevance"
+  ],
+  "best_mode": "hybrid+rerank+filter",
+  "agent_metrics_to_gate": [
+    "avg_tool_accuracy",
+    "avg_refusal_accuracy"
+  ],
+  "agent_regression_max_drop": 0.10
+}
