@@ -1,0 +1,204 @@
+{
+  "n_fixtures": 12,
+  "avg_tool_accuracy": 0.9583,
+  "avg_extra_tool_calls": 0.1667,
+  "avg_refusal_accuracy": 0.75,
+  "per_fixture": [
+    {
+      "id": "af01",
+      "description": "Order status lookup \u2014 single turn",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Great! Here's the status of your order **ORD-1001**:\n\n\ud83d\udce6 **Status:** Shipped  \n\ud83d\udcc5 **Shipped Date:** May 18, 2026  \n\ud83c\udfaf **Estimated Delivery:** May 24, 2026  \n\ud83d\udcdd **Item:** Portable blender\n\nYour order is on"
+    },
+    {
+      "id": "af02",
+      "description": "Refund for delivered order \u2014 single turn with order ID",
+      "expected_tools": [
+        "lookup_order",
+        "request_refund"
+      ],
+      "called_tools": [
+        "lookup_order",
+        "request_refund"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Great news! Your refund has been approved. \ud83c\udf89\n\n**Refund Details:**\n- **Order ID:** ORD-1002\n- **Item:** Noise-cancelling headphones\n- **Refund Reference:** RFD-1002\n- **Status:** Approved\n\nThe refund h"
+    },
+    {
+      "id": "af03",
+      "description": "Refund for undelivered order \u2014 should NOT approve refund",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": true,
+      "refusal_correct": true,
+      "final_reply_excerpt": "I can see that your order **ORD-1001** is currently **shipped** and hasn't been delivered yet (estimated delivery: May 24, 2026). \n\nUnfortunately, I can only process refunds for orders that have alrea"
+    },
+    {
+      "id": "af04",
+      "description": "Multi-turn: ask order status, then request refund",
+      "expected_tools": [
+        "lookup_order",
+        "request_refund"
+      ],
+      "called_tools": [
+        "lookup_order",
+        "request_refund"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Perfect! Your refund has been approved! \n\n**Refund Details:**\n- **Refund Reference**: RFD-1002\n- **Original Order**: ORD-1002\n- **Reason**: Headphones stopped working\n\nYou should see the refund credit"
+    },
+    {
+      "id": "af05",
+      "description": "Knowledge query \u2014 shipping policy",
+      "expected_tools": [
+        "search_knowledge_base"
+      ],
+      "called_tools": [
+        "search_knowledge_base"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Based on our shipping policy:\n\n**Standard shipping typically takes 3 to 7 business days after shipment.** Orders usually ship within 2 business days from the time they're placed.\n\nSo in total, you can"
+    },
+    {
+      "id": "af06",
+      "description": "Knowledge query \u2014 refund policy",
+      "expected_tools": [
+        "search_knowledge_base"
+      ],
+      "called_tools": [
+        "search_knowledge_base",
+        "create_ticket"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 1,
+      "extra_tool_names": [
+        "create_ticket"
+      ],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "I've created a support ticket (TCK-GEN) for you. A human agent will follow up with specific details about our refund deadline and policy. Thank you for your patience!"
+    },
+    {
+      "id": "af07",
+      "description": "Knowledge query \u2014 product feature",
+      "expected_tools": [
+        "search_knowledge_base"
+      ],
+      "called_tools": [
+        "search_knowledge_base",
+        "search_knowledge_base"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Great! I found the answer. **Yes, the portable blender does have a safety lock.** It prevents blending when the lid is not secured, so you can blend safely without worrying about the lid coming loose "
+    },
+    {
+      "id": "af08",
+      "description": "Out-of-scope question \u2014 should create ticket",
+      "expected_tools": [
+        "create_ticket"
+      ],
+      "called_tools": [
+        "search_knowledge_base",
+        "create_ticket"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 1,
+      "extra_tool_names": [
+        "search_knowledge_base"
+      ],
+      "should_refuse": true,
+      "refusal_correct": false,
+      "final_reply_excerpt": "I've created a support ticket for you (TCK-GEN). A human agent will review your request and get back to you shortly.\n\nIn the meantime, here's what I can tell you: **Once an order has shipped, it's typ"
+    },
+    {
+      "id": "af09",
+      "description": "Order ID recalled across turns \u2014 no re-identification needed",
+      "expected_tools": [
+        "lookup_order",
+        "request_refund"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 0.5,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Based on your order status, it has already been delivered. To help you with a return, I need to know the reason. Can you tell me why you'd like to return the noise-cancelling headphones? Is there a qu"
+    },
+    {
+      "id": "af10",
+      "description": "Refund request without order ID \u2014 bot should ask for it",
+      "expected_tools": [],
+      "called_tools": [],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "I'd be happy to help you with a refund for your headphones! To get started, I'll need your **order ID**. \n\nDo you have your order ID available? It typically looks something like \"ORD-1001\" or a longer"
+    },
+    {
+      "id": "af11",
+      "description": "Unknown order ID \u2014 should not hallucinate order details",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": true,
+      "refusal_correct": true,
+      "final_reply_excerpt": "I wasn't able to find an order with ID **ORD-9999** in our system. \n\nCould you please double-check the order ID? It might be:\n- A different order number (e.g., ORD-1001, or a longer alphanumeric code)"
+    },
+    {
+      "id": "af12",
+      "description": "Completely off-topic query \u2014 should create ticket or politely decline",
+      "expected_tools": [],
+      "called_tools": [],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": true,
+      "refusal_correct": true,
+      "final_reply_excerpt": "The capital of France is **Paris**. \n\nHowever, I should mention that I'm specifically designed to help with e-commerce customer support for our store\u2014questions about order status, refunds, shipping, a"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "retrieval": {
+    "avg_precision_at_3": 0.087,
+    "avg_recall_at_3": 0.1739,
+    "avg_context_relevance": 0.0,
+    "mode": "hybrid+rerank+filter"
+  },
+  "agent": {
+    "avg_tool_accuracy": 0.9583,
+    "avg_refusal_accuracy": 0.75
+  }
+}
