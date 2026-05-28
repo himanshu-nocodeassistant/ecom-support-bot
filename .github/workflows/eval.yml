@@ -30,18 +30,18 @@ jobs:
         run: pip install -r backend/requirements.txt
 
       - name: Run retrieval eval (best mode)
-        run: |
-          python -m backend.eval.run --mode hybrid+rerank+filter
+        if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != ''
+        run: python -m backend.eval.run --mode hybrid+rerank+filter
 
       - name: Run agent eval
-        run: |
-          python -m backend.eval.run --agent-eval
+        if: env.DATABASE_URL != '' && env.ANTHROPIC_API_KEY != ''
+        run: python -m backend.eval.run --agent-eval
 
       - name: Check for regressions
         id: regression_check
         run: |
-          python -m backend.eval.check_regression 2>&1 | tee regression_output.txt
-          exit ${PIPESTATUS[0]}
+          set -o pipefail
+          python -m backend.eval.check_regression 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
 
       - name: Post metric delta as PR comment
         if: always()
@@ -49,11 +49,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join(process.env.GITHUB_WORKSPACE, 'regression_output.txt');
             let output = '';
             try {
-              output = fs.readFileSync('regression_output.txt', 'utf8');
+              output = fs.readFileSync(filePath, 'utf8');
             } catch (e) {
-              output = 'Could not read regression output.';
+              output = 'Regression check did not run (likely missing DATABASE_URL / API key secrets).';
             }
             const icon = '${{ steps.regression_check.outcome }}' === 'success' ? '✅' : '❌';
             const body = `## ${icon} Eval Regression Check\n\n\`\`\`\n${output}\n\`\`\`\n\n_Run \`python -m backend.eval.run --all-modes --benchmark\` locally to see the full comparison table._`;
