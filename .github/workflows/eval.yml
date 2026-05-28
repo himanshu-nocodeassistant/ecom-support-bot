@@ -1,0 +1,62 @@
+name: Eval Regression Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  eval:
+    name: Retrieval & Agent Regression Check
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VOYAGE_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run retrieval eval (best mode)
+        run: |
+          python -m backend.eval.run --mode hybrid+rerank+filter
+
+      - name: Run agent eval
+        run: |
+          python -m backend.eval.run --agent-eval
+
+      - name: Check for regressions
+        id: regression_check
+        run: |
+          python -m backend.eval.check_regression 2>&1 | tee regression_output.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Post metric delta as PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = '';
+            try {
+              output = fs.readFileSync('regression_output.txt', 'utf8');
+            } catch (e) {
+              output = 'Could not read regression output.';
+            }
+            const icon = '${{ steps.regression_check.outcome }}' === 'success' ? '✅' : '❌';
+            const body = `## ${icon} Eval Regression Check\n\n\`\`\`\n${output}\n\`\`\`\n\n_Run \`python -m backend.eval.run --all-modes --benchmark\` locally to see the full comparison table._`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

@@ -216,43 +216,43 @@ The following techniques were evaluated and deferred — not because they're uni
 
 ### 6a: Baseline Benchmark Run
 
-- [ ] Run `python -m backend.eval.run --all-modes` against live Supabase+Voyage stack
-- [ ] Commit raw JSON results to `backend/eval/results/`
-- [ ] Generate `docs/benchmark.md` — markdown comparison table (mode × metric) committed to repo
-- [ ] This snapshot becomes the regression baseline for all future changes
+- [x] Run `python -m backend.eval.run --all-modes` against live Supabase+Voyage stack
+- [x] Commit raw JSON results to `backend/eval/results/`
+- [x] Generate `docs/benchmark.md` — markdown comparison table (mode × metric) committed to repo
+- [x] This snapshot becomes the regression baseline for all future changes
 
 ---
 
 ### 6b: LLM-Judge Answer Correctness
 
-- [ ] Replace keyword-overlap correctness with a Claude API judge call per query
-- [ ] Prompt: given query + retrieved context + answer, score factual accuracy 0–1
-- [ ] Add `answer_correctness_llm` column alongside existing keyword score for comparison
-- [ ] Record cost per query for the judge call
+- [x] Replace keyword-overlap correctness with a Claude API judge call per query
+- [x] Prompt: given query + retrieved context + answer, score factual accuracy 0–1
+- [x] Add `answer_correctness_llm` column alongside existing keyword score for comparison
+- [x] Record cost per query for the judge call
 
 ---
 
 ### 6c: Agent Quality Fixtures
 
-- [ ] 10–15 scripted multi-turn conversation fixtures with expected tool sequences
-- [ ] Metrics: tool selection accuracy, unnecessary tool calls, correct refusals
-- [ ] Stored as `backend/eval/agent_fixtures.json`
-- [ ] Runner: `python -m backend.eval.run --agent-eval`
+- [x] 10–15 scripted multi-turn conversation fixtures with expected tool sequences
+- [x] Metrics: tool selection accuracy, unnecessary tool calls, correct refusals
+- [x] Stored as `backend/eval/agent_fixtures.json`
+- [x] Runner: `python -m backend.eval.run --agent-eval`
 
 ---
 
 ### 6d: Regression Gate
 
-- [ ] GitHub Actions workflow: runs eval on every PR against main
-- [ ] Fails CI if any metric drops > 10% from committed baseline
-- [ ] Posts metric delta as PR comment
-- [ ] Config: thresholds stored in `backend/eval/thresholds.json`
+- [x] GitHub Actions workflow: runs eval on every PR against main
+- [x] Fails CI if any metric drops > 10% from committed baseline
+- [x] Posts metric delta as PR comment
+- [x] Config: thresholds stored in `backend/eval/thresholds.json`
 
 ---
 
 ### Acceptance criteria
 
-- [ ] `docs/benchmark.md` exists with real numbers from the live stack
-- [ ] Answer correctness uses LLM-judge, not keyword overlap
-- [ ] Agent fixture eval covers ≥ 10 multi-turn scenarios
-- [ ] CI fails on metric regression
+- [x] `docs/benchmark.md` exists with real numbers from the live stack
+- [x] Answer correctness uses LLM-judge, not keyword overlap
+- [x] Agent fixture eval covers ≥ 10 multi-turn scenarios
+- [x] CI fails on metric regression

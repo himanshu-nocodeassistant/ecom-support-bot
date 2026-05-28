@@ -148,26 +148,26 @@ What remains weak:
 
 ---
 
-## `v0.6.0-data-benchmark` — Planned
+## `v0.6.0-data-benchmark` ✅ Complete
 
-Make every improvement data-backed: committed benchmark numbers, LLM-judge correctness scoring, agent quality fixtures, and a CI regression gate. The goal is a repo where readers see actual metric deltas, not prose claims.
+Made every improvement data-backed: committed benchmark numbers, LLM-judge correctness scoring, agent quality fixtures, and a CI regression gate.
 
 **6a — Baseline benchmark run**
-- Run `--all-modes` against live Supabase+Voyage stack; commit raw JSON results
-- Generate `docs/benchmark.md` — a markdown comparison table readers can inspect
-- This becomes the "before" every future change is measured against
+- `--benchmark` flag writes `docs/benchmark.md` — mode × metric table committed to repo
+- `backend/eval/results/baseline.json` — snapshot for regression comparisons
+- `python -m backend.eval.run --all-modes --benchmark` regenerates everything
 
 **6b — LLM-judge answer correctness**
-- Replace keyword-overlap correctness with a Claude API call scoring factual accuracy (0–1)
-- Adds a meaningful correctness column to the benchmark table
-- Flags hallucinations and wrong answers that keyword overlap misses
+- `--llm-judge` flag calls `claude-haiku-4-5-20251001` per query; scores 0–1 factual accuracy
+- `answer_correctness_llm` column alongside existing `answer_correctness_kw`
+- Per-query judge cost tracked in results JSON and benchmark table
 
 **6c — Agent quality fixtures**
-- 10–15 scripted multi-turn conversations with expected tool sequences
-- Metrics: tool selection accuracy, unnecessary tool calls, correct refusals on unanswerable queries
-- Closes the gap: retrieval quality ≠ agent quality
+- `backend/eval/agent_fixtures.json` — 12 multi-turn fixtures
+- Metrics: tool selection accuracy, extra tool calls, refusal correctness
+- `python -m backend.eval.run --agent-eval`
 
 **6d — Regression gate**
-- GitHub Actions workflow that runs eval on every PR
-- Fails if any metric drops more than a defined threshold from the committed baseline
-- Turns the benchmark from a one-time snapshot into a living guard
+- `.github/workflows/eval.yml` — runs on every PR to main
+- `backend/eval/check_regression.py` — exits 1 on >10% drop; posts delta as PR comment
+- `backend/eval/thresholds.json` — configurable per-metric tolerances
