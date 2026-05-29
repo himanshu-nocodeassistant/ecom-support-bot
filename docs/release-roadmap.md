@@ -171,3 +171,24 @@ Made every improvement data-backed: committed benchmark numbers, LLM-judge corre
 - `.github/workflows/eval.yml` — runs on every PR to main
 - `backend/eval/check_regression.py` — exits 1 on >10% drop; posts delta as PR comment
 - `backend/eval/thresholds.json` — configurable per-metric tolerances
+
+---
+
+## `v0.7.0-persistent-customer-memory` 🟡 Data layer complete
+
+Customer identity, conversation persistence, and memory facts are designed and tested in-memory. Nothing is wired into the live agent yet.
+
+What exists:
+
+- `InMemoryCustomerStore` — identity upsert, session linking, memory facts (confidence-gated), order linkage (sliding window of 5)
+- `InMemoryConversationStore` — turn persistence, max-window load
+- `build_customer_context()` / `build_system_prompt()` helpers
+- `backend/sql/migrate_7_customer_memory.sql` — 5 new tables
+- 31 passing tests in `test_customer_memory.py`
+
+What does not exist yet:
+
+- Nothing called from `agent.py`; `SESSION_MEMORY` dict still in use
+- Fact extraction never runs
+- `customer_email` not accepted by the API
+- No Postgres backend for either store

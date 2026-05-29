@@ -4,6 +4,40 @@ Use this file after each release. Keep it short and honest.
 
 ---
 
+## Phase 7 — Persistent Customer Memory (data layer)
+
+### Release
+
+- Version: `v0.7.0-persistent-customer-memory`
+- Date: 2026-05-29
+
+### What changed
+
+- Added: `backend/app/conversation_store.py` — `ConversationStore` protocol and `InMemoryConversationStore` (per-session append buffer, `max_turns` window on load)
+- Added: `backend/app/customer_store.py` — `CustomerStore` protocol and `InMemoryCustomerStore` covering identity upsert (email → uuid), session linking, memory facts (one row per `fact_type`, gated by `confidence >= 0.7`, higher confidence overwrites), and order linkage (sliding window of 5)
+- Added: `backend/app/memory_context.py` — `build_customer_context()` and `build_system_prompt()` for prior-order and fact injection
+- Added: `backend/sql/migrate_7_customer_memory.sql` — `customers`, `customer_sessions`, `conversation_turns`, `customer_memory`, `customer_orders` tables, all idempotent, all indexed
+- Added: `backend/tests/test_customer_memory.py` — unit tests for the three new modules
+- Added: `backend/tests/test_eval_metrics.py` — backfilled Phase 6 unit coverage (metric helpers, LLM-judge mocking, benchmark-md generation, regression-gate logic, agent-scoring formulas)
+- Added: `.github/workflows/test.yml` — runs `pytest backend/tests/` on every push and PR
+- Added: `pytest` to `backend/requirements.txt`
+- Added: `data-set/` to `.gitignore`
+- Improved: README now reflects current capabilities through Phase 7 instead of Phase 3
+
+### Why it matters
+
+- User impact: no behaviour change in the live agent
+- Engineering impact: customer memory has a stable interface with a passing in-memory implementation; agent integration can proceed in a follow-up without revisiting storage shape. Phase 6 eval infrastructure now has unit coverage gated by CI.
+
+### What is still weak
+
+- `SESSION_MEMORY` dict in `agent.py` is still in use; nothing in this release replaces it
+- `PostgresCustomerStore` and `PostgresConversationStore` not implemented
+- Fact extraction not implemented — facts can be saved manually but no code populates them from conversations
+- README still does not include UI screenshots or a pinned demo path
+
+---
+
 ## Phase 6 — Data-Backed Benchmark
 
 ### Release
