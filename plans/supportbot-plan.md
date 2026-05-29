@@ -256,3 +256,20 @@ The following techniques were evaluated and deferred — not because they're uni
 - [x] Answer correctness uses LLM-judge, not keyword overlap
 - [x] Agent fixture eval covers ≥ 10 multi-turn scenarios
 - [x] CI fails on metric regression
+
+---
+
+## Phase 7: Persistent Customer Memory (data layer — complete)
+
+Data contracts and in-memory implementations are tested and green.
+Nothing is wired into the live agent yet.
+
+**What exists:**
+- `InMemoryCustomerStore` — identity upsert, session linking, memory facts (confidence-gated, one per type), order linkage (sliding window of 5)
+- `InMemoryConversationStore` — turn persistence, max-window load
+- `build_customer_context()` / `build_system_prompt()` — context injection helpers
+- SQL migration `migrate_7_customer_memory.sql` — five new tables
+- 31 passing tests
+
+**What does not exist yet:** nothing is wired into `agent.py`; `SESSION_MEMORY` dict still in use; fact extraction never runs; `customer_email` not accepted by the API.
+
