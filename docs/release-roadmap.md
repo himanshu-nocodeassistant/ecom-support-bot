@@ -195,23 +195,136 @@ What does not exist yet:
 
 ---
 
-## `v0.8.0-memory-wiring` 🚧 Planned
+## `v0.8.0-memory-wiring` ✅ Complete
 
-Wire the customer-memory data layer into the live agent.
+Wired the customer-memory data layer into the live agent.
 
-- Replace `SESSION_MEMORY` dict with `ConversationStore` injection
-- Wire `CustomerStore` into `handle_message` and `handle_message_stream`
-- Session-end fact extraction as a FastAPI `BackgroundTask`
-- `PostgresConversationStore` and `PostgresCustomerStore` with safe fallback
-- Optional `customer_email` field on `/chat` and `/chat/stream`
-- Frontend email input and welcome-back banner
-- 90-day TTL on memory facts
-- Concurrency-safety doc and note on `customer_store.py`
-- `/eval/memory` dashboard panel
-- 5–8 multi-session fixtures; new `memory_recall_rate` metric in CI gate
+- `SESSION_MEMORY` dict replaced by injected `ConversationStore` in both agent handlers
+- `CustomerStore` wired in — upserts customer by email, links session, injects prior orders + facts into system prompt
+- `lookup_order` tool results auto-link order IDs to the customer
+- `fact_extractor.py` — Claude Haiku extracts 1–3 confidence-gated facts from completed conversations
+- `PostgresConversationStore` and `PostgresCustomerStore` (psycopg2) with in-memory fallback
+- 90-day TTL on `customer_memory` facts; SQL migration `migrate_8_memory_wiring.sql`
+- `SYSTEM_PROMPT` extracted to `prompts.py` to break circular import
+- `customer_email` field on `/api/chat` and `/api/chat/stream`
+- SSE `done` event includes `returning_customer: bool`
+- Frontend: email input row, welcome-back banner, `✓ linked` status
+- `memory_eval.py` with `memory_recall_rate` metric; 7 multi-session fixtures
+- `check_memory_regression()` in CI gate; `memory_recall_rate_min: 0.75` in `thresholds.json`
+- `/eval/memory` endpoint and dashboard panel
+
+What improved:
+
+- Returning customers receive personalised responses without re-identifying themselves
+- Prior order IDs surface in the system prompt automatically
+- Facts about preferences and issue history accumulate across sessions and expire after 90 days
+
+What remains weak:
+
+- `customer_email` is taken at face value — no OTP or token verification
+- Fact extraction fires on demand rather than as a true background task post-session
+- Postgres stores selected only when `DATABASE_URL` is set; no automatic migration runner
+
+---
+
+## `v0.9.0-rag-honesty-and-polish` 🚧 Planned
+
+Resolve the keyword-beats-hybrid finding from the Phase 6 baseline and bring eval coverage, README, and repo hygiene up to current state.
+
+### 9a — Retrieval finding case study
+
+The Phase 6 baseline shows in-memory keyword retrieval (P@3=0.290, R@3=0.870) outperforming every Postgres mode (best hybrid P@3=0.116). `thresholds.json` declares `hybrid+rerank+filter` as `best_mode` — which is the worst performer. The CI regression gate is guarding the wrong mode.
+
+Two root-cause candidates:
+
+- **Metric bias.** `_precision_at_k` compares chunk titles by string equality. Keyword returns whole docs; chunked modes return 3 chunks of the same doc. A correct hit from a chunked mode only scores 1/3 if the other two slots pull from different docs.
+- **KB-size effect.** 4 docs / 6 chunks give retrieval modes almost nothing to separate. The 70/30 hybrid weight amplifies embedding noise; `_infer_category` pre-filter can reduce candidates to 1–2, often the wrong one.
+
+Deliverables:
+
+- `plans/decisions/retrieval-finding.md` — root-cause investigation, before/after numbers, final verdict
+- Switch P@3/R@3 to `document_id`-based comparison; re-run all modes
+- Commit fresh `comparison.json` and `docs/benchmark.md`
+- Update `thresholds.json` `best_mode` to reflect the corrected ranking
+
+### 9b — Knowledge base expansion
+
+- Grow KB to ≥ 15 docs: returns vs refunds distinction, warranty, payment methods, account management, order modification, address change, gift wrapping, subscription billing, B2B/wholesale, accessibility
+- Add 2–3 product guides for additional SKUs
+- Re-run `--chunking-audit` after expansion
+- Extend `backend/eval/queries.json` to ≥ 60 queries covering new docs
+
+### 9c — Eval metric fixes
+
+- Switch P@3/R@3 to `document_id`-based comparison (fixes structural bias against chunked modes)
+- Add `hit_rate_at_k` for k ∈ {1, 3, 5, 10}
+- Add NDCG@5 with per-query relevance ranking
+- Add MRR (Mean Reciprocal Rank)
+- Update `docs/benchmark.md` columns; deprecate (not delete) old title-based P@3 with an explanation
+
+### 9d — Synthetic query generation
+
+- `backend/eval/generate_queries.py` — ask Claude to produce 5 paraphrased + 2 adversarial queries per doc
+- Dedupe via embedding cosine similarity (drop ≥ 0.92)
+- Output to `backend/eval/queries_synthetic.json`; curated `queries.json` stays as gold set
+- Eval runner gains `--query-set gold|synthetic|both`
+
+### 9e — Adversarial eval set
+
+- 10 prompt-injected queries
+- 10 ambiguous queries that should trigger clarification
+- 10 multi-intent queries that should trigger multiple tools
+- 10 out-of-scope queries that should refuse cleanly
+- New metrics: `injection_refusal_rate`, `clarification_rate`, `multi_tool_rate`, `oos_refusal_rate`
+- CI gate at ≥ 0.80 for refusal metrics
+
+### 9f — Cost-quality Pareto visualisation
+
+- Pareto plot (cost on x, NDCG@5 on y, one dot per mode) as SVG embedded in `docs/benchmark.md`
+- Latency-quality version (p95 on x, NDCG@5 on y)
+- Regenerated automatically by `--benchmark` flag
+
+### 9g — Benchmark trend history
+
+- Append every CI eval run's summary metrics to `docs/benchmark-history.jsonl`
+- "Trend" section in `docs/benchmark.md` with sparklines for the last 20 runs
+- CI workflow commits the updated history file
+
+### 9h — README + dashboard polish
+
+- Refresh capabilities table to current state
+- Rewrite intro paragraph to current project description
+- Add screenshots: `/eval` dashboard, streaming chat mid-tool-call
+- Pin a "demo path" — exact query, expected behaviour, what to look at
+- Add "How to read this repo" section linking `plans/`, `docs/decisions/`, and eval results
+- Link `plans/decisions/retrieval-finding.md` once written
+
+### 9i — Repo hygiene
+
+- Verify `.DS_Store`, `.pycache/`, `.ruff_cache/`, `.pytest_cache/` are in `.gitignore`
+- Remove any tracked `.DS_Store` files
+- Audit `data-set/` — document why it's committed or gitignore it
+- Add pre-commit hook to block `.DS_Store` and `__pycache__` commits
+
+### 9j — AI-pairing disclosure
+
+- Short "How this was built" section in README near the top: pair-programmed with Claude Code; architecture, phase scoping, eval design, and ship decisions owned by Himanshu
+- Point to `plans/` and `docs/improvement-log.md` as decision-making artefacts
+
+### 9k — Measure and reconsider `_infer_category`
+
+- `repository.py:75-102` is a hand-rolled keyword classifier used by `hybrid+rerank+filter`; it is the worst performer in the Phase 6 table
+- Measure: turn the filter off across the whole eval set; record P@3/NDCG delta
+- If gain negligible: delete `_infer_category` and the `enable_metadata_filter` flag
+- If gain real: replace with a Claude one-shot classifier call (cached per session) and re-measure
+- Update `thresholds.json` `best_mode` based on the corrected ranking
 
 Success signal:
 
-- `SESSION_MEMORY` dict gone from `agent.py`
-- A returning customer's prior order shows up in the system prompt without re-identification
-- `memory_recall_rate` gated in CI
+- `plans/decisions/retrieval-finding.md` written and linked from README
+- Eval metric is chunk-aware; NDCG@5, MRR, hit@k reported in benchmark
+- KB grown to ≥ 15 docs; eval set grown to ≥ 60 queries
+- Adversarial eval set added; refusal metrics gated in CI
+- Pareto chart embedded in `docs/benchmark.md`
+- README reflects current state with dashboard screenshot and AI-pairing disclosure
+- `_infer_category` measured, then replaced or removed
