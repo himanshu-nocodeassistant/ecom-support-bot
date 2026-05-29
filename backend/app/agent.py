@@ -7,24 +7,17 @@ from dataclasses import dataclass
 from typing import Any
 
 from .config import get_settings
+from .conversation_store import ConversationStore, InMemoryConversationStore
+from .customer_store import CustomerStore, InMemoryCustomerStore
 from .data import KNOWLEDGE_BASE, ORDERS
+from .memory_context import build_customer_context, build_system_prompt
+from .prompts import SYSTEM_PROMPT
 from .repository import InMemoryRepository, PostgresRepository, get_repository
 
 SESSION_MEMORY: dict[str, list[dict[str, Any]]] = {}
 
-SYSTEM_PROMPT = """You are a friendly customer support assistant for an e-commerce store.
-
-You have four tools:
-- lookup_order: check the status of an order by its ID
-- request_refund: process a refund for a delivered order (always look up the order first to confirm delivery)
-- search_knowledge_base: find answers in product guides and store policies
-- create_ticket: escalate to a human agent when you cannot resolve the issue
-
-Guidelines:
-- For refund requests, always call lookup_order first, then request_refund if delivered.
-- If the knowledge base returns a low score or no result, create a ticket instead of guessing.
-- If you already know the order ID from earlier in the conversation, use it directly.
-- Be concise and helpful."""
+_default_conv_store: ConversationStore = InMemoryConversationStore()
+_default_customer_store: CustomerStore = InMemoryCustomerStore()
 
 TOOLS: list[dict[str, Any]] = [
     {
@@ -176,7 +169,14 @@ def _repo_for_mode(mode: str):
 # ---------------------------------------------------------------------------
 
 
-def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[str, Any]:
+def handle_message(
+    session_id: str,
+    message: str,
+    mode: str = "phase3",
+    customer_email: str | None = None,
+    conv_store: ConversationStore | None = None,
+    customer_store: CustomerStore | None = None,
+) -> dict[str, Any]:
     settings = get_settings()
 
     if mode in ("phase1", "phase2") or not settings.anthropic_api_key:
@@ -185,18 +185,37 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
     import anthropic
 
     repo = _repo_for_mode(mode)
-    history = SESSION_MEMORY.setdefault(session_id, [])
-    history.append({"role": "user", "content": message})
+
+    # --- conversation history ---
+    if conv_store is not None:
+        prior_turns = conv_store.load_turns(session_id)
+        messages: list[dict[str, Any]] = list(prior_turns) + [{"role": "user", "content": message}]
+    else:
+        history = SESSION_MEMORY.setdefault(session_id, [])
+        history.append({"role": "user", "content": message})
+        messages = list(history)
+
+    # --- customer context ---
+    customer_id: str | None = None
+    system_prompt_text = SYSTEM_PROMPT
+    if customer_email and customer_store is not None:
+        customer = customer_store.upsert_customer(email=customer_email, name="")
+        customer_id = customer["customer_id"]
+        customer_store.link_session(session_id, customer_id)
+        facts = customer_store.load_memory_facts(customer_id)
+        prior_orders = customer_store.get_customer_orders(customer_id)
+        ctx = build_customer_context(facts=facts, prior_order_ids=prior_orders)
+        system_prompt_text = build_system_prompt(customer_context=ctx)
 
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
     tool_events: list[ToolEvent] = []
-    messages: list[dict[str, Any]] = list(history)
+    reply = "I'm sorry, I couldn't process that request."
 
     while True:
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
-            system=SYSTEM_PROMPT,
+            system=system_prompt_text,
             tools=TOOLS,
             messages=messages,
         )
@@ -207,7 +226,7 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
         if response.stop_reason != "tool_use":
             reply = next(
                 (block.text for block in assistant_content if hasattr(block, "text")),
-                "I'm sorry, I couldn't process that request.",
+                reply,
             )
             break
 
@@ -216,6 +235,14 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
             if block.type == "tool_use":
                 result = _execute_tool(block.name, dict(block.input), repo=repo)
                 tool_events.append(ToolEvent(block.name, dict(block.input), result))
+                if (
+                    block.name == "lookup_order"
+                    and customer_id is not None
+                    and customer_store is not None
+                ):
+                    order_id = dict(block.input).get("order_id")
+                    if order_id:
+                        customer_store.link_order(customer_id, order_id)
                 tool_result_blocks.append(
                     {
                         "type": "tool_result",
@@ -226,7 +253,12 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
 
         messages.append({"role": "user", "content": tool_result_blocks})
 
-    SESSION_MEMORY[session_id] = messages
+    # --- persist turns ---
+    if conv_store is not None:
+        conv_store.save_turn(session_id, "user", message)
+        conv_store.save_turn(session_id, "assistant", reply)
+    else:
+        SESSION_MEMORY[session_id] = messages
 
     return {
         "reply": reply,
@@ -244,7 +276,13 @@ def handle_message(session_id: str, message: str, mode: str = "phase3") -> dict[
 # ---------------------------------------------------------------------------
 
 
-async def handle_message_stream(session_id: str, message: str):
+async def handle_message_stream(
+    session_id: str,
+    message: str,
+    customer_email: str | None = None,
+    conv_store: ConversationStore | None = None,
+    customer_store: CustomerStore | None = None,
+):
     """Async generator yielding SSE-formatted event strings for Phase 4."""
     settings = get_settings()
 
@@ -261,12 +299,33 @@ async def handle_message_stream(session_id: str, message: str):
     import anthropic
 
     repo = _repo_for_mode("phase4")
-    history = SESSION_MEMORY.setdefault(session_id, [])
-    history.append({"role": "user", "content": message})
+
+    # --- conversation history ---
+    if conv_store is not None:
+        prior_turns = conv_store.load_turns(session_id)
+        messages: list[dict[str, Any]] = list(prior_turns) + [{"role": "user", "content": message}]
+    else:
+        history = SESSION_MEMORY.setdefault(session_id, [])
+        history.append({"role": "user", "content": message})
+        messages = list(history)
+
+    # --- customer context ---
+    customer_id: str | None = None
+    returning_customer = False
+    system_prompt_text = SYSTEM_PROMPT
+    if customer_email and customer_store is not None:
+        customer = customer_store.upsert_customer(email=customer_email, name="")
+        customer_id = customer["customer_id"]
+        customer_store.link_session(session_id, customer_id)
+        facts = customer_store.load_memory_facts(customer_id)
+        prior_orders = customer_store.get_customer_orders(customer_id)
+        returning_customer = bool(facts or prior_orders)
+        ctx = build_customer_context(facts=facts, prior_order_ids=prior_orders)
+        system_prompt_text = build_system_prompt(customer_context=ctx)
 
     client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
     tool_events: list[ToolEvent] = []
-    messages: list[dict[str, Any]] = list(history)
+    final_reply = ""
 
     try:
         while True:
@@ -278,7 +337,7 @@ async def handle_message_stream(session_id: str, message: str):
             with client.messages.stream(
                 model="claude-haiku-4-5-20251001",
                 max_tokens=1024,
-                system=SYSTEM_PROMPT,
+                system=system_prompt_text,
                 tools=TOOLS,
                 messages=messages,
             ) as stream:
@@ -300,6 +359,7 @@ async def handle_message_stream(session_id: str, message: str):
                     elif etype == "content_block_delta":
                         delta = event.delta
                         if delta.type == "text_delta":
+                            final_reply += delta.text
                             yield _sse("token", {"text": delta.text})
                         elif delta.type == "input_json_delta":
                             current_input_json += delta.partial_json
@@ -319,6 +379,14 @@ async def handle_message_stream(session_id: str, message: str):
                             tool_events.append(
                                 ToolEvent(current_tool_use["name"], parsed_input, result)
                             )
+                            if (
+                                current_tool_use["name"] == "lookup_order"
+                                and customer_id is not None
+                                and customer_store is not None
+                            ):
+                                order_id = parsed_input.get("order_id")
+                                if order_id:
+                                    customer_store.link_order(customer_id, order_id)
                             yield _sse(
                                 "tool_result",
                                 {
@@ -347,13 +415,20 @@ async def handle_message_stream(session_id: str, message: str):
 
             messages.append({"role": "user", "content": tool_result_blocks})
 
-        SESSION_MEMORY[session_id] = messages
+        # --- persist turns ---
+        if conv_store is not None:
+            conv_store.save_turn(session_id, "user", message)
+            conv_store.save_turn(session_id, "assistant", final_reply)
+        else:
+            SESSION_MEMORY[session_id] = messages
+
         yield _sse(
             "done",
             {
                 "session_id": session_id,
                 "tool_count": len(tool_events),
                 "sources": _extract_sources(tool_events),
+                "returning_customer": returning_customer,
             },
         )
 

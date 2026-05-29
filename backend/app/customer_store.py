@@ -7,10 +7,16 @@ PostgresCustomerStore added later once the interface is stable.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 
 _CONFIDENCE_THRESHOLD = 0.7
 _MAX_LINKED_ORDERS = 5
+_TTL_DAYS = 90
+
+
+def _now() -> datetime:
+    return datetime.now(tz=UTC)
 
 
 class CustomerStore(Protocol):
@@ -93,11 +99,17 @@ class InMemoryCustomerStore:
                 "fact_text": fact_text,
                 "confidence": confidence,
                 "source_session_id": source_session_id,
+                "expires_at": _now() + timedelta(days=_TTL_DAYS),
             }
 
     def load_memory_facts(self, customer_id: str) -> list[dict[str, Any]]:
         bucket = self._facts.get(customer_id, {})
-        return [dict(f) for f in bucket.values()]
+        now = _now()
+        return [
+            {k: v for k, v in f.items() if k != "expires_at"}
+            for f in bucket.values()
+            if f.get("expires_at", now) >= now
+        ]
 
     def link_order(self, customer_id: str, order_id: str) -> None:
         orders = self._orders.setdefault(customer_id, [])
@@ -108,3 +120,145 @@ class InMemoryCustomerStore:
 
     def get_customer_orders(self, customer_id: str) -> list[str]:
         return list(self._orders.get(customer_id, []))
+
+
+class PostgresCustomerStore:
+    """Postgres-backed customer store.
+
+    Requires psycopg2. Instantiated only when DATABASE_URL is set; the caller
+    is responsible for falling back to InMemoryCustomerStore when unavailable.
+    """
+
+    def __init__(self, database_url: str) -> None:
+        import psycopg2
+        import psycopg2.extras
+
+        self._conn = psycopg2.connect(database_url)
+        self._conn.autocommit = True
+
+    def upsert_customer(self, email: str, name: str) -> dict[str, Any]:
+        import psycopg2.extras
+
+        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                INSERT INTO customers (email, name)
+                VALUES (%s, %s)
+                ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+                RETURNING customer_id, email, name
+                """,
+                (email, name or ""),
+            )
+            row = cur.fetchone()
+        return dict(row)
+
+    def get_customer(self, customer_id: str) -> dict[str, Any] | None:
+        import psycopg2.extras
+
+        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT customer_id, email, name FROM customers WHERE customer_id = %s",
+                (customer_id,),
+            )
+            row = cur.fetchone()
+        return dict(row) if row else None
+
+    def link_session(self, session_id: str, customer_id: str) -> None:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO customer_sessions (session_id, customer_id)
+                VALUES (%s, %s)
+                ON CONFLICT (session_id) DO UPDATE SET last_active_at = now()
+                """,
+                (session_id, customer_id),
+            )
+
+    def get_customer_id_for_session(self, session_id: str) -> str | None:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                "SELECT customer_id FROM customer_sessions WHERE session_id = %s",
+                (session_id,),
+            )
+            row = cur.fetchone()
+        return str(row[0]) if row else None
+
+    def save_memory_fact(
+        self,
+        customer_id: str,
+        fact_type: str,
+        fact_text: str,
+        confidence: float,
+        source_session_id: str,
+    ) -> None:
+        if confidence < _CONFIDENCE_THRESHOLD:
+            return
+        expires_at = _now() + timedelta(days=_TTL_DAYS)
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO customer_memory
+                    (customer_id, fact_type, fact_text, confidence, source_session_id, expires_at)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (customer_id, fact_type)
+                DO UPDATE SET
+                    fact_text = EXCLUDED.fact_text,
+                    confidence = EXCLUDED.confidence,
+                    source_session_id = EXCLUDED.source_session_id,
+                    expires_at = EXCLUDED.expires_at,
+                    updated_at = now()
+                WHERE customer_memory.confidence <= EXCLUDED.confidence
+                """,
+                (customer_id, fact_type, fact_text, confidence, source_session_id, expires_at),
+            )
+
+    def load_memory_facts(self, customer_id: str) -> list[dict[str, Any]]:
+        import psycopg2.extras
+
+        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT fact_type, fact_text, confidence, source_session_id
+                FROM customer_memory
+                WHERE customer_id = %s AND expires_at >= now()
+                """,
+                (customer_id,),
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    def link_order(self, customer_id: str, order_id: str) -> None:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO customer_orders (customer_id, order_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+                """,
+                (customer_id, order_id),
+            )
+            cur.execute(
+                """
+                DELETE FROM customer_orders
+                WHERE customer_id = %s
+                  AND order_id NOT IN (
+                      SELECT order_id FROM customer_orders
+                      WHERE customer_id = %s
+                      ORDER BY linked_at DESC
+                      LIMIT %s
+                  )
+                """,
+                (customer_id, customer_id, _MAX_LINKED_ORDERS),
+            )
+
+    def get_customer_orders(self, customer_id: str) -> list[str]:
+        with self._conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT order_id FROM customer_orders
+                WHERE customer_id = %s
+                ORDER BY linked_at DESC
+                LIMIT %s
+                """,
+                (customer_id, _MAX_LINKED_ORDERS),
+            )
+            return [row[0] for row in cur.fetchall()]

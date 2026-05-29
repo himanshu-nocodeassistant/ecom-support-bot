@@ -192,3 +192,26 @@ What does not exist yet:
 - Fact extraction never runs
 - `customer_email` not accepted by the API
 - No Postgres backend for either store
+
+---
+
+## `v0.8.0-memory-wiring` 🚧 Planned
+
+Wire the customer-memory data layer into the live agent.
+
+- Replace `SESSION_MEMORY` dict with `ConversationStore` injection
+- Wire `CustomerStore` into `handle_message` and `handle_message_stream`
+- Session-end fact extraction as a FastAPI `BackgroundTask`
+- `PostgresConversationStore` and `PostgresCustomerStore` with safe fallback
+- Optional `customer_email` field on `/chat` and `/chat/stream`
+- Frontend email input and welcome-back banner
+- 90-day TTL on memory facts
+- Concurrency-safety doc and note on `customer_store.py`
+- `/eval/memory` dashboard panel
+- 5–8 multi-session fixtures; new `memory_recall_rate` metric in CI gate
+
+Success signal:
+
+- `SESSION_MEMORY` dict gone from `agent.py`
+- A returning customer's prior order shows up in the system prompt without re-identification
+- `memory_recall_rate` gated in CI

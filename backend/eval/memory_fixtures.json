@@ -1,0 +1,86 @@
+[
+  {
+    "fixture_id": "mem-001",
+    "description": "Returning customer with express shipping preference",
+    "stored_facts": [
+      {
+        "fact_type": "order_preference",
+        "fact_text": "Prefers express shipping",
+        "confidence": 0.9
+      }
+    ],
+    "prior_orders": ["ORD-1001"],
+    "expected_context_fragments": ["Prefers express shipping", "ORD-1001"]
+  },
+  {
+    "fixture_id": "mem-002",
+    "description": "Returning customer with issue history",
+    "stored_facts": [
+      {
+        "fact_type": "issue_history",
+        "fact_text": "Had a damaged item in a prior order",
+        "confidence": 0.85
+      }
+    ],
+    "prior_orders": [],
+    "expected_context_fragments": ["Had a damaged item"]
+  },
+  {
+    "fixture_id": "mem-003",
+    "description": "Returning customer with communication style preference",
+    "stored_facts": [
+      {
+        "fact_type": "communication_style",
+        "fact_text": "Prefers brief, direct replies",
+        "confidence": 0.8
+      }
+    ],
+    "prior_orders": [],
+    "expected_context_fragments": ["Prefers brief"]
+  },
+  {
+    "fixture_id": "mem-004",
+    "description": "Returning customer with multiple facts",
+    "stored_facts": [
+      {
+        "fact_type": "order_preference",
+        "fact_text": "Always chooses priority shipping",
+        "confidence": 0.9
+      },
+      {
+        "fact_type": "product_interest",
+        "fact_text": "Interested in kitchen appliances",
+        "confidence": 0.75
+      }
+    ],
+    "prior_orders": ["ORD-2001", "ORD-2002"],
+    "expected_context_fragments": ["Always chooses priority shipping", "Interested in kitchen appliances", "ORD-2001"]
+  },
+  {
+    "fixture_id": "mem-005",
+    "description": "Anonymous customer — no context injected",
+    "stored_facts": [],
+    "prior_orders": [],
+    "expected_context_fragments": []
+  },
+  {
+    "fixture_id": "mem-006",
+    "description": "Returning customer — only prior orders, no facts",
+    "stored_facts": [],
+    "prior_orders": ["ORD-3001", "ORD-3002"],
+    "expected_context_fragments": ["ORD-3001"]
+  },
+  {
+    "fixture_id": "mem-007",
+    "description": "Low-confidence facts are not stored or surfaced",
+    "stored_facts": [
+      {
+        "fact_type": "order_preference",
+        "fact_text": "Maybe prefers standard shipping",
+        "confidence": 0.5
+      }
+    ],
+    "prior_orders": [],
+    "expected_context_fragments": []
+  }
+]

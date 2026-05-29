@@ -169,8 +169,53 @@ def render_dashboard() -> str:
     </section>
     """
 
-    body = summary_table + latency_section + drill_html
+    memory_section = _render_memory_section()
+    body = summary_table + latency_section + drill_html + memory_section
     return _wrap_html(body)
+
+
+def _render_memory_section() -> str:
+    """Render memory recall panel from memory_eval results if available."""
+
+    mem_path = RESULTS_DIR / "memory_eval.json"
+    if not mem_path.exists():
+        return """
+    <section>
+      <h2>Memory Recall (Phase 8)</h2>
+      <div class="empty" style="padding:20px">
+        No memory eval results found.
+        Run: <code>python -m backend.eval.memory_eval</code>
+      </div>
+    </section>"""
+
+    try:
+        data = json.loads(mem_path.read_text())
+    except Exception:
+        return ""
+
+    rate = data.get("memory_recall_rate", 0.0)
+    recalled = data.get("recalled", 0)
+    total = data.get("total", 0)
+    threshold = 0.75
+
+    rate_cls = "best" if rate >= threshold else "worst"
+    bar_pct = int(rate * 100)
+
+    return f"""
+    <section>
+      <h2>Memory Recall (Phase 8)</h2>
+      <p class="meta">Measures fraction of memory fixtures where prior context appears in system prompt</p>
+      <div style="display:flex;align-items:center;gap:24px;padding:16px 0">
+        <div style="font-size:36px;font-weight:700" class="{rate_cls}">{rate:.0%}</div>
+        <div>
+          <div style="font-size:13px;color:var(--muted)">recall rate &nbsp;·&nbsp; {recalled}/{total} fixtures</div>
+          <div style="margin-top:8px;background:var(--surface2);border-radius:6px;height:8px;width:240px">
+            <div style="background:{"var(--green)" if rate >= threshold else "var(--red)"};height:8px;border-radius:6px;width:{bar_pct}%"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">threshold: {threshold:.0%}</div>
+        </div>
+      </div>
+    </section>"""
 
 
 def _esc(s: str) -> str:

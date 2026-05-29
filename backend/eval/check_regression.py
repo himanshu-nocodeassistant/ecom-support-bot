@@ -57,6 +57,20 @@ def check_retrieval_regression(thresholds: dict, baseline: dict, current: dict) 
     return failures
 
 
+def check_memory_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
+    """Gate on memory_recall_rate using a minimum floor rather than a baseline drop."""
+    failures: list[str] = []
+    min_rate = thresholds.get("memory_recall_rate_min")
+    if min_rate is None:
+        return failures
+    curr_val = current.get("memory_recall_rate")
+    if curr_val is None:
+        return failures
+    if curr_val < min_rate:
+        failures.append(f"  memory_recall_rate: current={curr_val:.4f} < minimum={min_rate:.2f}")
+    return failures
+
+
 def check_agent_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
     failures: list[str] = []
     max_drop = thresholds.get("agent_regression_max_drop", 0.10)

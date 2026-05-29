@@ -273,3 +273,125 @@ Nothing is wired into the live agent yet.
 
 **What does not exist yet:** nothing is wired into `agent.py`; `SESSION_MEMORY` dict still in use; fact extraction never runs; `customer_email` not accepted by the API.
 
+
+---
+
+## Phase 8: Memory Wiring & Production Hardening
+
+Wire Phase 7's data layer into the live agent: agent integration, Postgres backends, session-end fact extraction, memory surfaces in the UI and eval harness.
+
+---
+
+### 8a: Replace SESSION_MEMORY with ConversationStore
+
+Current `SESSION_MEMORY` is a plain dict — lost on restart, no cross-process sharing.
+
+- [ ] Inject `ConversationStore` into `handle_message` and `handle_message_stream` (default: `InMemoryConversationStore`)
+- [ ] Replace all `SESSION_MEMORY.setdefault(...)` / `SESSION_MEMORY[session_id] = messages` with `store.save_turn()` / `store.load_turns()`
+- [ ] Remove `SESSION_MEMORY` module-level dict entirely once tests pass
+- [ ] All existing `test_support_bot.py` and `test_phase_modes.py` tests continue to pass (behaviour unchanged, only storage changes)
+
+---
+
+### 8b: Wire CustomerStore into handle_message
+
+- [ ] `handle_message` and `handle_message_stream` accept optional `customer_email: str | None = None`
+- [ ] When email is present: upsert customer, link session, load facts + prior orders
+- [ ] Call `build_customer_context(facts, prior_order_ids)` and `build_system_prompt(customer_context)` to produce the injected system prompt
+- [ ] After any `lookup_order` tool call succeeds for a known customer, call `store.link_order(customer_id, order_id)`
+- [ ] Anonymous sessions (no email) are unchanged — no context injected, no orders linked
+- [ ] New test class `CustomerAwareAgentTests` in `test_customer_memory.py`: assert that a known customer's prior order ID appears in the system prompt passed to Claude
+
+---
+
+### 8c: Session-end fact extraction
+
+Extract facts once per session, not per turn. Runs as a FastAPI `BackgroundTask` so it does not block the chat response.
+
+- [ ] `extract_session_facts(session_id, customer_id, conversation_store, customer_store)` — reads last N turns, calls Claude with extraction prompt, parses JSON response
+- [ ] Extraction prompt: given the conversation, output `[{fact_type, fact_text, confidence}]` — zero items is valid
+- [ ] Only `fact_type` values in `('order_preference', 'issue_history', 'product_interest', 'communication_style')` are accepted; anything else is discarded
+- [ ] Each fact with `confidence >= 0.7` written via `customer_store.save_memory_fact()`
+- [ ] Called from `POST /chat` as a background task after the response is sent
+- [ ] Unit test: mock Claude response with known JSON → assert correct facts written, low-confidence facts discarded, unknown fact_types discarded
+
+---
+
+### 8d: PostgresConversationStore
+
+- [ ] `PostgresConversationStore(database_url)` implementing `ConversationStore` protocol
+- [ ] `save_turn`: `INSERT INTO conversation_turns (session_id, role, content) VALUES (%s, %s, %s)`
+- [ ] `load_turns`: `SELECT role, content FROM conversation_turns WHERE session_id = %s ORDER BY created_at DESC LIMIT %s` — results reversed before returning (oldest first)
+- [ ] Falls back to `InMemoryConversationStore` if `psycopg` import fails or DB unreachable
+- [ ] Selected when `settings.data_backend == "postgres"` and `settings.database_url` is set
+
+---
+
+### 8e: PostgresCustomerStore
+
+- [ ] `PostgresCustomerStore(database_url)` implementing `CustomerStore` protocol
+- [ ] `upsert_customer`: `INSERT INTO customers (email, name) VALUES (%s, %s) ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name RETURNING *`
+- [ ] `save_memory_fact`: `INSERT INTO customer_memory (...) ON CONFLICT (customer_id, fact_type) DO UPDATE SET fact_text = EXCLUDED.fact_text, confidence = EXCLUDED.confidence, updated_at = now() WHERE EXCLUDED.confidence >= customer_memory.confidence` — single atomic upsert, no race condition
+- [ ] `get_customer_orders`: `SELECT order_id FROM customer_orders WHERE customer_id = %s ORDER BY linked_at DESC LIMIT 5`
+- [ ] Falls back to `InMemoryCustomerStore` if DB unreachable
+
+---
+
+### 8f: API + Frontend
+
+- [ ] `POST /chat` request body gains optional `customer_email: str | None` field
+- [ ] `POST /chat/stream` same
+- [ ] Frontend: optional email input above the chat textarea ("Sign in to save your history")
+- [ ] If a recognized customer connects, display their name in the chat header ("Welcome back, Alice")
+- [ ] No auth — email is taken at face value (trust model matches the demo scope)
+
+---
+
+### 8g: Memory decay
+
+Facts written once live forever. A shipping preference from 6 months ago may be wrong today.
+
+- [ ] Add `expires_at timestamptz null` column to `customer_memory` (migration)
+- [ ] Default TTL: 90 days from `updated_at`
+- [ ] `load_memory_facts` filters out expired rows (`WHERE expires_at IS NULL OR expires_at > now()`)
+- [ ] `InMemoryCustomerStore` supports TTL check using `datetime.now()` at load time
+
+---
+
+### 8h: Concurrency safety
+
+- [ ] Document the race condition: two concurrent sessions for the same customer can both attempt `save_memory_fact` for the same `fact_type`
+- [ ] Postgres implementation is safe by design (atomic `ON CONFLICT DO UPDATE WHERE`)
+- [ ] `InMemoryCustomerStore` noted as not thread-safe (acceptable for single-process dev use)
+- [ ] Add a note to `customer_store.py` explaining why `PostgresCustomerStore` must be preferred in production
+
+---
+
+### 8i: Memory panel in eval dashboard
+
+- [ ] New `/eval/memory` route or tab on the existing eval dashboard
+- [ ] Table: `customer_id`, email, session count, fact count, last active
+- [ ] Drill-down per customer: list of facts with `fact_type`, `fact_text`, `confidence`, `updated_at`
+
+---
+
+### 8j: Memory eval fixtures
+
+- [ ] 5–8 multi-session conversation fixtures in `backend/eval/agent_fixtures.json`
+- [ ] Each fixture: session 1 (customer identifies + has an issue), session 2 (customer returns, no re-identification)
+- [ ] Expected: agent references prior context without prompting
+- [ ] New metric: **memory recall rate** — fraction of fixtures where prior context surfaced
+- [ ] Regression gate threshold: `memory_recall_rate >= 0.80`
+
+---
+
+### Acceptance criteria
+
+- [ ] `SESSION_MEMORY` dict removed from `agent.py`
+- [ ] `handle_message` accepts `customer_email` and injects memory context when present
+- [ ] Fact extraction runs as a background task after each session reply
+- [ ] `PostgresConversationStore` and `PostgresCustomerStore` implemented and selected automatically when DB is configured
+- [ ] Frontend shows email input and welcome-back message
+- [ ] Memory facts expire after 90 days
+- [ ] Eval dashboard shows memory panel
+- [ ] Memory recall rate metric in CI regression gate
