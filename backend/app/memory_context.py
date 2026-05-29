@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .agent import SYSTEM_PROMPT
+from .prompts import SYSTEM_PROMPT
 
 
 def build_customer_context(

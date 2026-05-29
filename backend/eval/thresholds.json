@@ -11,5 +11,6 @@
     "avg_tool_accuracy",
     "avg_refusal_accuracy"
   ],
-  "agent_regression_max_drop": 0.10
+  "agent_regression_max_drop": 0.10,
+  "memory_recall_rate_min": 0.75
 }

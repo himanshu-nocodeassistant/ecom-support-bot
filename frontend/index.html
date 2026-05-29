@@ -108,6 +108,48 @@
   .phase-tab[data-phase="phase3"].active { background: var(--badge-p3); border-color: var(--badge-p3); color: #fff; }
   .phase-tab[data-phase="phase4"].active { background: var(--badge-p4); border-color: var(--badge-p4); color: #000; }
 
+  /* ── Email identity row ── */
+  .email-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .email-row label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .email-row input {
+    flex: 1;
+    max-width: 280px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 13px;
+    padding: 5px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .email-row input:focus { border-color: var(--accent); }
+  .email-row input::placeholder { color: var(--text-muted); }
+  .email-status { font-size: 11px; color: var(--text-muted); }
+  .email-status.linked { color: var(--accent2); }
+
+  /* ── Welcome-back banner ── */
+  .welcome-banner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    background: color-mix(in srgb, var(--accent2) 12%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent2) 30%, transparent);
+    font-size: 13px;
+    color: var(--accent2);
+    flex-shrink: 0;
+  }
+  .welcome-banner.visible { display: flex; }
+
   .messages {
     flex: 1;
     overflow-y: auto;
@@ -506,6 +548,16 @@
     </div>
   </div>
 
+  <div class="email-row">
+    <label for="customer-email">Your email (optional):</label>
+    <input type="email" id="customer-email" placeholder="you@example.com" autocomplete="email">
+    <span class="email-status" id="email-status"></span>
+  </div>
+
+  <div class="welcome-banner" id="welcome-banner">
+    ✦ Welcome back — your previous session context has been loaded.
+  </div>
+
   <div class="messages" id="messages"></div>
 
   <div class="input-bar">
@@ -555,6 +607,10 @@ function escHtml(s) {
 function sessionId() {
   if (!window._sid) window._sid = 'sess-' + Math.random().toString(36).slice(2);
   return window._sid;
+}
+
+function customerEmail() {
+  return el('customer-email').value.trim() || null;
 }
 
 function scrollBottom() {
@@ -738,10 +794,11 @@ async function sendBatch(text) {
   const typingRow = appendTyping();
 
   try {
+    const email = customerEmail();
     const res = await fetch(`${API}/api/chat`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ session_id: sessionId(), message: text, mode: activePhase }),
+      body: JSON.stringify({ session_id: sessionId(), message: text, mode: activePhase, ...(email && { customer_email: email }) }),
     });
     removeTyping();
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -766,10 +823,11 @@ async function sendStreaming(text) {
   const pendingToolCards = new Map(); // tool_name → card element (for start → result pairing)
 
   try {
+    const email = customerEmail();
     const res = await fetch(`${API}/api/chat/stream`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ session_id: sessionId(), message: text }),
+      body: JSON.stringify({ session_id: sessionId(), message: text, ...(email && { customer_email: email }) }),
     });
 
     if (!res.ok) {
@@ -829,6 +887,14 @@ async function sendStreaming(text) {
         } else if (eventType === 'done') {
           if (bubble) bubble.classList.remove('streaming-bubble');
           appendSourceChips(data.sources);
+          if (data.returning_customer) {
+            el('welcome-banner').classList.add('visible');
+          }
+          const email = customerEmail();
+          if (email) {
+            el('email-status').textContent = '✓ linked';
+            el('email-status').className = 'email-status linked';
+          }
         } else if (eventType === 'error') {
           removeTyping();
           appendError(data.message);
