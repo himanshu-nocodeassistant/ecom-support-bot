@@ -5,3 +5,17 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: block-ds-store
+        name: Block .DS_Store commits
+        language: fail
+        entry: ".DS_Store files should not be committed"
+        files: \.DS_Store$
+
+      - id: block-pycache
+        name: Block __pycache__ commits
+        language: fail
+        entry: "__pycache__ files should not be committed"
+        files: __pycache__/

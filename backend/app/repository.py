@@ -72,36 +72,6 @@ class InMemoryRepository:
         return sorted(ranked, key=lambda item: item["score"], reverse=True)[:3]
 
 
-def _infer_category(query_text: str) -> str | None:
-    """Classify query intent into a knowledge category for metadata pre-filtering."""
-    lower = query_text.lower()
-    policy_signals = {
-        "refund",
-        "return",
-        "money back",
-        "ship",
-        "deliver",
-        "track",
-        "policy",
-        "days",
-    }
-    product_signals = {
-        "blender",
-        "headphone",
-        "battery",
-        "bluetooth",
-        "noise",
-        "usb",
-        "wired",
-        "jar",
-    }
-    if any(s in lower for s in product_signals):
-        return "product"
-    if any(s in lower for s in policy_signals):
-        return "policy"
-    return None
-
-
 class PostgresRepository:
     def __init__(
         self,
@@ -109,13 +79,11 @@ class PostgresRepository:
         fallback: InMemoryRepository,
         voyage_api_key: str | None = None,
         enable_reranking: bool = False,
-        enable_metadata_filter: bool = False,
     ) -> None:
         self.database_url = database_url
         self.fallback = fallback
         self.voyage_api_key = voyage_api_key
         self.enable_reranking = enable_reranking
-        self.enable_metadata_filter = enable_metadata_filter
 
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         try:
@@ -147,36 +115,26 @@ class PostgresRepository:
             "delivered": bool(row[6]),
         }
 
-    def search_knowledge(
-        self, query_text: str, category_filter: str | None = None
-    ) -> list[dict[str, Any]]:
+    def search_knowledge(self, query_text: str) -> list[dict[str, Any]]:
         try:
             import psycopg  # noqa: F401
         except ImportError:
             return self.fallback.search_knowledge(query_text)
 
-        # 5e: resolve category filter from query intent when flag is on
-        if self.enable_metadata_filter and category_filter is None:
-            category_filter = _infer_category(query_text)
-
         if self.voyage_api_key:
-            results = self._hybrid_search(query_text, category_filter=category_filter)
+            results = self._hybrid_search(query_text)
         else:
-            results = self._fulltext_search(query_text, category_filter=category_filter)
+            results = self._fulltext_search(query_text)
 
-        # 5e: rerank with Voyage if flag is on and we have results + key
         if self.enable_reranking and self.voyage_api_key and results:
             results = self._rerank(query_text, results)
 
         return results
 
-    def _fulltext_search(
-        self, query_text: str, category_filter: str | None = None
-    ) -> list[dict[str, Any]]:
+    def _fulltext_search(self, query_text: str) -> list[dict[str, Any]]:
         import psycopg
 
-        category_clause = "and kd.category = %(cat)s" if category_filter else ""
-        sql = f"""
+        sql = """
             select
                 kd.id,
                 kd.title,
@@ -186,17 +144,13 @@ class PostgresRepository:
             from knowledge_chunks kc
             join knowledge_documents kd on kd.id = kc.document_id
             where kc.search_vector @@ plainto_tsquery('english', %(q)s)
-            {category_clause}
             order by score desc, kd.id asc
             limit 6
         """
-        params: dict[str, Any] = {"q": query_text}
-        if category_filter:
-            params["cat"] = category_filter
         try:
             with psycopg.connect(self.database_url) as conn:
                 with conn.cursor() as cur:
-                    cur.execute(sql, params)
+                    cur.execute(sql, {"q": query_text})
                     rows = cur.fetchall()
         except psycopg.Error:
             return self.fallback.search_knowledge(query_text)
@@ -213,9 +167,7 @@ class PostgresRepository:
             for row in rows
         ][:3]
 
-    def _hybrid_search(
-        self, query_text: str, category_filter: str | None = None
-    ) -> list[dict[str, Any]]:
+    def _hybrid_search(self, query_text: str) -> list[dict[str, Any]]:
         import psycopg
 
         from .data_loader import embed_query
@@ -223,13 +175,12 @@ class PostgresRepository:
         try:
             query_embedding = embed_query(query_text, api_key=self.voyage_api_key)
         except Exception:
-            return self._fulltext_search(query_text, category_filter=category_filter)
+            return self._fulltext_search(query_text)
 
         embedding_str = "[" + ",".join(str(v) for v in query_embedding) + "]"
 
-        category_clause = "and kd.category = %(cat)s" if category_filter else ""
         # Hybrid: 30% full-text rank + 70% cosine similarity
-        sql = f"""
+        sql = """
             select
                 kd.id,
                 kd.title,
@@ -242,22 +193,18 @@ class PostgresRepository:
             from knowledge_chunks kc
             join knowledge_documents kd on kd.id = kc.document_id
             where kc.embedding is not null
-            {category_clause}
             order by score desc
             limit 6
         """
-        params: dict[str, Any] = {"q": query_text, "emb": embedding_str}
-        if category_filter:
-            params["cat"] = category_filter
         try:
             with psycopg.connect(self.database_url) as conn:
                 with conn.cursor() as cur:
-                    cur.execute(sql, params)
+                    cur.execute(sql, {"q": query_text, "emb": embedding_str})
                     rows = cur.fetchall()
         except psycopg.Error:
-            return self._fulltext_search(query_text, category_filter=category_filter)
+            return self._fulltext_search(query_text)
         if not rows:
-            return self._fulltext_search(query_text, category_filter=category_filter)
+            return self._fulltext_search(query_text)
         return [
             {
                 "id": row[0],

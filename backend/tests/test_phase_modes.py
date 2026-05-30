@@ -30,8 +30,10 @@ class Phase1ModeTests(unittest.TestCase):
         self.assertIn("blender", result["reply"].lower())
 
     def test_semantic_miss_escalates_to_ticket(self) -> None:
-        # "Can I get my money back?" has no keyword overlap in phase1 — should escalate
-        result = _handle_message_deterministic("s2", "Can I get my money back?", mode="phase1")
+        # No token from this query matches any KB document — phase1 must escalate
+        result = _handle_message_deterministic(
+            "s2", "Seeking reimbursement for faulty apparatus", mode="phase1"
+        )
         names = [e["name"] for e in result["tool_events"]]
         self.assertIn("create_ticket", names)
 

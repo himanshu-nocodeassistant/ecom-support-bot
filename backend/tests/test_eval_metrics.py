@@ -1,15 +1,17 @@
-"""Unit tests for phase 6 eval infrastructure.
+"""Unit tests for phase 6/9 eval infrastructure.
 
-Covers five areas — all without external deps (no DB, no Voyage, no Claude API):
+Covers six areas — all without external deps (no DB, no Voyage, no Claude API):
   1. MetricHelpers     — _precision_at_k, _recall_at_k, _context_relevance,
                          _answer_correctness, _estimate_cost
-  2. LlmJudge         — _llm_judge_correctness: valid response, score clamping,
+  2. DocIdMetrics      — _precision_at_k_doc, _recall_at_k_doc: document-id-based
+                         versions that fix the structural bias against chunked modes
+  3. LlmJudge         — _llm_judge_correctness: valid response, score clamping,
                          malformed JSON, API exception
-  3. BenchmarkMd      — _generate_benchmark_md: file structure with and without
+  4. BenchmarkMd      — _generate_benchmark_md: file structure with and without
                          LLM column
-  4. RegressionGate   — check_regression logic: pass, fail, missing baseline,
+  5. RegressionGate   — check_regression logic: pass, fail, missing baseline,
                          missing results file, agent metrics
-  5. AgentEvalScoring — run_agent_eval metric formulas isolated from the
+  6. AgentEvalScoring — run_agent_eval metric formulas isolated from the
                          Claude API via mocked handle_message
 """
 
@@ -102,6 +104,100 @@ class RecallAtKTests(unittest.TestCase):
 
     def test_empty_results(self) -> None:
         self.assertAlmostEqual(self._fn([], "Refund policy"), 0.0)
+
+
+# ---------------------------------------------------------------------------
+# 2. Document-id-based metric tests (9a — fixes structural bias)
+# ---------------------------------------------------------------------------
+
+
+class PrecisionAtKDocTests(unittest.TestCase):
+    """_precision_at_k_doc compares by document_id, not title string.
+
+    This eliminates the structural bias where a chunked mode returning 3 chunks
+    from the same correct document scored only 1/3 (one title match out of three
+    distinct title strings) versus keyword mode returning the whole doc once.
+    """
+
+    def setUp(self) -> None:
+        from backend.eval.run import _precision_at_k_doc
+
+        self._fn = _precision_at_k_doc
+
+    def _chunk(self, doc_id: str, title: str = "Any") -> dict:
+        return {"id": doc_id, "title": title, "content": "x", "score": 0.5}
+
+    def test_all_three_chunks_same_correct_doc_scores_one(self) -> None:
+        # Three chunks from the same correct document — should score 1.0, not 1/3
+        results = [self._chunk("kb-refund")] * 3
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_chunked_mode_bias_is_fixed(self) -> None:
+        # Demonstrates the old bug: title-based P@3 would score 1/3 here
+        # because all three returned the same title once. Doc-id P@3 should be 1.0.
+        results = [
+            {"id": "kb-refund", "title": "Refund policy", "content": "chunk 1", "score": 0.9},
+            {"id": "kb-refund", "title": "Refund policy", "content": "chunk 2", "score": 0.8},
+            {"id": "kb-refund", "title": "Refund policy", "content": "chunk 3", "score": 0.7},
+        ]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_mixed_docs_partial_score(self) -> None:
+        results = [
+            self._chunk("kb-refund"),
+            self._chunk("kb-shipping"),
+            self._chunk("kb-shipping"),
+        ]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1 / 3)
+
+    def test_no_match_returns_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 3
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 0.0)
+
+    def test_none_expected_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([self._chunk("kb-refund")], None), 0.0)
+
+    def test_empty_results_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([], "kb-refund"), 0.0)
+
+    def test_only_top_k_considered(self) -> None:
+        results = [
+            self._chunk("kb-shipping"),
+            self._chunk("kb-shipping"),
+            self._chunk("kb-shipping"),
+            self._chunk("kb-refund"),  # 4th slot, outside k=3
+        ]
+        self.assertAlmostEqual(self._fn(results, "kb-refund", k=3), 0.0)
+
+
+class RecallAtKDocTests(unittest.TestCase):
+    """_recall_at_k_doc: binary hit whether any of the top-k chunks is from the expected doc."""
+
+    def setUp(self) -> None:
+        from backend.eval.run import _recall_at_k_doc
+
+        self._fn = _recall_at_k_doc
+
+    def _chunk(self, doc_id: str) -> dict:
+        return {"id": doc_id, "title": "Any", "content": "x", "score": 0.5}
+
+    def test_found_in_top3_scores_one(self) -> None:
+        results = [self._chunk("kb-shipping"), self._chunk("kb-refund"), self._chunk("kb-blender")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_not_found_scores_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 3
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 0.0)
+
+    def test_binary_not_fractional(self) -> None:
+        results = [self._chunk("kb-refund")] * 3
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_none_expected_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([self._chunk("kb-refund")], None), 0.0)
+
+    def test_empty_results_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([], "kb-refund"), 0.0)
 
 
 class ContextRelevanceTests(unittest.TestCase):
@@ -271,6 +367,14 @@ def _make_mode_result(mode: str, llm_score: float | None = None) -> dict:
         "mode": mode,
         "avg_precision_at_3": 0.75,
         "avg_recall_at_3": 0.80,
+        "avg_precision_at_3_doc": 0.85,
+        "avg_recall_at_3_doc": 0.90,
+        "avg_hit_rate_at_1": 0.70,
+        "avg_hit_rate_at_3": 0.88,
+        "avg_hit_rate_at_5": 0.92,
+        "avg_hit_rate_at_10": 0.95,
+        "avg_ndcg_at_5": 0.78,
+        "avg_mrr": 0.82,
         "avg_context_relevance": 0.60,
         "avg_answer_correctness_kw": 0.65,
         "p50_latency_s": 0.12,
@@ -307,11 +411,33 @@ class BenchmarkMdTests(unittest.TestCase):
     def test_contains_header_columns_without_llm(self) -> None:
         self._fn([_make_mode_result("keyword")], self._out)
         lines = self._out.read_text().splitlines()
-        # The markdown table header row is the first line starting with "| Mode"
-        header_row = next(line for line in lines if line.startswith("| Mode"))
-        self.assertIn("P@3", header_row)
-        self.assertIn("KwCorr", header_row)
-        self.assertNotIn("LLMCorr", header_row)
+        # LLMCorr column should not appear in any table header row (| ... | lines)
+        table_header_lines = [line for line in lines if line.startswith("| Mode")]
+        self.assertTrue(table_header_lines, "expected at least one table header row")
+        self.assertIn("P@3", self._out.read_text())
+        self.assertIn("KwCorr", self._out.read_text())
+        for header in table_header_lines:
+            self.assertNotIn("LLMCorr", header)
+
+    def test_contains_doc_id_columns(self) -> None:
+        self._fn([_make_mode_result("hybrid")], self._out)
+        content = self._out.read_text()
+        self.assertIn("P@3 (doc)", content)
+        self.assertIn("R@3 (doc)", content)
+
+    def test_contains_ranking_metrics(self) -> None:
+        self._fn([_make_mode_result("hybrid")], self._out)
+        content = self._out.read_text()
+        self.assertIn("NDCG@5", content)
+        self.assertIn("MRR", content)
+        self.assertIn("H@1", content)
+        self.assertIn("H@10", content)
+
+    def test_deprecated_title_columns_still_present(self) -> None:
+        self._fn([_make_mode_result("hybrid")], self._out)
+        content = self._out.read_text()
+        self.assertIn("P@3 (title)", content)
+        self.assertIn("R@3 (title)", content)
 
     def test_contains_llm_column_when_present(self) -> None:
         self._fn([_make_mode_result("hybrid", llm_score=0.88)], self._out)
@@ -337,16 +463,205 @@ class BenchmarkMdTests(unittest.TestCase):
         self.assertIn("--all-modes --benchmark", content)
 
     def test_valid_markdown_table_structure(self) -> None:
+        # Two tables: ranking (header + sep + 2 data) + quality (header + sep + 2 data) = 8 rows
         self._fn([_make_mode_result("keyword"), _make_mode_result("hybrid")], self._out)
         lines = self._out.read_text().splitlines()
         table_lines = [line for line in lines if line.startswith("|")]
-        # header row + separator row + 2 data rows
-        self.assertEqual(len(table_lines), 4)
+        self.assertEqual(len(table_lines), 8)
 
 
 # ---------------------------------------------------------------------------
-# 4. Regression gate (check_regression)
+# 4. evaluate_mode output shape (doc-id metrics wired in, no DB required)
 # ---------------------------------------------------------------------------
+
+
+class EvaluateModeDocIdTests(unittest.TestCase):
+    """Verify evaluate_mode emits the new doc-id metrics using keyword (InMemory) mode."""
+
+    def _minimal_queries(self) -> list[dict]:
+        return [
+            {
+                "id": "t1",
+                "category": "refund",
+                "query": "refund",
+                "expected_source_title": "Refund policy",
+                "expected_document_id": "kb-refund",
+                "acceptable_answer_keywords": ["refund"],
+            },
+            {
+                "id": "t2",
+                "category": "off-topic",
+                "query": "something completely off-topic xyz123",
+                "expected_source_title": None,
+                "expected_document_id": None,
+                "acceptable_answer_keywords": [],
+            },
+        ]
+
+    def test_result_contains_doc_id_averages(self) -> None:
+        from backend.eval.run import evaluate_mode
+
+        result = evaluate_mode(
+            mode="keyword",
+            queries=self._minimal_queries(),
+            database_url="postgresql://unused",
+            voyage_api_key=None,
+        )
+        self.assertIn("avg_precision_at_3_doc", result)
+        self.assertIn("avg_recall_at_3_doc", result)
+        self.assertIsInstance(result["avg_precision_at_3_doc"], float)
+        self.assertIsInstance(result["avg_recall_at_3_doc"], float)
+
+    def test_per_query_row_contains_doc_id_fields(self) -> None:
+        from backend.eval.run import evaluate_mode
+
+        result = evaluate_mode(
+            mode="keyword",
+            queries=self._minimal_queries(),
+            database_url="postgresql://unused",
+            voyage_api_key=None,
+        )
+        for row in result["per_query"]:
+            self.assertIn("precision_at_3_doc", row)
+            self.assertIn("recall_at_3_doc", row)
+            self.assertIn("retrieved_doc_ids", row)
+            self.assertIn("expected_doc_id", row)
+
+    def test_correct_retrieval_scores_doc_precision_one(self) -> None:
+        from backend.eval.run import evaluate_mode
+
+        # "refund" query should retrieve kb-refund from InMemoryRepository
+        result = evaluate_mode(
+            mode="keyword",
+            queries=[self._minimal_queries()[0]],
+            database_url="postgresql://unused",
+            voyage_api_key=None,
+        )
+        row = result["per_query"][0]
+        # kb-refund should appear in retrieved doc IDs
+        self.assertIn("kb-refund", row["retrieved_doc_ids"])
+        self.assertGreater(row["precision_at_3_doc"], 0.0)
+        self.assertEqual(row["recall_at_3_doc"], 1.0)
+
+
+# ---------------------------------------------------------------------------
+# 5. Regression gate (check_regression)
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# 5b. 9c: hit_rate@k, NDCG@5, MRR
+# ---------------------------------------------------------------------------
+
+
+class HitRateAtKTests(unittest.TestCase):
+    """hit_rate_at_k: binary 1.0 if expected doc appears in top-k, else 0."""
+
+    def setUp(self) -> None:
+        from backend.eval.run import hit_rate_at_k
+
+        self._fn = hit_rate_at_k
+
+    def _chunk(self, doc_id: str) -> dict:
+        return {"id": doc_id, "title": "T", "content": "x", "score": 0.5}
+
+    def test_found_at_rank_1(self) -> None:
+        self.assertEqual(self._fn([self._chunk("kb-refund")] * 3, "kb-refund", k=1), 1.0)
+
+    def test_found_beyond_k_scores_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 3 + [self._chunk("kb-refund")]
+        self.assertEqual(self._fn(results, "kb-refund", k=3), 0.0)
+
+    def test_found_within_k_scores_one(self) -> None:
+        results = [self._chunk("kb-shipping"), self._chunk("kb-refund"), self._chunk("kb-blender")]
+        self.assertEqual(self._fn(results, "kb-refund", k=3), 1.0)
+
+    def test_none_expected_returns_zero(self) -> None:
+        self.assertEqual(self._fn([self._chunk("kb-refund")], None, k=5), 0.0)
+
+    def test_empty_results_returns_zero(self) -> None:
+        self.assertEqual(self._fn([], "kb-refund", k=5), 0.0)
+
+    def test_k_equals_10_finds_result_at_rank_8(self) -> None:
+        results = (
+            [self._chunk("kb-shipping")] * 7
+            + [self._chunk("kb-refund")]
+            + [self._chunk("kb-blender")] * 2
+        )
+        self.assertEqual(self._fn(results, "kb-refund", k=10), 1.0)
+
+
+class NdcgAtKTests(unittest.TestCase):
+    """ndcg_at_k: single-relevant-doc NDCG. IDCG=1 (ideal rank is 1)."""
+
+    def setUp(self) -> None:
+        from backend.eval.run import ndcg_at_k
+
+        self._fn = ndcg_at_k
+
+    def _chunk(self, doc_id: str) -> dict:
+        return {"id": doc_id, "title": "T", "content": "x", "score": 0.5}
+
+    def test_found_at_rank_1_scores_one(self) -> None:
+        results = [self._chunk("kb-refund"), self._chunk("kb-shipping"), self._chunk("kb-blender")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund", k=5), 1.0)
+
+    def test_found_at_rank_2_discounted(self) -> None:
+        import math
+
+        results = [self._chunk("kb-shipping"), self._chunk("kb-refund"), self._chunk("kb-blender")]
+        expected = 1.0 / math.log2(3)  # rank 2 → DCG = 1/log2(2+1), IDCG = 1/log2(2) = 1
+        self.assertAlmostEqual(self._fn(results, "kb-refund", k=5), expected, places=5)
+
+    def test_not_found_scores_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 5
+        self.assertAlmostEqual(self._fn(results, "kb-refund", k=5), 0.0)
+
+    def test_found_beyond_k_scores_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 3 + [self._chunk("kb-refund")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund", k=3), 0.0)
+
+    def test_none_expected_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([self._chunk("kb-refund")], None, k=5), 0.0)
+
+
+class MrrTests(unittest.TestCase):
+    """mrr: 1/rank of first relevant chunk found; 0 if none."""
+
+    def setUp(self) -> None:
+        from backend.eval.run import mrr
+
+        self._fn = mrr
+
+    def _chunk(self, doc_id: str) -> dict:
+        return {"id": doc_id, "title": "T", "content": "x", "score": 0.5}
+
+    def test_found_at_rank_1_scores_one(self) -> None:
+        results = [self._chunk("kb-refund"), self._chunk("kb-shipping")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_found_at_rank_2_scores_half(self) -> None:
+        results = [self._chunk("kb-shipping"), self._chunk("kb-refund")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 0.5)
+
+    def test_found_at_rank_3_scores_third(self) -> None:
+        results = [self._chunk("kb-shipping"), self._chunk("kb-blender"), self._chunk("kb-refund")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1 / 3)
+
+    def test_not_found_scores_zero(self) -> None:
+        results = [self._chunk("kb-shipping")] * 3
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 0.0)
+
+    def test_first_match_counts_not_all(self) -> None:
+        # Two matching chunks: rank 1 and rank 3 — should return 1/1 = 1.0
+        results = [self._chunk("kb-refund"), self._chunk("kb-shipping"), self._chunk("kb-refund")]
+        self.assertAlmostEqual(self._fn(results, "kb-refund"), 1.0)
+
+    def test_none_expected_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([self._chunk("kb-refund")], None), 0.0)
+
+    def test_empty_results_returns_zero(self) -> None:
+        self.assertAlmostEqual(self._fn([], "kb-refund"), 0.0)
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -490,7 +805,7 @@ class RegressionGateTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# 5. Agent eval scoring formulas
+# 6. Agent eval scoring formulas
 # ---------------------------------------------------------------------------
 
 

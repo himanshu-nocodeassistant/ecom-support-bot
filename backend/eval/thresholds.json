@@ -1,16 +1,22 @@
 {
-  "_comment": "Regression thresholds for CI gate (6d). A PR fails if any metric drops more than `max_drop` from the committed baseline. Edit after a deliberate improvement to raise the floor.",
+  "_comment": "Regression thresholds for CI gate (6d/9a/9e). metrics_to_gate uses doc-id P@3/R@3 as primary signal (title-based deprecated). best_mode updated from hybrid+rerank+filter to hybrid after 9a metric bias fix; re-evaluate after 9b KB expansion.",
   "regression_max_drop": 0.10,
   "metrics_to_gate": [
-    "avg_precision_at_3",
-    "avg_recall_at_3",
+    "avg_precision_at_3_doc",
+    "avg_recall_at_3_doc",
     "avg_context_relevance"
   ],
-  "best_mode": "hybrid+rerank+filter",
+  "best_mode": "hybrid",
   "agent_metrics_to_gate": [
     "avg_tool_accuracy",
     "avg_refusal_accuracy"
   ],
   "agent_regression_max_drop": 0.10,
-  "memory_recall_rate_min": 0.75
+  "memory_recall_rate_min": 0.75,
+  "adversarial_metrics_min": {
+    "injection_refusal_rate": 0.80,
+    "clarification_rate": 0.80,
+    "multi_tool_rate": 0.80,
+    "oos_refusal_rate": 0.80
+  }
 }

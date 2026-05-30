@@ -4,6 +4,7 @@
     "category": "refund",
     "query": "How do I request a refund?",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["30 days", "refund", "order ID", "reason", "delivered"]
   },
   {
@@ -11,6 +12,7 @@
     "category": "refund",
     "query": "My item arrived damaged, can I get my money back?",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["refund", "damaged", "30 days", "eligible"]
   },
   {
@@ -18,6 +20,7 @@
     "category": "refund",
     "query": "What is the deadline to return something?",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["30 days", "delivery", "refund"]
   },
   {
@@ -25,6 +28,7 @@
     "category": "refund",
     "query": "Can I get a refund if the product is defective?",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["defective", "refund", "eligible", "30 days"]
   },
   {
@@ -32,6 +36,7 @@
     "category": "refund",
     "query": "I received the wrong item, what do I do?",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["incorrect", "refund", "30 days", "order ID"]
   },
   {
@@ -39,6 +44,7 @@
     "category": "shipping",
     "query": "How long does delivery take?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["3", "7", "business days", "standard delivery"]
   },
   {
@@ -46,6 +52,7 @@
     "category": "shipping",
     "query": "When will my order ship?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["2 business days", "ship", "shipment"]
   },
   {
@@ -53,6 +60,7 @@
     "category": "shipping",
     "query": "My package is late, what should I do?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["delayed", "tracking", "check tracking"]
   },
   {
@@ -60,6 +68,7 @@
     "category": "shipping",
     "query": "How quickly do you process and send orders?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["2 business days", "ship", "process"]
   },
   {
@@ -67,6 +76,7 @@
     "category": "shipping",
     "query": "What is your shipping timeframe?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["3", "7", "business days", "standard"]
   },
   {
@@ -74,6 +84,7 @@
     "category": "product",
     "query": "How long does the headphone battery last?",
     "expected_source_title": "Noise-cancelling headphones guide",
+    "expected_document_id": "kb-headphones",
     "acceptable_answer_keywords": ["30 hours", "battery", "charge"]
   },
   {
@@ -81,6 +92,7 @@
     "category": "product",
     "query": "Does the headset support Bluetooth?",
     "expected_source_title": "Noise-cancelling headphones guide",
+    "expected_document_id": "kb-headphones",
     "acceptable_answer_keywords": ["Bluetooth", "5.3", "wireless"]
   },
   {
@@ -88,6 +100,7 @@
     "category": "product",
     "query": "Can I use the headphones with a cable instead of Bluetooth?",
     "expected_source_title": "Noise-cancelling headphones guide",
+    "expected_document_id": "kb-headphones",
     "acceptable_answer_keywords": ["wired", "audio mode", "cable", "Bluetooth"]
   },
   {
@@ -95,6 +108,7 @@
     "category": "product",
     "query": "Do the headphones cancel background noise?",
     "expected_source_title": "Noise-cancelling headphones guide",
+    "expected_document_id": "kb-headphones",
     "acceptable_answer_keywords": ["noise cancellation", "active noise", "ANC"]
   },
   {
@@ -102,6 +116,7 @@
     "category": "product",
     "query": "How much liquid does the portable blender hold?",
     "expected_source_title": "Portable blender guide",
+    "expected_document_id": "kb-blender",
     "acceptable_answer_keywords": ["400ml", "jar", "capacity"]
   },
   {
@@ -109,6 +124,7 @@
     "category": "product",
     "query": "How do I charge the blender?",
     "expected_source_title": "Portable blender guide",
+    "expected_document_id": "kb-blender",
     "acceptable_answer_keywords": ["USB-C", "charging", "charge"]
   },
   {
@@ -116,6 +132,7 @@
     "category": "product",
     "query": "My blender won't turn on, what should I check?",
     "expected_source_title": "Portable blender guide",
+    "expected_document_id": "kb-blender",
     "acceptable_answer_keywords": ["lid", "safety lock", "lid alignment", "secured"]
   },
   {
@@ -123,6 +140,7 @@
     "category": "product",
     "query": "Is there a safety feature on the blender?",
     "expected_source_title": "Portable blender guide",
+    "expected_document_id": "kb-blender",
     "acceptable_answer_keywords": ["safety lock", "lid", "secured", "blending"]
   },
   {
@@ -130,6 +148,7 @@
     "category": "order",
     "query": "Where is my order?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": ["order ID", "look up", "status", "provide"]
   },
   {
@@ -137,6 +156,7 @@
     "category": "order",
     "query": "Can you check the status of my package?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": ["order ID", "look up", "status"]
   },
   {
@@ -144,6 +164,7 @@
     "category": "refund",
     "query": "I want a refund but my order hasn't arrived yet",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["delivered", "wait", "delivery confirmed", "not delivered"]
   },
   {
@@ -151,6 +172,7 @@
     "category": "shipping",
     "query": "Do you ship internationally?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": []
   },
   {
@@ -158,6 +180,7 @@
     "category": "off-topic",
     "query": "What is the capital of France?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": []
   },
   {
@@ -165,6 +188,7 @@
     "category": "off-topic",
     "query": "Can you write me a poem?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": []
   },
   {
@@ -172,6 +196,7 @@
     "category": "multi-intent",
     "query": "My headphones stopped working and I want a refund, the order arrived last week",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["refund", "order ID", "30 days", "delivered"]
   },
   {
@@ -179,6 +204,7 @@
     "category": "multi-intent",
     "query": "How long does shipping take and what is your refund policy?",
     "expected_source_title": "Shipping policy",
+    "expected_document_id": "kb-shipping",
     "acceptable_answer_keywords": ["business days", "refund", "30 days", "shipping"]
   },
   {
@@ -186,6 +212,7 @@
     "category": "product",
     "query": "What wireless technology does the headset use?",
     "expected_source_title": "Noise-cancelling headphones guide",
+    "expected_document_id": "kb-headphones",
     "acceptable_answer_keywords": ["Bluetooth", "5.3", "wireless"]
   },
   {
@@ -193,6 +220,7 @@
     "category": "refund",
     "query": "Give me a refund",
     "expected_source_title": "Refund policy",
+    "expected_document_id": "kb-refund",
     "acceptable_answer_keywords": ["order ID", "reason", "refund"]
   },
   {
@@ -200,6 +228,7 @@
     "category": "unanswerable",
     "query": "What is the warranty period for the blender motor?",
     "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": []
   },
   {
@@ -207,6 +236,263 @@
     "category": "unanswerable",
     "query": "Do you offer price matching?",
     "expected_source_title": null,
+    "expected_document_id": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q31",
+    "category": "returns",
+    "query": "How do I send a product back?",
+    "expected_source_title": "Returns policy",
+    "expected_document_id": "kb-returns",
+    "acceptable_answer_keywords": ["return", "order ID", "prepaid", "label"]
+  },
+  {
+    "id": "q32",
+    "category": "returns",
+    "query": "What is the difference between a return and a refund?",
+    "expected_source_title": "Returns policy",
+    "expected_document_id": "kb-returns",
+    "acceptable_answer_keywords": ["return", "refund", "send back", "inspection"]
+  },
+  {
+    "id": "q33",
+    "category": "returns",
+    "query": "How long does it take to get my money back after returning an item?",
+    "expected_source_title": "Returns policy",
+    "expected_document_id": "kb-returns",
+    "acceptable_answer_keywords": ["inspection", "business days", "refund", "approved"]
+  },
+  {
+    "id": "q34",
+    "category": "warranty",
+    "query": "Is my product under warranty?",
+    "expected_source_title": "Warranty policy",
+    "expected_document_id": "kb-warranty",
+    "acceptable_answer_keywords": ["12-month", "warranty", "defects"]
+  },
+  {
+    "id": "q35",
+    "category": "warranty",
+    "query": "My blender motor stopped working after 14 months, is that covered?",
+    "expected_source_title": "Warranty policy",
+    "expected_document_id": "kb-warranty",
+    "acceptable_answer_keywords": ["warranty", "blender", "6-month", "extended"]
+  },
+  {
+    "id": "q36",
+    "category": "warranty",
+    "query": "Does warranty cover accidental damage?",
+    "expected_source_title": "Warranty policy",
+    "expected_document_id": "kb-warranty",
+    "acceptable_answer_keywords": ["accidental", "not covered", "warranty"]
+  },
+  {
+    "id": "q37",
+    "category": "payment",
+    "query": "What payment methods do you accept?",
+    "expected_source_title": "Payment methods",
+    "expected_document_id": "kb-payment",
+    "acceptable_answer_keywords": ["Visa", "PayPal", "Mastercard"]
+  },
+  {
+    "id": "q38",
+    "category": "payment",
+    "query": "Why did my payment fail?",
+    "expected_source_title": "Payment methods",
+    "expected_document_id": "kb-payment",
+    "acceptable_answer_keywords": ["payment", "failed", "billing address", "bank"]
+  },
+  {
+    "id": "q39",
+    "category": "payment",
+    "query": "Do you accept cryptocurrency?",
+    "expected_source_title": "Payment methods",
+    "expected_document_id": "kb-payment",
+    "acceptable_answer_keywords": ["cryptocurrency", "not accept"]
+  },
+  {
+    "id": "q40",
+    "category": "account",
+    "query": "How do I reset my password?",
+    "expected_source_title": "Account management",
+    "expected_document_id": "kb-account",
+    "acceptable_answer_keywords": ["password", "reset", "email", "link"]
+  },
+  {
+    "id": "q41",
+    "category": "account",
+    "query": "How do I delete my account?",
+    "expected_source_title": "Account management",
+    "expected_document_id": "kb-account",
+    "acceptable_answer_keywords": ["delete", "account", "30 days", "personal data"]
+  },
+  {
+    "id": "q42",
+    "category": "order",
+    "query": "Can I change my order after placing it?",
+    "expected_source_title": "Order modification",
+    "expected_document_id": "kb-order-modification",
+    "acceptable_answer_keywords": ["1 hour", "modify", "contact support"]
+  },
+  {
+    "id": "q43",
+    "category": "order",
+    "query": "I want to cancel my order",
+    "expected_source_title": "Order modification",
+    "expected_document_id": "kb-order-modification",
+    "acceptable_answer_keywords": ["cancel", "1 hour", "free", "return"]
+  },
+  {
+    "id": "q44",
+    "category": "order",
+    "query": "Can I change the delivery address on my order?",
+    "expected_source_title": "Address change",
+    "expected_document_id": "kb-address-change",
+    "acceptable_answer_keywords": ["address", "pending", "processing", "carrier"]
+  },
+  {
+    "id": "q45",
+    "category": "order",
+    "query": "My package was returned because the address was wrong. What happens now?",
+    "expected_source_title": "Address change",
+    "expected_document_id": "kb-address-change",
+    "acceptable_answer_keywords": ["reship", "address", "free", "order ID"]
+  },
+  {
+    "id": "q46",
+    "category": "policy",
+    "query": "Can I add gift wrapping to my order?",
+    "expected_source_title": "Gift wrapping",
+    "expected_document_id": "kb-gift-wrapping",
+    "acceptable_answer_keywords": ["gift wrapping", "$3.99", "message"]
+  },
+  {
+    "id": "q47",
+    "category": "policy",
+    "query": "Will the price tag be included in a gift order?",
+    "expected_source_title": "Gift wrapping",
+    "expected_document_id": "kb-gift-wrapping",
+    "acceptable_answer_keywords": ["price tag", "removed", "gift"]
+  },
+  {
+    "id": "q48",
+    "category": "subscription",
+    "query": "How do I cancel my subscription?",
+    "expected_source_title": "Subscription billing",
+    "expected_document_id": "kb-subscription",
+    "acceptable_answer_keywords": ["cancel", "subscription", "billing period", "Account Settings"]
+  },
+  {
+    "id": "q49",
+    "category": "subscription",
+    "query": "What discount do I get on a subscription?",
+    "expected_source_title": "Subscription billing",
+    "expected_document_id": "kb-subscription",
+    "acceptable_answer_keywords": ["15%", "discount", "subscription"]
+  },
+  {
+    "id": "q50",
+    "category": "subscription",
+    "query": "What happens if my subscription payment fails?",
+    "expected_source_title": "Subscription billing",
+    "expected_document_id": "kb-subscription",
+    "acceptable_answer_keywords": ["retry", "3 days", "7 days", "paused"]
+  },
+  {
+    "id": "q51",
+    "category": "b2b",
+    "query": "Do you offer bulk discounts for businesses?",
+    "expected_source_title": "B2B and wholesale orders",
+    "expected_document_id": "kb-b2b",
+    "acceptable_answer_keywords": ["wholesale", "discount", "units", "B2B"]
+  },
+  {
+    "id": "q52",
+    "category": "b2b",
+    "query": "How do I place a wholesale order?",
+    "expected_source_title": "B2B and wholesale orders",
+    "expected_document_id": "kb-b2b",
+    "acceptable_answer_keywords": ["B2B", "email", "invoice", "wholesale"]
+  },
+  {
+    "id": "q53",
+    "category": "accessibility",
+    "query": "Is your website accessible for visually impaired users?",
+    "expected_source_title": "Accessibility",
+    "expected_document_id": "kb-accessibility",
+    "acceptable_answer_keywords": ["WCAG", "screen reader", "accessible"]
+  },
+  {
+    "id": "q54",
+    "category": "accessibility",
+    "query": "Can I get a large-print manual for my product?",
+    "expected_source_title": "Accessibility",
+    "expected_document_id": "kb-accessibility",
+    "acceptable_answer_keywords": ["large-print", "manual", "request"]
+  },
+  {
+    "id": "q55",
+    "category": "product",
+    "query": "How do I set up the smart home hub?",
+    "expected_source_title": "Smart home hub guide",
+    "expected_document_id": "kb-smart-hub",
+    "acceptable_answer_keywords": ["app", "pairing", "Wi-Fi", "setup"]
+  },
+  {
+    "id": "q56",
+    "category": "product",
+    "query": "The smart hub has a red light, what does that mean?",
+    "expected_source_title": "Smart home hub guide",
+    "expected_document_id": "kb-smart-hub",
+    "acceptable_answer_keywords": ["red LED", "network", "reset", "reconnect"]
+  },
+  {
+    "id": "q57",
+    "category": "product",
+    "query": "Does the hub work with Alexa?",
+    "expected_source_title": "Smart home hub guide",
+    "expected_document_id": "kb-smart-hub",
+    "acceptable_answer_keywords": ["Alexa", "Google Home", "HomeKit", "compatible"]
+  },
+  {
+    "id": "q58",
+    "category": "multi-intent",
+    "query": "I want to cancel my subscription and get a refund for this month",
+    "expected_source_title": "Subscription billing",
+    "expected_document_id": "kb-subscription",
+    "acceptable_answer_keywords": ["cancel", "subscription", "billing period", "refund"]
+  },
+  {
+    "id": "q59",
+    "category": "multi-intent",
+    "query": "Can I return the hub and also update my address for future orders?",
+    "expected_source_title": "Returns policy",
+    "expected_document_id": "kb-returns",
+    "acceptable_answer_keywords": ["return", "order ID", "address", "Account Settings"]
+  },
+  {
+    "id": "q60",
+    "category": "unanswerable",
+    "query": "What is the next product launch date?",
+    "expected_source_title": null,
+    "expected_document_id": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q61",
+    "category": "unanswerable",
+    "query": "Can you recommend a good recipe for my blender?",
+    "expected_source_title": null,
+    "expected_document_id": null,
+    "acceptable_answer_keywords": []
+  },
+  {
+    "id": "q62",
+    "category": "off-topic",
+    "query": "What is the weather like today?",
+    "expected_source_title": null,
+    "expected_document_id": null,
     "acceptable_answer_keywords": []
   }
 ]

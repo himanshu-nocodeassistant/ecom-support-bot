@@ -1,18 +1,26 @@
 {
   "mode": "keyword",
-  "avg_precision_at_3": 0.2898,
-  "avg_recall_at_3": 0.8696,
+  "avg_precision_at_3": 0.3013,
+  "avg_recall_at_3": 0.9038,
+  "avg_precision_at_3_doc": 0.3013,
+  "avg_recall_at_3_doc": 0.9038,
+  "avg_hit_rate_at_1": 0.6731,
+  "avg_hit_rate_at_3": 0.9038,
+  "avg_hit_rate_at_5": 0.9038,
+  "avg_hit_rate_at_10": 0.9038,
+  "avg_ndcg_at_5": 0.8111,
+  "avg_mrr": 0.7788,
   "avg_context_relevance": 0.0,
-  "avg_answer_correctness_kw": 0.687,
-  "p50_latency_s": 0.0,
-  "p95_latency_s": 0.0,
+  "avg_answer_correctness_kw": 0.7686,
+  "p50_latency_s": 0.0001,
+  "p95_latency_s": 0.0001,
   "estimated_cost": {
-    "embed_cost_usd": 3e-05,
+    "embed_cost_usd": 6.2e-05,
     "rerank_cost_usd": 0.0,
-    "total_cost_usd": 3e-05
+    "total_cost_usd": 6.2e-05
   },
-  "n_queries": 30,
-  "n_answerable": 23,
+  "n_queries": 62,
+  "n_answerable": 52,
   "per_query": [
     {
       "id": "q01",
@@ -20,13 +28,29 @@
       "query": "How do I request a refund?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.8,
-      "latency_s": 0.0001,
+      "latency_s": 0.0002,
       "retrieved_titles": [
-        "Refund policy"
+        "Refund policy",
+        "Returns policy",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-warranty"
       ],
       "expected_title": "Refund policy",
+      "expected_doc_id": "kb-refund",
       "top_score": 1.0
     },
     {
@@ -35,14 +59,30 @@
       "query": "My item arrived damaged, can I get my money back?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Refund policy"
+        "Returns policy",
+        "Refund policy",
+        "Gift wrapping"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-refund",
+        "kb-gift-wrapping"
       ],
       "expected_title": "Refund policy",
-      "top_score": 1.0
+      "expected_doc_id": "kb-refund",
+      "top_score": 2.0
     },
     {
       "id": "q03",
@@ -50,12 +90,26 @@
       "query": "What is the deadline to return something?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.0,
-      "latency_s": 0.0,
-      "retrieved_titles": [],
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns"
+      ],
       "expected_title": "Refund policy",
-      "top_score": 0.0
+      "expected_doc_id": "kb-refund",
+      "top_score": 1.0
     },
     {
       "id": "q04",
@@ -63,14 +117,29 @@
       "query": "Can I get a refund if the product is defective?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
+        "Returns policy",
         "Shipping policy"
       ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-shipping"
+      ],
       "expected_title": "Refund policy",
+      "expected_doc_id": "kb-refund",
       "top_score": 2.0
     },
     {
@@ -79,12 +148,28 @@
       "query": "I received the wrong item, what do I do?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.0,
-      "latency_s": 0.0,
-      "retrieved_titles": [],
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Gift wrapping"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-gift-wrapping"
+      ],
       "expected_title": "Refund policy",
-      "top_score": 0.0
+      "expected_doc_id": "kb-refund",
+      "top_score": 1.0
     },
     {
       "id": "q06",
@@ -92,14 +177,29 @@
       "query": "How long does delivery take?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
-        "Refund policy"
+        "Refund policy",
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-refund",
+        "kb-returns"
       ],
       "expected_title": "Shipping policy",
+      "expected_doc_id": "kb-shipping",
       "top_score": 1.0
     },
     {
@@ -108,15 +208,30 @@
       "query": "When will my order ship?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
+        "Address change",
         "Shipping policy",
         "Refund policy"
       ],
+      "retrieved_doc_ids": [
+        "kb-address-change",
+        "kb-shipping",
+        "kb-refund"
+      ],
       "expected_title": "Shipping policy",
-      "top_score": 1.0
+      "expected_doc_id": "kb-shipping",
+      "top_score": 2.0
     },
     {
       "id": "q08",
@@ -124,13 +239,27 @@
       "query": "My package is late, what should I do?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Shipping policy"
+        "Shipping policy",
+        "Address change"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-address-change"
       ],
       "expected_title": "Shipping policy",
+      "expected_doc_id": "kb-shipping",
       "top_score": 2.0
     },
     {
@@ -139,13 +268,29 @@
       "query": "How quickly do you process and send orders?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Shipping policy"
+        "Shipping policy",
+        "Payment methods",
+        "Account management"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-payment",
+        "kb-account"
       ],
       "expected_title": "Shipping policy",
+      "expected_doc_id": "kb-shipping",
       "top_score": 1.0
     },
     {
@@ -154,13 +299,29 @@
       "query": "What is your shipping timeframe?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Shipping policy"
+        "Shipping policy",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-returns",
+        "kb-order-modification"
       ],
       "expected_title": "Shipping policy",
+      "expected_doc_id": "kb-shipping",
       "top_score": 1.0
     },
     {
@@ -169,13 +330,27 @@
       "query": "How long does the headphone battery last?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Noise-cancelling headphones guide"
+        "Noise-cancelling headphones guide",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-headphones",
+        "kb-warranty"
       ],
       "expected_title": "Noise-cancelling headphones guide",
+      "expected_doc_id": "kb-headphones",
       "top_score": 1.0
     },
     {
@@ -184,13 +359,29 @@
       "query": "Does the headset support Bluetooth?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Noise-cancelling headphones guide"
+        "Noise-cancelling headphones guide",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-headphones",
+        "kb-returns",
+        "kb-order-modification"
       ],
       "expected_title": "Noise-cancelling headphones guide",
+      "expected_doc_id": "kb-headphones",
       "top_score": 2.0
     },
     {
@@ -199,13 +390,29 @@
       "query": "Can I use the headphones with a cable instead of Bluetooth?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Noise-cancelling headphones guide"
+        "Noise-cancelling headphones guide",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-headphones",
+        "kb-returns",
+        "kb-order-modification"
       ],
       "expected_title": "Noise-cancelling headphones guide",
+      "expected_doc_id": "kb-headphones",
       "top_score": 2.0
     },
     {
@@ -214,13 +421,27 @@
       "query": "Do the headphones cancel background noise?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Noise-cancelling headphones guide"
+        "Noise-cancelling headphones guide",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-headphones",
+        "kb-subscription"
       ],
       "expected_title": "Noise-cancelling headphones guide",
+      "expected_doc_id": "kb-headphones",
       "top_score": 2.0
     },
     {
@@ -229,13 +450,27 @@
       "query": "How much liquid does the portable blender hold?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Portable blender guide"
+        "Portable blender guide",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-blender",
+        "kb-warranty"
       ],
       "expected_title": "Portable blender guide",
+      "expected_doc_id": "kb-blender",
       "top_score": 2.0
     },
     {
@@ -244,13 +479,29 @@
       "query": "How do I charge the blender?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Portable blender guide"
+        "Portable blender guide",
+        "Warranty policy",
+        "Address change"
+      ],
+      "retrieved_doc_ids": [
+        "kb-blender",
+        "kb-warranty",
+        "kb-address-change"
       ],
       "expected_title": "Portable blender guide",
+      "expected_doc_id": "kb-blender",
       "top_score": 1.0
     },
     {
@@ -259,14 +510,29 @@
       "query": "My blender won't turn on, what should I check?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 0.0,
+      "latency_s": 0.0002,
       "retrieved_titles": [
         "Shipping policy",
-        "Portable blender guide"
+        "Portable blender guide",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-blender",
+        "kb-warranty"
       ],
       "expected_title": "Portable blender guide",
+      "expected_doc_id": "kb-blender",
       "top_score": 2.0
     },
     {
@@ -275,13 +541,29 @@
       "query": "Is there a safety feature on the blender?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Portable blender guide"
+        "Portable blender guide",
+        "Warranty policy",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-blender",
+        "kb-warranty",
+        "kb-subscription"
       ],
       "expected_title": "Portable blender guide",
+      "expected_doc_id": "kb-blender",
       "top_score": 2.0
     },
     {
@@ -290,13 +572,29 @@
       "query": "Where is my order?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.25,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Refund policy"
+        "Refund policy",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-order-modification"
       ],
       "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 1.0
     },
     {
@@ -305,13 +603,27 @@
       "query": "Can you check the status of my package?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Shipping policy"
+        "Shipping policy",
+        "Address change"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-address-change"
       ],
       "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 3.0
     },
     {
@@ -320,13 +632,29 @@
       "query": "I want a refund but my order hasn't arrived yet",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Refund policy"
+        "Refund policy",
+        "Returns policy",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-warranty"
       ],
       "expected_title": "Refund policy",
+      "expected_doc_id": "kb-refund",
       "top_score": 2.0
     },
     {
@@ -335,13 +663,25 @@
       "query": "Do you ship internationally?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy"
       ],
+      "retrieved_doc_ids": [
+        "kb-shipping"
+      ],
       "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 1.0
     },
     {
@@ -350,11 +690,21 @@
       "query": "What is the capital of France?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [],
+      "retrieved_doc_ids": [],
       "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 0.0
     },
     {
@@ -363,11 +713,21 @@
       "query": "Can you write me a poem?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [],
+      "retrieved_doc_ids": [],
       "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 0.0
     },
     {
@@ -376,14 +736,29 @@
       "query": "My headphones stopped working and I want a refund, the order arrived last week",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
+        "Returns policy",
         "Noise-cancelling headphones guide"
       ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-headphones"
+      ],
       "expected_title": "Refund policy",
+      "expected_doc_id": "kb-refund",
       "top_score": 2.0
     },
     {
@@ -392,15 +767,30 @@
       "query": "How long does shipping take and what is your refund policy?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
+        "Returns policy",
         "Shipping policy",
         "Refund policy"
       ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-shipping",
+        "kb-refund"
+      ],
       "expected_title": "Shipping policy",
-      "top_score": 2.0
+      "expected_doc_id": "kb-shipping",
+      "top_score": 3.0
     },
     {
       "id": "q27",
@@ -408,11 +798,21 @@
       "query": "What wireless technology does the headset use?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [],
+      "retrieved_doc_ids": [],
       "expected_title": "Noise-cancelling headphones guide",
+      "expected_doc_id": "kb-headphones",
       "top_score": 0.0
     },
     {
@@ -421,13 +821,29 @@
       "query": "Give me a refund",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
-        "Refund policy"
+        "Refund policy",
+        "Returns policy",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-warranty"
       ],
       "expected_title": "Refund policy",
+      "expected_doc_id": "kb-refund",
       "top_score": 1.0
     },
     {
@@ -436,14 +852,28 @@
       "query": "What is the warranty period for the blender motor?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
+      "latency_s": 0.0001,
       "retrieved_titles": [
+        "Warranty policy",
         "Portable blender guide"
       ],
+      "retrieved_doc_ids": [
+        "kb-warranty",
+        "kb-blender"
+      ],
       "expected_title": null,
-      "top_score": 1.0
+      "expected_doc_id": null,
+      "top_score": 3.0
     },
     {
       "id": "q30",
@@ -451,11 +881,969 @@
       "query": "Do you offer price matching?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 0.0,
-      "retrieved_titles": [],
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Gift wrapping",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-gift-wrapping",
+        "kb-subscription"
+      ],
       "expected_title": null,
+      "expected_doc_id": null,
+      "top_score": 1.0
+    },
+    {
+      "id": "q31",
+      "category": "returns",
+      "query": "How do I send a product back?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns"
+      ],
+      "expected_title": "Returns policy",
+      "expected_doc_id": "kb-returns",
+      "top_score": 2.0
+    },
+    {
+      "id": "q32",
+      "category": "returns",
+      "query": "What is the difference between a return and a refund?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Refund policy",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-refund",
+        "kb-warranty"
+      ],
+      "expected_title": "Returns policy",
+      "expected_doc_id": "kb-returns",
+      "top_score": 2.0
+    },
+    {
+      "id": "q33",
+      "category": "returns",
+      "query": "How long does it take to get my money back after returning an item?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Gift wrapping",
+        "Shipping policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-gift-wrapping",
+        "kb-shipping"
+      ],
+      "expected_title": "Returns policy",
+      "expected_doc_id": "kb-returns",
+      "top_score": 3.0
+    },
+    {
+      "id": "q34",
+      "category": "warranty",
+      "query": "Is my product under warranty?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-warranty"
+      ],
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "kb-warranty",
+      "top_score": 1.0
+    },
+    {
+      "id": "q35",
+      "category": "warranty",
+      "query": "My blender motor stopped working after 14 months, is that covered?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Warranty policy",
+        "Portable blender guide",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-warranty",
+        "kb-blender",
+        "kb-subscription"
+      ],
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "kb-warranty",
+      "top_score": 3.0
+    },
+    {
+      "id": "q36",
+      "category": "warranty",
+      "query": "Does warranty cover accidental damage?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-warranty"
+      ],
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "kb-warranty",
+      "top_score": 3.0
+    },
+    {
+      "id": "q37",
+      "category": "payment",
+      "query": "What payment methods do you accept?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Payment methods",
+        "B2B and wholesale orders"
+      ],
+      "retrieved_doc_ids": [
+        "kb-payment",
+        "kb-b2b"
+      ],
+      "expected_title": "Payment methods",
+      "expected_doc_id": "kb-payment",
+      "top_score": 3.0
+    },
+    {
+      "id": "q38",
+      "category": "payment",
+      "query": "Why did my payment fail?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.5,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Payment methods",
+        "B2B and wholesale orders"
+      ],
+      "retrieved_doc_ids": [
+        "kb-payment",
+        "kb-b2b"
+      ],
+      "expected_title": "Payment methods",
+      "expected_doc_id": "kb-payment",
+      "top_score": 1.0
+    },
+    {
+      "id": "q39",
+      "category": "payment",
+      "query": "Do you accept cryptocurrency?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Payment methods"
+      ],
+      "retrieved_doc_ids": [
+        "kb-payment"
+      ],
+      "expected_title": "Payment methods",
+      "expected_doc_id": "kb-payment",
+      "top_score": 1.0
+    },
+    {
+      "id": "q40",
+      "category": "account",
+      "query": "How do I reset my password?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Account management",
+        "Smart home hub guide"
+      ],
+      "retrieved_doc_ids": [
+        "kb-account",
+        "kb-smart-hub"
+      ],
+      "expected_title": "Account management",
+      "expected_doc_id": "kb-account",
+      "top_score": 1.0
+    },
+    {
+      "id": "q41",
+      "category": "account",
+      "query": "How do I delete my account?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Account management",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-account",
+        "kb-subscription"
+      ],
+      "expected_title": "Account management",
+      "expected_doc_id": "kb-account",
+      "top_score": 1.0
+    },
+    {
+      "id": "q42",
+      "category": "order",
+      "query": "Can I change my order after placing it?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.6667,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Order modification",
+        "Address change"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-order-modification",
+        "kb-address-change"
+      ],
+      "expected_title": "Order modification",
+      "expected_doc_id": "kb-order-modification",
+      "top_score": 2.0
+    },
+    {
+      "id": "q43",
+      "category": "order",
+      "query": "I want to cancel my order",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.5,
+      "mrr": 0.3333,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Refund policy",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-order-modification"
+      ],
+      "expected_title": "Order modification",
+      "expected_doc_id": "kb-order-modification",
+      "top_score": 1.0
+    },
+    {
+      "id": "q44",
+      "category": "order",
+      "query": "Can I change the delivery address on my order?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Order modification",
+        "Address change",
+        "Refund policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-order-modification",
+        "kb-address-change",
+        "kb-refund"
+      ],
+      "expected_title": "Address change",
+      "expected_doc_id": "kb-address-change",
+      "top_score": 4.0
+    },
+    {
+      "id": "q45",
+      "category": "order",
+      "query": "My package was returned because the address was wrong. What happens now?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Address change",
+        "Shipping policy",
+        "Payment methods"
+      ],
+      "retrieved_doc_ids": [
+        "kb-address-change",
+        "kb-shipping",
+        "kb-payment"
+      ],
+      "expected_title": "Address change",
+      "expected_doc_id": "kb-address-change",
+      "top_score": 3.0
+    },
+    {
+      "id": "q46",
+      "category": "policy",
+      "query": "Can I add gift wrapping to my order?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Gift wrapping",
+        "Refund policy",
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-gift-wrapping",
+        "kb-refund",
+        "kb-returns"
+      ],
+      "expected_title": "Gift wrapping",
+      "expected_doc_id": "kb-gift-wrapping",
+      "top_score": 3.0
+    },
+    {
+      "id": "q47",
+      "category": "policy",
+      "query": "Will the price tag be included in a gift order?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Gift wrapping",
+        "Address change",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-gift-wrapping",
+        "kb-address-change",
+        "kb-order-modification"
+      ],
+      "expected_title": "Gift wrapping",
+      "expected_doc_id": "kb-gift-wrapping",
+      "top_score": 4.0
+    },
+    {
+      "id": "q48",
+      "category": "subscription",
+      "query": "How do I cancel my subscription?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-subscription"
+      ],
+      "expected_title": "Subscription billing",
+      "expected_doc_id": "kb-subscription",
+      "top_score": 2.0
+    },
+    {
+      "id": "q49",
+      "category": "subscription",
+      "query": "What discount do I get on a subscription?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Subscription billing",
+        "Accessibility"
+      ],
+      "retrieved_doc_ids": [
+        "kb-subscription",
+        "kb-accessibility"
+      ],
+      "expected_title": "Subscription billing",
+      "expected_doc_id": "kb-subscription",
+      "top_score": 3.0
+    },
+    {
+      "id": "q50",
+      "category": "subscription",
+      "query": "What happens if my subscription payment fails?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Shipping policy",
+        "Payment methods",
+        "Address change"
+      ],
+      "retrieved_doc_ids": [
+        "kb-shipping",
+        "kb-payment",
+        "kb-address-change"
+      ],
+      "expected_title": "Subscription billing",
+      "expected_doc_id": "kb-subscription",
+      "top_score": 1.0
+    },
+    {
+      "id": "q51",
+      "category": "b2b",
+      "query": "Do you offer bulk discounts for businesses?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Subscription billing",
+        "B2B and wholesale orders"
+      ],
+      "retrieved_doc_ids": [
+        "kb-subscription",
+        "kb-b2b"
+      ],
+      "expected_title": "B2B and wholesale orders",
+      "expected_doc_id": "kb-b2b",
+      "top_score": 1.0
+    },
+    {
+      "id": "q52",
+      "category": "b2b",
+      "query": "How do I place a wholesale order?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Refund policy",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-refund",
+        "kb-returns",
+        "kb-order-modification"
+      ],
+      "expected_title": "B2B and wholesale orders",
+      "expected_doc_id": "kb-b2b",
+      "top_score": 1.0
+    },
+    {
+      "id": "q53",
+      "category": "accessibility",
+      "query": "Is your website accessible for visually impaired users?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.5,
+      "mrr": 0.3333,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.3333,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy",
+        "Order modification",
+        "Accessibility"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns",
+        "kb-order-modification",
+        "kb-accessibility"
+      ],
+      "expected_title": "Accessibility",
+      "expected_doc_id": "kb-accessibility",
+      "top_score": 1.0
+    },
+    {
+      "id": "q54",
+      "category": "accessibility",
+      "query": "Can I get a large-print manual for my product?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Accessibility",
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-accessibility",
+        "kb-returns"
+      ],
+      "expected_title": "Accessibility",
+      "expected_doc_id": "kb-accessibility",
+      "top_score": 2.0
+    },
+    {
+      "id": "q55",
+      "category": "product",
+      "query": "How do I set up the smart home hub?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.5,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Smart home hub guide",
+        "Subscription billing"
+      ],
+      "retrieved_doc_ids": [
+        "kb-smart-hub",
+        "kb-subscription"
+      ],
+      "expected_title": "Smart home hub guide",
+      "expected_doc_id": "kb-smart-hub",
+      "top_score": 4.0
+    },
+    {
+      "id": "q56",
+      "category": "product",
+      "query": "The smart hub has a red light, what does that mean?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Smart home hub guide",
+        "Portable blender guide"
+      ],
+      "retrieved_doc_ids": [
+        "kb-smart-hub",
+        "kb-blender"
+      ],
+      "expected_title": "Smart home hub guide",
+      "expected_doc_id": "kb-smart-hub",
+      "top_score": 3.0
+    },
+    {
+      "id": "q57",
+      "category": "product",
+      "query": "Does the hub work with Alexa?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Smart home hub guide",
+        "Returns policy",
+        "Order modification"
+      ],
+      "retrieved_doc_ids": [
+        "kb-smart-hub",
+        "kb-returns",
+        "kb-order-modification"
+      ],
+      "expected_title": "Smart home hub guide",
+      "expected_doc_id": "kb-smart-hub",
+      "top_score": 3.0
+    },
+    {
+      "id": "q58",
+      "category": "multi-intent",
+      "query": "I want to cancel my subscription and get a refund for this month",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.6309,
+      "mrr": 0.5,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Warranty policy",
+        "Subscription billing",
+        "Refund policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-warranty",
+        "kb-subscription",
+        "kb-refund"
+      ],
+      "expected_title": "Subscription billing",
+      "expected_doc_id": "kb-subscription",
+      "top_score": 2.0
+    },
+    {
+      "id": "q59",
+      "category": "multi-intent",
+      "query": "Can I return the hub and also update my address for future orders?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 0.5,
+      "mrr": 0.3333,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.75,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Order modification",
+        "Shipping policy",
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-order-modification",
+        "kb-shipping",
+        "kb-returns"
+      ],
+      "expected_title": "Returns policy",
+      "expected_doc_id": "kb-returns",
+      "top_score": 2.0
+    },
+    {
+      "id": "q60",
+      "category": "unanswerable",
+      "query": "What is the next product launch date?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Returns policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-returns"
+      ],
+      "expected_title": null,
+      "expected_doc_id": null,
+      "top_score": 1.0
+    },
+    {
+      "id": "q61",
+      "category": "unanswerable",
+      "query": "Can you recommend a good recipe for my blender?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [
+        "Portable blender guide",
+        "Warranty policy"
+      ],
+      "retrieved_doc_ids": [
+        "kb-blender",
+        "kb-warranty"
+      ],
+      "expected_title": null,
+      "expected_doc_id": null,
+      "top_score": 1.0
+    },
+    {
+      "id": "q62",
+      "category": "off-topic",
+      "query": "What is the weather like today?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "latency_s": 0.0001,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "expected_title": null,
+      "expected_doc_id": null,
       "top_score": 0.0
     }
   ]
