@@ -161,5 +161,71 @@ class BenchmarkMdTrendSectionTests(unittest.TestCase):
         self.assertIn("<svg", content)
 
 
+# ---------------------------------------------------------------------------
+# Gap 6 — chunking decision doc must exist and name a winner
+# ---------------------------------------------------------------------------
+
+
+class ChunkingDecisionDocTests(unittest.TestCase):
+    """Gap 6: plans/decisions/chunking.md must exist and state a concluded winner."""
+
+    def test_chunking_decision_doc_exists(self) -> None:
+        from pathlib import Path
+
+        path = Path("plans/decisions/chunking.md")
+        self.assertTrue(path.exists(), "plans/decisions/chunking.md must exist")
+
+    def test_chunking_decision_names_a_winner(self) -> None:
+        from pathlib import Path
+
+        content = Path("plans/decisions/chunking.md").read_text().lower()
+        has_conclusion = "winner" in content or "decision" in content
+        self.assertTrue(has_conclusion, "chunking.md must state a conclusion")
+        names_strategy = "fixed" in content or "semantic" in content
+        self.assertTrue(names_strategy, "chunking.md must name the chosen strategy")
+
+
+# ---------------------------------------------------------------------------
+# Gap 2 — benchmark.md template includes backend label
+# ---------------------------------------------------------------------------
+
+
+class BenchmarkMdBackendLabelTests(unittest.TestCase):
+    """Gap 2: _generate_benchmark_md must document which backend produced the results."""
+
+    def setUp(self) -> None:
+        import tempfile
+
+        from backend.eval.run import _generate_benchmark_md
+
+        self._fn = _generate_benchmark_md
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self._out = Path(self._tmpdir.name) / "benchmark.md"
+        self._no_history = Path(self._tmpdir.name) / "no-history.jsonl"
+
+    def tearDown(self) -> None:
+        self._tmpdir.cleanup()
+
+    def _result(self, backend: str = "postgres") -> dict:
+        r = _make_result()
+        r["backend"] = backend
+        return r
+
+    def test_postgres_backend_appears_in_benchmark_md(self) -> None:
+        self._fn([self._result("postgres")], self._out, history_path=self._no_history)
+        content = self._out.read_text().lower()
+        self.assertIn("postgres", content)
+
+    def test_memory_backend_appears_in_benchmark_md(self) -> None:
+        self._fn([self._result("memory")], self._out, history_path=self._no_history)
+        content = self._out.read_text().lower()
+        self.assertIn("in-memory", content)
+
+    def test_results_from_line_present(self) -> None:
+        self._fn([self._result("postgres")], self._out, history_path=self._no_history)
+        content = self._out.read_text()
+        self.assertIn("Results from:", content)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -72,6 +72,33 @@ class InMemoryRepository:
         return sorted(ranked, key=lambda item: item["score"], reverse=True)[:3]
 
 
+def rewrite_query(query: str, api_key: str) -> str:
+    """Rewrite a colloquial customer query into clean retrieval terms via Claude Haiku.
+
+    Turns "my blender is making a weird noise" → "blender malfunction noise troubleshooting".
+    Falls back to the original query on any error. Costs ~$0.0001 per call.
+    """
+    try:
+        import anthropic
+
+        prompt = (
+            "Rewrite the following customer support question into concise retrieval terms "
+            "(3-6 words) suitable for a product knowledge base search. "
+            "Return ONLY the rewritten query, nothing else.\n\n"
+            f"Question: {query}"
+        )
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=32,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        rewritten = response.content[0].text.strip()
+        return rewritten if rewritten else query
+    except Exception:
+        return query
+
+
 class PostgresRepository:
     def __init__(
         self,
@@ -79,11 +106,15 @@ class PostgresRepository:
         fallback: InMemoryRepository,
         voyage_api_key: str | None = None,
         enable_reranking: bool = False,
+        enable_query_rewriting: bool = False,
+        anthropic_api_key: str | None = None,
     ) -> None:
         self.database_url = database_url
         self.fallback = fallback
         self.voyage_api_key = voyage_api_key
         self.enable_reranking = enable_reranking
+        self.enable_query_rewriting = enable_query_rewriting
+        self.anthropic_api_key = anthropic_api_key
 
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         try:
@@ -121,10 +152,14 @@ class PostgresRepository:
         except ImportError:
             return self.fallback.search_knowledge(query_text)
 
+        retrieval_query = query_text
+        if self.enable_query_rewriting and self.anthropic_api_key:
+            retrieval_query = rewrite_query(query_text, api_key=self.anthropic_api_key)
+
         if self.voyage_api_key:
-            results = self._hybrid_search(query_text)
+            results = self._hybrid_search(retrieval_query)
         else:
-            results = self._fulltext_search(query_text)
+            results = self._fulltext_search(retrieval_query)
 
         if self.enable_reranking and self.voyage_api_key and results:
             results = self._rerank(query_text, results)

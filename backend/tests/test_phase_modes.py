@@ -286,5 +286,209 @@ class SSEStreamingTests(unittest.TestCase):
             self.assertTrue(chunk.endswith("\n\n"))
 
 
+# ---------------------------------------------------------------------------
+# Gap 3 — Cross-turn order recall (af09)
+# ---------------------------------------------------------------------------
+
+
+class CrossTurnOrderRecallTests(unittest.TestCase):
+    """Gap 3 / af09: the agent must recall an order ID from an earlier turn without re-identification."""
+
+    def setUp(self) -> None:
+        from backend.app.agent import SESSION_MEMORY
+
+        SESSION_MEMORY.clear()
+        self._repo = _in_memory_repo()
+        self._repo_patcher = patch("backend.app.agent.get_repository", return_value=self._repo)
+        self._repo_patcher.start()
+        self._settings_patcher = patch(
+            "backend.app.agent.get_settings",
+            return_value=MagicMock(
+                anthropic_api_key="test-key",
+                data_backend="memory",
+                database_url=None,
+                voyage_api_key=None,
+            ),
+        )
+        self._settings_patcher.start()
+
+    def tearDown(self) -> None:
+        self._repo_patcher.stop()
+        self._settings_patcher.stop()
+
+    def _text_block(self, text: str) -> MagicMock:
+        b = MagicMock()
+        b.type = "text"
+        b.text = text
+        return b
+
+    def _tool_use_block(self, tool_id: str, name: str, inputs: dict) -> MagicMock:
+        b = MagicMock()
+        b.type = "tool_use"
+        b.id = tool_id
+        b.name = name
+        b.input = inputs
+        return b
+
+    def _response(self, stop_reason: str, *blocks: MagicMock) -> MagicMock:
+        r = MagicMock()
+        r.stop_reason = stop_reason
+        r.content = list(blocks)
+        return r
+
+    def test_agent_recalls_order_id_from_earlier_turn(self) -> None:
+        from backend.app.agent import handle_message
+
+        side_effects = [
+            # Turn 1: look up ORD-1002, reply with shipping info
+            self._response(
+                "tool_use",
+                self._tool_use_block("t1", "lookup_order", {"order_id": "ORD-1002"}),
+            ),
+            self._response("end_turn", self._text_block("ORD-1002 shipped on 2026-05-12.")),
+            # Turn 2: agent remembers ORD-1002 from context, processes return/refund
+            self._response(
+                "tool_use",
+                self._tool_use_block("t2", "lookup_order", {"order_id": "ORD-1002"}),
+            ),
+            self._response(
+                "tool_use",
+                self._tool_use_block(
+                    "t3",
+                    "request_refund",
+                    {"order_id": "ORD-1002", "reason": "customer wants to return"},
+                ),
+            ),
+            self._response("end_turn", self._text_block("Refund for ORD-1002 created.")),
+        ]
+
+        with patch(
+            "anthropic.Anthropic",
+            return_value=MagicMock(messages=MagicMock(create=MagicMock(side_effect=side_effects))),
+        ):
+            handle_message("af09-unit", "My order is ORD-1002. When did it ship?", mode="phase3")
+            result = handle_message("af09-unit", "And can I return it?", mode="phase3")
+
+        all_tool_names = [e["name"] for e in result["tool_events"]]
+        # The second turn must involve ORD-1002 — either via lookup or refund
+        self.assertTrue(
+            "lookup_order" in all_tool_names or "request_refund" in all_tool_names,
+            f"Turn 2 must call an order-related tool to handle the return. Got: {all_tool_names}",
+        )
+
+    def test_session_memory_persists_full_history_across_turns(self) -> None:
+        from backend.app.agent import SESSION_MEMORY, handle_message
+
+        side_effects = [
+            self._response(
+                "tool_use",
+                self._tool_use_block("t1", "lookup_order", {"order_id": "ORD-1001"}),
+            ),
+            self._response("end_turn", self._text_block("ORD-1001 is in transit.")),
+            self._response("end_turn", self._text_block("Standard delivery takes 3-7 days.")),
+        ]
+        client_mock = MagicMock()
+        client_mock.messages.create.side_effect = side_effects
+
+        with patch("anthropic.Anthropic", return_value=client_mock):
+            handle_message("persist-test", "Where is ORD-1001?", mode="phase3")
+            handle_message("persist-test", "How long does delivery take?", mode="phase3")
+
+        # SESSION_MEMORY must contain multiple turns for cross-turn recall to work
+        history = SESSION_MEMORY.get("persist-test", [])
+        self.assertGreater(len(history), 2, "Session memory must retain full multi-turn history")
+
+
+# ---------------------------------------------------------------------------
+# Gap 4 — Fact extraction fires after session turn
+# ---------------------------------------------------------------------------
+
+
+class FactExtractionBackgroundTaskTests(unittest.TestCase):
+    """Gap 4: run_fact_extraction must read from SESSION_MEMORY and persist facts."""
+
+    def setUp(self) -> None:
+        from backend.app.agent import SESSION_MEMORY
+
+        SESSION_MEMORY.clear()
+
+    def test_run_fact_extraction_reads_session_memory_and_calls_extractor(self) -> None:
+        from unittest.mock import patch
+
+        from backend.app.agent import SESSION_MEMORY
+        from backend.app.main import run_fact_extraction
+
+        # Populate SESSION_MEMORY with a conversation mentioning a preference
+        SESSION_MEMORY["fe-test"] = [
+            {"role": "user", "content": "I always use express shipping."},
+            {
+                "role": "assistant",
+                "content": "Noted! I'll remember your preference for express shipping.",
+            },
+            {"role": "user", "content": "Can you check my order?"},
+            {"role": "assistant", "content": "Sure, what is your order ID?"},
+        ]
+
+        captured_convos = []
+
+        def fake_extract(conversation, api_key):
+            captured_convos.append(conversation)
+            return [
+                {
+                    "fact_type": "order_preference",
+                    "fact_text": "Prefers express shipping",
+                    "confidence": 0.9,
+                }
+            ]
+
+        with (
+            patch(
+                "backend.app.config.get_settings", return_value=MagicMock(anthropic_api_key="test")
+            ),
+            patch("backend.app.fact_extractor.extract_facts_from_conversation", fake_extract),
+        ):
+            run_fact_extraction("fe-test", "alice@example.com")
+
+        self.assertEqual(
+            len(captured_convos), 1, "extract_facts_from_conversation must be called once"
+        )
+        convo = captured_convos[0]
+        # Only string-content messages should be passed
+        self.assertTrue(all(isinstance(m["content"], str) for m in convo))
+
+    def test_run_fact_extraction_skips_when_no_session_history(self) -> None:
+        from unittest.mock import patch
+
+        from backend.app.main import run_fact_extraction
+
+        called = []
+
+        def fake_extract(conversation, api_key):
+            called.append(True)
+            return []
+
+        with (
+            patch(
+                "backend.app.config.get_settings", return_value=MagicMock(anthropic_api_key="test")
+            ),
+            patch("backend.app.fact_extractor.extract_facts_from_conversation", fake_extract),
+        ):
+            run_fact_extraction("nonexistent-session", "alice@example.com")
+
+        self.assertEqual(len(called), 0, "extractor must not be called for empty session")
+
+    def test_chat_endpoint_uses_background_tasks(self) -> None:
+        import inspect
+
+        from backend.app.main import chat
+
+        sig = inspect.signature(chat)
+        self.assertIn(
+            "background_tasks",
+            sig.parameters,
+            "/api/chat endpoint must accept a BackgroundTasks parameter",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

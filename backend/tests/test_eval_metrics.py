@@ -1007,5 +1007,168 @@ class AgentEvalScoringTests(unittest.TestCase):
         self.assertAlmostEqual(result["per_fixture"][0]["tool_accuracy"], 1.0)
 
 
+# ---------------------------------------------------------------------------
+# Gap 1 — compute_context_relevance
+# ---------------------------------------------------------------------------
+
+
+def _voyage_key() -> str | None:
+    import os
+    from pathlib import Path
+
+    val = os.getenv("VOYAGE_API_KEY")
+    if val:
+        return val
+    env = Path(".env")
+    if env.exists():
+        for line in env.read_text().splitlines():
+            if line.startswith("VOYAGE_API_KEY="):
+                v = line[len("VOYAGE_API_KEY=") :]
+                return v if v else None
+    return None
+
+
+def _anthropic_key() -> str | None:
+    import os
+    from pathlib import Path
+
+    val = os.getenv("ANTHROPIC_API_KEY")
+    if val:
+        return val
+    env = Path(".env")
+    if env.exists():
+        for line in env.read_text().splitlines():
+            if line.startswith("ANTHROPIC_API_KEY="):
+                v = line[len("ANTHROPIC_API_KEY=") :]
+                return v if v else None
+    return None
+
+
+@unittest.skipUnless(_voyage_key(), "Requires VOYAGE_API_KEY")
+class ComputeContextRelevanceTests(unittest.TestCase):
+    """Gap 1: compute_context_relevance must return real cosine similarity, not 0.0."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._key = _voyage_key()
+
+    def test_relevant_query_chunk_pair_is_nonzero(self) -> None:
+        from backend.eval.run import compute_context_relevance
+
+        query = "How long does delivery take?"
+        chunk = (
+            "Orders usually ship within 2 business days. "
+            "Standard delivery takes 3 to 7 business days."
+        )
+        score = compute_context_relevance(query, chunk, api_key=self._key)
+        self.assertIsNotNone(score)
+        self.assertGreater(score, 0.0)
+        self.assertLessEqual(score, 1.0)
+
+    def test_irrelevant_chunk_scores_below_half(self) -> None:
+        from backend.eval.run import compute_context_relevance
+
+        query = "How long does delivery take?"
+        chunk = "The portable blender has a 400ml jar and a safety lock."
+        score = compute_context_relevance(query, chunk, api_key=self._key)
+        self.assertIsNotNone(score)
+        self.assertLess(score, 0.5)
+
+    def test_none_api_key_returns_none(self) -> None:
+        from backend.eval.run import compute_context_relevance
+
+        result = compute_context_relevance("any query", "any chunk", api_key="")
+        self.assertIsNone(result)
+
+
+# ---------------------------------------------------------------------------
+# Gap 5 — evaluate_faithfulness
+# ---------------------------------------------------------------------------
+
+
+@unittest.skipUnless(_anthropic_key(), "Requires ANTHROPIC_API_KEY")
+class FaithfulnessTests(unittest.TestCase):
+    """Gap 5: evaluate_faithfulness must score hallucinations low and grounded answers high."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._key = _anthropic_key()
+
+    def test_hallucinated_answer_scores_below_half(self) -> None:
+        from backend.eval.run import evaluate_faithfulness
+
+        context = "Refunds are eligible within 30 days of delivery."
+        hallucination = "You can get a refund any time within 90 days, no questions asked."
+        score = evaluate_faithfulness(context, hallucination, api_key=self._key)
+        self.assertLess(score, 0.5)
+
+    def test_grounded_answer_scores_above_threshold(self) -> None:
+        from backend.eval.run import evaluate_faithfulness
+
+        context = "Refunds are eligible within 30 days of delivery."
+        grounded = "Refunds are available within 30 days of delivery."
+        score = evaluate_faithfulness(context, grounded, api_key=self._key)
+        # Grounded answers must score meaningfully higher than hallucinated ones (> 0.5)
+        self.assertGreater(score, 0.5)
+
+    def test_score_is_in_valid_range(self) -> None:
+        from backend.eval.run import evaluate_faithfulness
+
+        context = "Standard delivery takes 3 to 7 business days."
+        answer = "Delivery takes 3 to 7 business days."
+        score = evaluate_faithfulness(context, answer, api_key=self._key)
+        self.assertGreaterEqual(score, 0.0)
+        self.assertLessEqual(score, 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Gap 2 unit — evaluate_mode result has backend field
+# ---------------------------------------------------------------------------
+
+
+class EvaluateModeBackendFieldTests(unittest.TestCase):
+    """Gap 2: evaluate_mode result must include a 'backend' field."""
+
+    def _make_queries(self) -> list[dict]:
+        return [
+            {
+                "id": "q1",
+                "query": "Does the blender have a safety lock?",
+                "category": "product",
+                "expected_source_title": "Portable blender guide",
+                "expected_document_id": "kb-blender",
+                "acceptable_answer_keywords": ["safety lock"],
+            }
+        ]
+
+    def test_keyword_mode_reports_memory_backend(self) -> None:
+        from unittest.mock import patch
+
+        from backend.eval.run import evaluate_mode
+
+        dummy_db = "postgresql://localhost/test"
+        with patch("backend.app.repository.InMemoryRepository.search_knowledge", return_value=[]):
+            result = evaluate_mode(
+                mode="keyword",
+                queries=self._make_queries(),
+                database_url=dummy_db,
+                voyage_api_key=None,
+            )
+        self.assertIn("backend", result)
+        self.assertEqual(result["backend"], "memory")
+
+    def test_evaluate_mode_always_includes_backend_key(self) -> None:
+        from backend.eval.run import evaluate_mode
+
+        dummy_db = "postgresql://localhost/test"
+        result = evaluate_mode(
+            mode="keyword",
+            queries=self._make_queries(),
+            database_url=dummy_db,
+            voyage_api_key=None,
+        )
+        self.assertIn("backend", result)
+
+
 if __name__ == "__main__":
     unittest.main()

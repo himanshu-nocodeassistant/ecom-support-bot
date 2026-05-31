@@ -195,6 +195,59 @@ def _answer_correctness(answer: str, keywords: list[str]) -> float:
     return sum(1 for kw in keywords if kw.lower() in lower) / len(keywords)
 
 
+def compute_context_relevance(query: str, chunk_text: str, api_key: str) -> float | None:
+    """Cosine similarity between a query and a chunk, embedded via voyage-3-lite.
+
+    Returns None when api_key is absent so callers can show n/a instead of a false zero.
+    """
+    if not api_key:
+        return None
+    try:
+        from backend.app.data_loader import embed_queries, embed_texts
+
+        q_vec = embed_queries([query], api_key=api_key)[0]
+        c_vec = embed_texts([chunk_text], api_key=api_key)[0]
+        dot = sum(x * y for x, y in zip(q_vec, c_vec))
+        na = math.sqrt(sum(x * x for x in q_vec))
+        nb = math.sqrt(sum(x * x for x in c_vec))
+        return dot / (na * nb) if na and nb else 0.0
+    except Exception:
+        return None
+
+
+def evaluate_faithfulness(context: str, answer: str, api_key: str) -> float:
+    """Ask Claude Haiku: is this answer faithfully grounded in the context?
+
+    Returns 0.0–1.0. 1.0 = fully grounded. 0.0 = contradicts or ignores context.
+    """
+    try:
+        import anthropic
+
+        prompt = (
+            f"Context:\n{context}\n\n"
+            f"Answer:\n{answer}\n\n"
+            "Score how faithfully the answer is grounded in the context above. "
+            'Return ONLY a JSON object: {"score": <float 0.0-1.0>}. '
+            "1.0 = fully grounded. 0.0 = completely unsupported or contradicts context."
+        )
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=64,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = response.content[0].text.strip()
+        # Handle markdown code fences e.g. ```json\n{...}\n```
+        import re as _re
+
+        m = _re.search(r"\{[^{}]*\}", text)
+        raw = m.group(0) if m else text
+        parsed = json.loads(raw)
+        return round(min(max(float(parsed.get("score", 0.0)), 0.0), 1.0), 4)
+    except Exception:
+        return 0.0
+
+
 # ---------------------------------------------------------------------------
 # 6b: LLM-judge answer correctness
 # ---------------------------------------------------------------------------
@@ -274,6 +327,7 @@ def evaluate_mode(
     voyage_api_key: str | None,
     anthropic_api_key: str | None = None,
     use_llm_judge: bool = False,
+    faithfulness: bool = False,
 ) -> dict[str, Any]:
     from backend.app.data import KNOWLEDGE_BASE, ORDERS
     from backend.app.repository import InMemoryRepository, PostgresRepository
@@ -300,6 +354,8 @@ def evaluate_mode(
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
+    backend_name = "memory" if isinstance(repo, InMemoryRepository) else "postgres"
+
     # Pre-embed all queries for context relevance scoring (batch call)
     query_embeddings: dict[str, list[float]] = {}
     if voyage_api_key and mode not in ("keyword", "fulltext"):
@@ -312,14 +368,38 @@ def evaluate_mode(
         except Exception:
             pass
 
-    per_query: list[dict[str, Any]] = []
-    total_judge_cost = 0.0
-
+    # Pass 1: run all searches and collect (query, retrieved, latency)
+    search_results: list[tuple[dict[str, Any], list[dict[str, Any]], float]] = []
     for q in queries:
         t0 = time.perf_counter()
         retrieved = repo.search_knowledge(q["query"])
         latency = time.perf_counter() - t0
+        search_results.append((q, retrieved, latency))
 
+    # Batch-embed all unique retrieved chunk texts so context relevance is non-zero
+    chunk_embeddings: dict[str, list[float]] = {}
+    if voyage_api_key and mode not in ("keyword", "fulltext") and query_embeddings:
+        try:
+            from backend.app.data_loader import embed_texts
+
+            unique: dict[str, str] = {}  # first-80-chars key → full text
+            for _, retrieved, _ in search_results:
+                for r in retrieved:
+                    key = r.get("content", "")[:80]
+                    if key and key not in unique:
+                        unique[key] = r.get("content", "")
+            if unique:
+                keys = list(unique.keys())
+                vecs = embed_texts([unique[k] for k in keys], api_key=voyage_api_key)
+                chunk_embeddings = {k: v for k, v in zip(keys, vecs)}
+        except Exception:
+            pass
+
+    # Pass 2: compute all metrics
+    per_query: list[dict[str, Any]] = []
+    total_judge_cost = 0.0
+
+    for q, retrieved, latency in search_results:
         exp_doc_id = q.get("expected_document_id")
         p3 = _precision_at_k(retrieved, q["expected_source_title"])
         r3 = _recall_at_k(retrieved, q["expected_source_title"])
@@ -331,7 +411,7 @@ def evaluate_mode(
         h10 = hit_rate_at_k(retrieved, exp_doc_id, k=10)
         ndcg5 = ndcg_at_k(retrieved, exp_doc_id, k=5)
         mrr_score = mrr(retrieved, exp_doc_id)
-        ctx_rel = _context_relevance(query_embeddings.get(q["query"]), retrieved, {})
+        ctx_rel = _context_relevance(query_embeddings.get(q["query"]), retrieved, chunk_embeddings)
         kw_correctness = _answer_correctness(
             " ".join(r.get("content", "") for r in retrieved[:3]),
             q.get("acceptable_answer_keywords", []),
@@ -371,6 +451,11 @@ def evaluate_mode(
             row["judge_cost_usd"] = judge_cost
             total_judge_cost += judge_cost
 
+        if faithfulness and anthropic_api_key and retrieved:
+            context = "\n".join(r.get("content", "") for r in retrieved[:3])
+            answer = retrieved[0].get("content", "") if retrieved else ""
+            row["faithfulness"] = evaluate_faithfulness(context, answer, anthropic_api_key)
+
         per_query.append(row)
 
     answerable = [r for r in per_query if r["expected_title"]]
@@ -389,6 +474,7 @@ def evaluate_mode(
 
     result: dict[str, Any] = {
         "mode": mode,
+        "backend": backend_name,
         "avg_precision_at_3": _avg("precision_at_3"),
         "avg_recall_at_3": _avg("recall_at_3"),
         "avg_precision_at_3_doc": _avg("precision_at_3_doc"),
@@ -410,6 +496,8 @@ def evaluate_mode(
     }
     if use_llm_judge and anthropic_api_key:
         result["avg_answer_correctness_llm"] = _avg("answer_correctness_llm")
+    if faithfulness and anthropic_api_key:
+        result["avg_faithfulness"] = _avg("faithfulness")
     return result
 
 
@@ -694,10 +782,13 @@ def _generate_benchmark_md(
 ) -> None:
     """Write a committed markdown comparison table from eval results."""
     has_llm = any("avg_answer_correctness_llm" in r for r in mode_results)
+    backends = {r.get("backend", "unknown") for r in mode_results}
+    backend_label = "Postgres (Supabase)" if "postgres" in backends else "In-memory"
     lines = [
         "# Retrieval Benchmark",
         "",
         f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}  ",
+        f"Results from: {backend_label}, {datetime.utcnow().strftime('%Y-%m-%d')}  ",
         f"Queries: {mode_results[0]['n_queries']} total, {mode_results[0]['n_answerable']} answerable  ",
         "Eval dataset: `backend/eval/queries.json`",
         "",
@@ -1069,6 +1160,9 @@ def main() -> None:
     parser.add_argument(
         "--adversarial-eval", action="store_true", help="9e: run adversarial query eval"
     )
+    parser.add_argument(
+        "--faithfulness", action="store_true", help="score answer faithfulness via Claude Haiku"
+    )
     parser.add_argument("--knowledge-dir", default="backend/knowledge")
     parser.add_argument(
         "--query-set",
@@ -1169,6 +1263,7 @@ def main() -> None:
             voyage_api_key,
             anthropic_api_key=anthropic_api_key,
             use_llm_judge=args.llm_judge,
+            faithfulness=args.faithfulness,
         )
         all_results.append(result)
         out_path = RESULTS_DIR / f"{mode.replace('+', '_')}.json"
