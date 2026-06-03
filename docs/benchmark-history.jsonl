@@ -1,0 +1,3 @@
+{"timestamp": "2026-05-30T13:13:32", "best_mode": "keyword", "avg_ndcg_at_5": 0.8111, "avg_precision_at_3_doc": 0.3013, "avg_recall_at_3_doc": 0.9038, "avg_mrr": 0.7788, "p95_latency_s": 0.0001, "total_cost_usd": 6.2e-05, "n_queries": 62}
+{"timestamp": "2026-05-30T19:32:52", "best_mode": "keyword", "avg_ndcg_at_5": 0.8111, "avg_precision_at_3_doc": 0.3013, "avg_recall_at_3_doc": 0.9038, "avg_mrr": 0.7788, "p95_latency_s": 0.0001, "total_cost_usd": 6.2e-05, "n_queries": 62}
+{"timestamp": "2026-05-31T10:28:22", "best_mode": "hybrid+rerank", "avg_ndcg_at_5": 0.2885, "avg_precision_at_3_doc": 0.141, "avg_recall_at_3_doc": 0.2885, "avg_mrr": 0.2885, "p95_latency_s": 2.597, "total_cost_usd": 0.000961, "n_queries": 62}

@@ -40,6 +40,11 @@ def _current_agent() -> dict | None:
     return _load_json(p) if p.exists() else None
 
 
+def _current_adversarial() -> dict | None:
+    p = RESULTS_DIR / "adversarial_eval.json"
+    return _load_json(p) if p.exists() else None
+
+
 def check_retrieval_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
     failures: list[str] = []
     max_drop = thresholds["regression_max_drop"]
@@ -68,6 +73,19 @@ def check_memory_regression(thresholds: dict, baseline: dict, current: dict) -> 
         return failures
     if curr_val < min_rate:
         failures.append(f"  memory_recall_rate: current={curr_val:.4f} < minimum={min_rate:.2f}")
+    return failures
+
+
+def check_adversarial_regression(thresholds: dict, current: dict) -> list[str]:
+    """Gate on adversarial_metrics_min floors (not baseline-relative — absolute minimums)."""
+    failures: list[str] = []
+    mins = thresholds.get("adversarial_metrics_min", {})
+    for metric, min_val in mins.items():
+        curr_val = current.get(metric)
+        if curr_val is None:
+            continue
+        if curr_val < min_val:
+            failures.append(f"  {metric}: current={curr_val:.4f} < minimum={min_val:.2f}")
     return failures
 
 
@@ -147,6 +165,26 @@ def main() -> None:
                 c = current_agent.get(m, "n/a")
                 print(f"  {m}: baseline={b}  current={c}")
 
+    # Adversarial regression (absolute floor, not baseline-relative)
+    current_adversarial = _current_adversarial()
+    if current_adversarial is None:
+        print(
+            "WARNING: no adversarial_eval.json found; skipping adversarial check", file=sys.stderr
+        )
+    elif not thresholds.get("adversarial_metrics_min"):
+        print("No adversarial thresholds configured; skipping")
+    else:
+        failures = check_adversarial_regression(thresholds, current_adversarial)
+        if failures:
+            print("ADVERSARIAL REGRESSION DETECTED:")
+            print("\n".join(failures))
+            all_failures.extend(failures)
+        else:
+            print("Adversarial eval OK")
+            for m, min_val in thresholds.get("adversarial_metrics_min", {}).items():
+                c = current_adversarial.get(m, "n/a")
+                print(f"  {m}: current={c}  minimum={min_val}")
+
     if all_failures:
         print(f"\n{len(all_failures)} regression(s) found. Failing CI.")
         sys.exit(1)
@@ -168,6 +206,11 @@ def save_baseline() -> None:
     agent = _current_agent()
     if agent:
         snapshot["agent"] = {m: agent.get(m) for m in thresholds.get("agent_metrics_to_gate", [])}
+
+    adversarial = _current_adversarial()
+    if adversarial:
+        adv_keys = list(thresholds.get("adversarial_metrics_min", {}).keys())
+        snapshot["adversarial"] = {m: adversarial.get(m) for m in adv_keys}
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     BASELINE_PATH.write_text(json.dumps(snapshot, indent=2))

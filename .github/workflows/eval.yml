@@ -6,10 +6,10 @@ on:
 
 jobs:
   eval:
-    name: Retrieval & Agent Regression Check
+    name: Retrieval, Agent & Adversarial Regression Check
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     env:
@@ -29,19 +29,33 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Run retrieval eval (best mode)
+      - name: Run retrieval eval (best mode — hybrid)
         if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != ''
-        run: python -m backend.eval.run --mode hybrid+rerank+filter
+        run: python -m backend.eval.run --mode hybrid
 
       - name: Run agent eval
         if: env.DATABASE_URL != '' && env.ANTHROPIC_API_KEY != ''
         run: python -m backend.eval.run --agent-eval
+
+      - name: Run adversarial eval
+        if: env.ANTHROPIC_API_KEY != ''
+        run: python -m backend.eval.run --adversarial-eval
 
       - name: Check for regressions
         id: regression_check
         run: |
           set -o pipefail
           python -m backend.eval.check_regression 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
+
+      - name: Update benchmark history and regenerate benchmark.md
+        if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != '' && github.event_name == 'pull_request'
+        run: |
+          python -m backend.eval.run --all-modes --benchmark
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/benchmark.md docs/benchmark-history.jsonl || true
+          git diff --cached --quiet || git commit -m "chore(eval): update benchmark and history [skip ci]"
+          git push origin HEAD:${{ github.head_ref }} || true
 
       - name: Post metric delta as PR comment
         if: always()

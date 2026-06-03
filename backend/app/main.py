@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
-from .agent import handle_compare, handle_message, handle_message_stream
+from .agent import SESSION_MEMORY, handle_compare, handle_message, handle_message_stream
 from .eval_dashboard import render_dashboard
 
 app = FastAPI(title="SupportBot API")
@@ -40,14 +40,50 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def run_fact_extraction(session_id: str, customer_email: str) -> None:
+    """Load conversation from SESSION_MEMORY, extract facts, persist to customer store."""
+    from .agent import _default_customer_store
+    from .config import get_settings
+    from .fact_extractor import extract_facts_from_conversation
+
+    settings = get_settings()
+    raw_messages = SESSION_MEMORY.get(session_id, [])
+    conversation = [
+        {"role": m["role"], "content": m["content"]}
+        for m in raw_messages
+        if isinstance(m.get("content"), str)
+    ]
+    if not conversation:
+        return
+    facts = extract_facts_from_conversation(conversation, api_key=settings.anthropic_api_key)
+    if not facts:
+        return
+    customer = _default_customer_store.upsert_customer(email=customer_email, name="")
+    for fact in facts:
+        _default_customer_store.save_memory_fact(
+            customer_id=customer["customer_id"],
+            fact_type=fact["fact_type"],
+            fact_text=fact["fact_text"],
+            confidence=fact["confidence"],
+            source_session_id=session_id,
+        )
+
+
 @app.post("/api/chat")
-def chat(payload: ChatRequest) -> dict:
-    return handle_message(
+async def chat(payload: ChatRequest, background_tasks: BackgroundTasks) -> dict:
+    result = handle_message(
         payload.session_id,
         payload.message,
         mode=payload.mode,
         customer_email=payload.customer_email,
     )
+    if payload.customer_email:
+        background_tasks.add_task(
+            run_fact_extraction,
+            session_id=payload.session_id,
+            customer_email=payload.customer_email,
+        )
+    return result
 
 
 @app.post("/api/chat/stream")
