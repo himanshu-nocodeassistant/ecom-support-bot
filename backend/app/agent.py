@@ -196,14 +196,17 @@ def handle_message(
         messages = list(history)
 
     # --- customer context ---
+    # Fall back to the module-level singleton so API calls without an injected
+    # store still get customer memory wiring when customer_email is provided.
+    eff_customer_store = customer_store if customer_store is not None else _default_customer_store
     customer_id: str | None = None
     system_prompt_text = SYSTEM_PROMPT
-    if customer_email and customer_store is not None:
-        customer = customer_store.upsert_customer(email=customer_email, name="")
+    if customer_email:
+        customer = eff_customer_store.upsert_customer(email=customer_email, name="")
         customer_id = customer["customer_id"]
-        customer_store.link_session(session_id, customer_id)
-        facts = customer_store.load_memory_facts(customer_id)
-        prior_orders = customer_store.get_customer_orders(customer_id)
+        eff_customer_store.link_session(session_id, customer_id)
+        facts = eff_customer_store.load_memory_facts(customer_id)
+        prior_orders = eff_customer_store.get_customer_orders(customer_id)
         ctx = build_customer_context(facts=facts, prior_order_ids=prior_orders)
         system_prompt_text = build_system_prompt(customer_context=ctx)
 
@@ -235,14 +238,10 @@ def handle_message(
             if block.type == "tool_use":
                 result = _execute_tool(block.name, dict(block.input), repo=repo)
                 tool_events.append(ToolEvent(block.name, dict(block.input), result))
-                if (
-                    block.name == "lookup_order"
-                    and customer_id is not None
-                    and customer_store is not None
-                ):
+                if block.name == "lookup_order" and customer_id is not None:
                     order_id = dict(block.input).get("order_id")
                     if order_id:
-                        customer_store.link_order(customer_id, order_id)
+                        eff_customer_store.link_order(customer_id, order_id)
                 tool_result_blocks.append(
                     {
                         "type": "tool_result",
@@ -310,15 +309,16 @@ async def handle_message_stream(
         messages = list(history)
 
     # --- customer context ---
+    eff_customer_store = customer_store if customer_store is not None else _default_customer_store
     customer_id: str | None = None
     returning_customer = False
     system_prompt_text = SYSTEM_PROMPT
-    if customer_email and customer_store is not None:
-        customer = customer_store.upsert_customer(email=customer_email, name="")
+    if customer_email:
+        customer = eff_customer_store.upsert_customer(email=customer_email, name="")
         customer_id = customer["customer_id"]
-        customer_store.link_session(session_id, customer_id)
-        facts = customer_store.load_memory_facts(customer_id)
-        prior_orders = customer_store.get_customer_orders(customer_id)
+        eff_customer_store.link_session(session_id, customer_id)
+        facts = eff_customer_store.load_memory_facts(customer_id)
+        prior_orders = eff_customer_store.get_customer_orders(customer_id)
         returning_customer = bool(facts or prior_orders)
         ctx = build_customer_context(facts=facts, prior_order_ids=prior_orders)
         system_prompt_text = build_system_prompt(customer_context=ctx)
@@ -382,11 +382,10 @@ async def handle_message_stream(
                             if (
                                 current_tool_use["name"] == "lookup_order"
                                 and customer_id is not None
-                                and customer_store is not None
                             ):
                                 order_id = parsed_input.get("order_id")
                                 if order_id:
-                                    customer_store.link_order(customer_id, order_id)
+                                    eff_customer_store.link_order(customer_id, order_id)
                             yield _sse(
                                 "tool_result",
                                 {

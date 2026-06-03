@@ -59,6 +59,9 @@ def extract_facts_from_conversation(
             messages=[{"role": "user", "content": transcript}],
         )
         raw = next((block.text for block in response.content if hasattr(block, "text")), "[]")
+        raw = raw.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0]
         facts = json.loads(raw)
     except Exception:
         return []
