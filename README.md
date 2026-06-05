@@ -1,5 +1,7 @@
 # SupportBot
 
+> **Blog:** [I kept adding AI to my support bot. It kept breaking in new ways.](https://himanshu-sharma.medium.com/i-kept-adding-ai-to-my-support-bot-it-kept-breaking-in-new-ways-49b1ae4ff658)
+
 An e-commerce customer support agent built in phases to show how production-grade AI support systems work under the hood — knowledge retrieval, order lookup, persistent customer memory, escalation, and model-driven tool orchestration. Each phase ships as a working demo, not a toy.
 
 **Stack:** Python · FastAPI · Claude API (Haiku + Sonnet) · Voyage AI embeddings + rerank · Supabase/Postgres + pgvector
