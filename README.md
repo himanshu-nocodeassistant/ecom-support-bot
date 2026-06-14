@@ -66,6 +66,22 @@ What to look at:
 
 ---
 
+## Known gaps
+
+This project is to show how a typical RAG project gets complex at each stage. It's not a full blown codebase ready to be deployed.
+
+One client pointed out there is no rate limiting or auth in the project. Yes, that is intentional. And there are many other things I haven't added for the same reason. It's not meant to be a complete production system. It's meant to show the AI layer clearly, so clients can see how each phase builds on the last. And to know they're in safe hands. Before deploying any RAG chatbot to production, there will be many levels of security and protection added on top.
+
+So I've listed more than 10 gaps below. None of them affect the output quality of the RAG agent. But all need attention before deployment.
+
+**Out of scope by design.** CORS, auth, rate limiting, session security. These belong to the deployment layer, not the RAG layer. An API gateway, a JWT middleware, an auth service. Adding them here would have buried what each phase was actually demonstrating.
+
+**Deferred for clarity.** The tool loop has no iteration cap. Postgres stores hold a single persistent connection with no pooling. Settings are read from `.env` on every request. A new DB connection is created per request. All straightforward fixes. Left because adding connection pooling in phase 3 wouldn't have affected the outcome of phase 3.
+
+**Worth fixing before prod.** Customer memory facts are included into the system prompt without sanitization. If adversarial text gets written as a fact in a prior session, it shows up in every future session for that customer. And error messages are sent raw to the client, which would expose DB internals. Again, these are intentional because for demo purposes, hardening is left out.
+
+---
+
 ## Local run (no external deps)
 
 ```bash
