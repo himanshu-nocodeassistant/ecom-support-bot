@@ -101,3 +101,34 @@ def test_strict_flag_fails_on_missing_gated_metric(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as exc_info:
         check_regression.main(strict=True)
     assert exc_info.value.code == 1
+
+
+# H@5/H@10/NDCG@5 are only honest if the eval actually asked retrieval for that
+# many candidates, instead of re-slicing the production top-3 list and calling
+# it a deeper metric. Rather than asserting every query hit >=5 or >=10 results
+# (full-text search legitimately returns fewer rows for sparse queries — an
+# honest empty result, not truncation), this guard checks the *configuration*:
+# EVAL_DEPTH must be >= 5 (the deepest published metric, NDCG@5/H@5) and
+# repository.search_knowledge must honor a k beyond the production default of 3.
+# See plans/decisions/eval-audit.md, finding 6f.
+def test_eval_depth_covers_published_metrics():
+    from backend.eval.run import EVAL_DEPTH
+
+    assert EVAL_DEPTH >= 5, (
+        f"EVAL_DEPTH={EVAL_DEPTH} is shallower than the deepest published metric "
+        "(NDCG@5/H@5); benchmark.md would publish depth it never retrieved."
+    )
+
+
+def test_repository_search_knowledge_honors_deeper_k():
+    from backend.app.data import KNOWLEDGE_BASE, ORDERS
+    from backend.app.repository import InMemoryRepository
+
+    repo = InMemoryRepository(orders=ORDERS, knowledge_documents=KNOWLEDGE_BASE)
+    shallow = repo.search_knowledge("refund policy return")
+    deep = repo.search_knowledge("refund policy return", k=10)
+    assert len(shallow) <= 3
+    assert len(deep) >= len(shallow), (
+        "search_knowledge(k=10) returned fewer results than the default k=3 call; "
+        "eval's deep-retrieval pass depends on k actually widening the result set."
+    )

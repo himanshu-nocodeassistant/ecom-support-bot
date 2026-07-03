@@ -34,6 +34,11 @@ AVG_CHUNK_TOKENS = 80
 
 SYNTHETIC_QUERIES_PATH = EVAL_DIR / "queries_synthetic.json"
 
+# Production retrieval caps at 3 results everywhere (repository.py). H@5/H@10/NDCG@5
+# need real candidates past rank 3 to mean anything, so eval fetches deeper via an
+# eval-only `k=EVAL_DEPTH` call; production behavior (k=3 default) is unchanged.
+EVAL_DEPTH = 10
+
 
 def load_queries() -> list[dict[str, Any]]:
     with QUERIES_PATH.open() as f:
@@ -368,13 +373,21 @@ def evaluate_mode(
         except Exception:
             pass
 
-    # Pass 1: run all searches and collect (query, retrieved, latency)
-    search_results: list[tuple[dict[str, Any], list[dict[str, Any]], float]] = []
+    # Pass 1: run all searches and collect (query, retrieved, retrieved_deep, latency).
+    # `retrieved` matches production depth (k=3) and feeds content-based metrics
+    # (context relevance, answer correctness). `retrieved_deep` (k=EVAL_DEPTH) is
+    # eval-only and is the only thing H@5/H@10/NDCG@5 may read from, so those
+    # columns reflect a retrieval depth that actually happened instead of
+    # re-slicing a 3-item list and calling it H@10.
+    search_results: list[
+        tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], float]
+    ] = []
     for q in queries:
         t0 = time.perf_counter()
         retrieved = repo.search_knowledge(q["query"])
         latency = time.perf_counter() - t0
-        search_results.append((q, retrieved, latency))
+        retrieved_deep = repo.search_knowledge(q["query"], k=EVAL_DEPTH)
+        search_results.append((q, retrieved, retrieved_deep, latency))
 
     # Batch-embed all unique retrieved chunk texts so context relevance is non-zero
     chunk_embeddings: dict[str, list[float]] = {}
@@ -383,7 +396,7 @@ def evaluate_mode(
             from backend.app.data_loader import embed_texts
 
             unique: dict[str, str] = {}  # first-80-chars key → full text
-            for _, retrieved, _ in search_results:
+            for _, retrieved, _, _ in search_results:
                 for r in retrieved:
                     key = r.get("content", "")[:80]
                     if key and key not in unique:
@@ -399,18 +412,18 @@ def evaluate_mode(
     per_query: list[dict[str, Any]] = []
     total_judge_cost = 0.0
 
-    for q, retrieved, latency in search_results:
+    for q, retrieved, retrieved_deep, latency in search_results:
         exp_doc_id = q.get("expected_document_id")
         p3 = _precision_at_k(retrieved, q["expected_source_title"])
         r3 = _recall_at_k(retrieved, q["expected_source_title"])
         p3_doc = _precision_at_k_doc(retrieved, exp_doc_id)
         r3_doc = _recall_at_k_doc(retrieved, exp_doc_id)
-        h1 = hit_rate_at_k(retrieved, exp_doc_id, k=1)
-        h3 = hit_rate_at_k(retrieved, exp_doc_id, k=3)
-        h5 = hit_rate_at_k(retrieved, exp_doc_id, k=5)
-        h10 = hit_rate_at_k(retrieved, exp_doc_id, k=10)
-        ndcg5 = ndcg_at_k(retrieved, exp_doc_id, k=5)
-        mrr_score = mrr(retrieved, exp_doc_id)
+        h1 = hit_rate_at_k(retrieved_deep, exp_doc_id, k=1)
+        h3 = hit_rate_at_k(retrieved_deep, exp_doc_id, k=3)
+        h5 = hit_rate_at_k(retrieved_deep, exp_doc_id, k=5)
+        h10 = hit_rate_at_k(retrieved_deep, exp_doc_id, k=10)
+        ndcg5 = ndcg_at_k(retrieved_deep, exp_doc_id, k=5)
+        mrr_score = mrr(retrieved_deep, exp_doc_id)
         ctx_rel = _context_relevance(query_embeddings.get(q["query"]), retrieved, chunk_embeddings)
         kw_correctness = _answer_correctness(
             " ".join(r.get("content", "") for r in retrieved[:3]),
@@ -436,6 +449,7 @@ def evaluate_mode(
             "latency_s": round(latency, 4),
             "retrieved_titles": [r.get("title") for r in retrieved],
             "retrieved_doc_ids": [r.get("id") for r in retrieved],
+            "retrieved_doc_ids_deep": [r.get("id") for r in retrieved_deep],
             "expected_title": q["expected_source_title"],
             "expected_doc_id": exp_doc_id,
             "top_score": round(float(retrieved[0]["score"]), 4) if retrieved else 0.0,
@@ -646,7 +660,7 @@ BENCHMARK_HISTORY_PATH = Path(__file__).parent.parent.parent / "docs" / "benchma
 # Bumped whenever a change alters what the recorded metrics mean (metric
 # definitions, doc-id vs title matching, retrieval depth, etc.) so that
 # `_generate_benchmark_md` never plots incomparable runs on one sparkline.
-CURRENT_METRIC_VERSION = "doc-id-v1"
+CURRENT_METRIC_VERSION = "doc-id-v2"
 
 
 def _current_n_docs() -> int:
@@ -903,7 +917,7 @@ def _generate_benchmark_md(
         "- **R@3 (title)** — Recall@3 by title string match *(deprecated — kept for historical comparison)*",
         "- **P@3 (doc)** — Precision@3 by document ID: fraction of top-3 chunks from the correct document.",
         "- **R@3 (doc)** — Recall@3 by document ID: whether any top-3 chunk belongs to the correct document (binary).",
-        "- **H@k** — Hit Rate@k: binary 1 if the correct document appears anywhere in the top-k results.",
+        f"- **H@k** — Hit Rate@k: binary 1 if the correct document appears anywhere in the top-k results. Production retrieval only returns 3 results; H@5/H@10 and NDCG@5 are computed from an eval-only deeper retrieval (top {EVAL_DEPTH}) so the columns reflect real candidates, not a re-sliced top-3 list.",
         "- **NDCG@5** — Normalised Discounted Cumulative Gain at 5 (single-relevant-doc; higher rank = higher score).",
         "- **MRR** — Mean Reciprocal Rank: 1/rank of the first relevant chunk retrieved.",
         "- **CtxRel** — average cosine similarity between query and retrieved chunk embeddings",
