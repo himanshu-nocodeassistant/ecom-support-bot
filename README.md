@@ -163,7 +163,7 @@ python -m backend.eval.run --all-modes --llm-judge --benchmark
 python -m backend.eval.run --agent-eval
 
 # Adversarial eval (injection, ambiguous, multi-intent, out-of-scope)
-# python -m backend.eval.run --adversarial-eval   # coming in 9e wiring
+python -m backend.eval.run --adversarial-eval
 
 # Synthetic query generation (5 paraphrase + 2 adversarial per doc)
 python -m backend.eval.generate_queries --api-key $ANTHROPIC_API_KEY
