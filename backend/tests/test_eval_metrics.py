@@ -485,7 +485,7 @@ class EvaluateModeDocIdTests(unittest.TestCase):
                 "category": "refund",
                 "query": "refund",
                 "expected_source_title": "Refund policy",
-                "expected_document_id": "kb-refund",
+                "expected_document_id": "refund-policy",
                 "acceptable_answer_keywords": ["refund"],
             },
             {
@@ -530,7 +530,7 @@ class EvaluateModeDocIdTests(unittest.TestCase):
     def test_correct_retrieval_scores_doc_precision_one(self) -> None:
         from backend.eval.run import evaluate_mode
 
-        # "refund" query should retrieve kb-refund from InMemoryRepository
+        # "refund" query should retrieve refund-policy from InMemoryRepository
         result = evaluate_mode(
             mode="keyword",
             queries=[self._minimal_queries()[0]],
@@ -538,8 +538,8 @@ class EvaluateModeDocIdTests(unittest.TestCase):
             voyage_api_key=None,
         )
         row = result["per_query"][0]
-        # kb-refund should appear in retrieved doc IDs
-        self.assertIn("kb-refund", row["retrieved_doc_ids"])
+        # refund-policy should appear in retrieved doc IDs
+        self.assertIn("refund-policy", row["retrieved_doc_ids"])
         self.assertGreater(row["precision_at_3_doc"], 0.0)
         self.assertEqual(row["recall_at_3_doc"], 1.0)
 
@@ -1136,7 +1136,7 @@ class EvaluateModeBackendFieldTests(unittest.TestCase):
                 "query": "Does the blender have a safety lock?",
                 "category": "product",
                 "expected_source_title": "Portable blender guide",
-                "expected_document_id": "kb-blender",
+                "expected_document_id": "portable-blender-guide",
                 "acceptable_answer_keywords": ["safety lock"],
             }
         ]

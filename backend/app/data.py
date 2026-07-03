@@ -1,6 +1,6 @@
 KNOWLEDGE_BASE = [
     {
-        "id": "kb-shipping",
+        "id": "shipping-policy",
         "title": "Shipping policy",
         "category": "policy",
         "content": (
@@ -9,7 +9,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-refund",
+        "id": "refund-policy",
         "title": "Refund policy",
         "category": "policy",
         "content": (
@@ -18,7 +18,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-blender",
+        "id": "portable-blender-guide",
         "title": "Portable blender guide",
         "category": "product",
         "content": (
@@ -27,7 +27,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-headphones",
+        "id": "noise-cancelling-headphones-guide",
         "title": "Noise-cancelling headphones guide",
         "category": "product",
         "content": (
@@ -36,7 +36,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-returns",
+        "id": "returns-policy",
         "title": "Returns policy",
         "category": "policy",
         "content": (
@@ -47,7 +47,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-warranty",
+        "id": "warranty-policy",
         "title": "Warranty policy",
         "category": "policy",
         "content": (
@@ -58,7 +58,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-payment",
+        "id": "payment-methods",
         "title": "Payment methods",
         "category": "policy",
         "content": (
@@ -68,7 +68,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-account",
+        "id": "account-management",
         "title": "Account management",
         "category": "policy",
         "content": (
@@ -78,7 +78,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-order-modification",
+        "id": "order-modification",
         "title": "Order modification",
         "category": "policy",
         "content": (
@@ -88,7 +88,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-address-change",
+        "id": "address-change",
         "title": "Address change",
         "category": "policy",
         "content": (
@@ -98,7 +98,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-gift-wrapping",
+        "id": "gift-wrapping",
         "title": "Gift wrapping",
         "category": "policy",
         "content": (
@@ -108,7 +108,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-subscription",
+        "id": "subscription-billing",
         "title": "Subscription billing",
         "category": "policy",
         "content": (
@@ -118,7 +118,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-b2b",
+        "id": "b2b-wholesale",
         "title": "B2B and wholesale orders",
         "category": "policy",
         "content": (
@@ -128,7 +128,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-accessibility",
+        "id": "accessibility",
         "title": "Accessibility",
         "category": "policy",
         "content": (
@@ -137,7 +137,7 @@ KNOWLEDGE_BASE = [
         ),
     },
     {
-        "id": "kb-smart-hub",
+        "id": "smart-home-hub-guide",
         "title": "Smart home hub guide",
         "category": "product",
         "content": (

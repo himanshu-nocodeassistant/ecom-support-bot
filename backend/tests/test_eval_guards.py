@@ -42,6 +42,25 @@ def test_baseline_mode_matches_best_mode():
     )
 
 
+# The in-memory KB (used by keyword/fallback mode) must use the same doc-id
+# scheme as queries.json's expected_document_id (the canonical ids the
+# Postgres-backed loader derives from knowledge/*.md filenames). If the ids
+# don't match, doc-id metrics read 0.0 for in-memory modes regardless of
+# whether retrieval actually found the right document.
+def test_expected_doc_ids_exist_in_inmemory_kb():
+    from backend.app.data import KNOWLEDGE_BASE
+
+    kb_ids = {doc["id"] for doc in KNOWLEDGE_BASE}
+    expected = {
+        q["expected_document_id"] for q in _load("queries.json") if q.get("expected_document_id")
+    }
+    unknown = expected - kb_ids
+    assert not unknown, (
+        f"queries.json expects doc ids absent from the in-memory KB: {sorted(unknown)[:5]}. "
+        "Doc-id metrics will read 0.0 for in-memory modes regardless of retrieval quality."
+    )
+
+
 # check_regression.py --strict must exit non-zero when a gated metric is
 # missing from the baseline, instead of silently passing CI.
 def test_strict_flag_fails_on_missing_gated_metric(tmp_path, monkeypatch):
