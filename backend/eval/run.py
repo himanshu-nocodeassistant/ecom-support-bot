@@ -643,6 +643,17 @@ def _print_comparison_table(mode_results: list[dict[str, Any]]) -> None:
 
 BENCHMARK_HISTORY_PATH = Path(__file__).parent.parent.parent / "docs" / "benchmark-history.jsonl"
 
+# Bumped whenever a change alters what the recorded metrics mean (metric
+# definitions, doc-id vs title matching, retrieval depth, etc.) so that
+# `_generate_benchmark_md` never plots incomparable runs on one sparkline.
+CURRENT_METRIC_VERSION = "doc-id-v1"
+
+
+def _current_n_docs() -> int:
+    from backend.app.data import KNOWLEDGE_BASE
+
+    return len(KNOWLEDGE_BASE)
+
 
 def append_benchmark_history(
     mode_results: list[dict[str, Any]],
@@ -662,6 +673,8 @@ def append_benchmark_history(
         "p95_latency_s": best.get("p95_latency_s", 0.0),
         "total_cost_usd": best.get("estimated_cost", {}).get("total_cost_usd", 0.0),
         "n_queries": best.get("n_queries", 0),
+        "n_docs": best.get("n_docs", _current_n_docs()),
+        "metric_version": best.get("metric_version", CURRENT_METRIC_VERSION),
     }
     history_path.parent.mkdir(parents=True, exist_ok=True)
     with history_path.open("a") as f:
@@ -695,16 +708,31 @@ def _generate_sparkline(values: list[float], width: int = 80, height: int = 20) 
     )
 
 
-def _load_history(history_path: Path, last_n: int = 20) -> list[dict[str, Any]]:
+def _load_history(
+    history_path: Path,
+    last_n: int = 20,
+    n_docs: int | None = None,
+    metric_version: str = CURRENT_METRIC_VERSION,
+) -> list[dict[str, Any]]:
+    """Load recent history entries, excluding any whose (n_docs, metric_version)
+    fingerprint doesn't match the current run — mixing them produces a
+    trend line that isn't comparing like with like."""
     if not history_path.exists():
         return []
+    if n_docs is None:
+        n_docs = _current_n_docs()
     entries = []
     for line in history_path.read_text().strip().splitlines():
         try:
             entries.append(json.loads(line))
         except json.JSONDecodeError:
             continue
-    return entries[-last_n:]
+    comparable = [
+        e
+        for e in entries
+        if e.get("n_docs") == n_docs and e.get("metric_version") == metric_version
+    ]
+    return comparable[-last_n:]
 
 
 def _generate_pareto_svgs(
@@ -902,15 +930,18 @@ def _generate_benchmark_md(
         mrr_series = [e.get("avg_mrr", 0.0) for e in history]
         sparkline_ndcg = _generate_sparkline(ndcg_series)
         sparkline_mrr = _generate_sparkline(mrr_series)
+        run_word = "run" if len(history) == 1 else "runs"
         lines += [
             "",
-            "## Trend (last 20 CI runs)",
+            f"## Trend (last {len(history)} comparable {run_word})",
             "",
             f"**NDCG@5**: {sparkline_ndcg}",
             "",
             f"**MRR**: {sparkline_mrr}",
             "",
-            f"*{len(history)} runs recorded in `docs/benchmark-history.jsonl`.*",
+            f"*{len(history)} {run_word} recorded in `docs/benchmark-history.jsonl`"
+            f" (n_docs={history[-1].get('n_docs')}, metric_version={history[-1].get('metric_version')});"
+            " runs from a different KB size or metric version are excluded.*",
         ]
 
     output_path.write_text("\n".join(lines) + "\n")

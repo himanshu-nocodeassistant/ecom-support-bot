@@ -135,10 +135,23 @@ class BenchmarkMdTrendSectionTests(unittest.TestCase):
         self.assertNotIn("## Trend", content)
 
     def test_with_history_contains_trend_section(self) -> None:
+        from backend.eval.run import CURRENT_METRIC_VERSION, _current_n_docs
+
+        fp = {"n_docs": _current_n_docs(), "metric_version": CURRENT_METRIC_VERSION}
         self._write_history(
             [
-                {"timestamp": "2026-01-01T00:00:00", "avg_ndcg_at_5": 0.5, "best_mode": "hybrid"},
-                {"timestamp": "2026-01-02T00:00:00", "avg_ndcg_at_5": 0.6, "best_mode": "hybrid"},
+                {
+                    "timestamp": "2026-01-01T00:00:00",
+                    "avg_ndcg_at_5": 0.5,
+                    "best_mode": "hybrid",
+                    **fp,
+                },
+                {
+                    "timestamp": "2026-01-02T00:00:00",
+                    "avg_ndcg_at_5": 0.6,
+                    "best_mode": "hybrid",
+                    **fp,
+                },
             ]
         )
         self._fn([_make_result()], self._out, history_path=self._history)
@@ -146,12 +159,16 @@ class BenchmarkMdTrendSectionTests(unittest.TestCase):
         self.assertIn("## Trend", content)
 
     def test_trend_section_contains_sparkline(self) -> None:
+        from backend.eval.run import CURRENT_METRIC_VERSION, _current_n_docs
+
+        fp = {"n_docs": _current_n_docs(), "metric_version": CURRENT_METRIC_VERSION}
         self._write_history(
             [
                 {
                     "timestamp": f"2026-01-0{i}T00:00:00",
                     "avg_ndcg_at_5": 0.4 + i * 0.05,
                     "best_mode": "hybrid",
+                    **fp,
                 }
                 for i in range(1, 6)
             ]
@@ -225,6 +242,124 @@ class BenchmarkMdBackendLabelTests(unittest.TestCase):
         self._fn([self._result("postgres")], self._out, history_path=self._no_history)
         content = self._out.read_text()
         self.assertIn("Results from:", content)
+
+
+# ---------------------------------------------------------------------------
+# 6c — benchmark history must not mix incomparable runs (fingerprint by
+# n_docs + metric_version), and the Trend heading must state the real count.
+# ---------------------------------------------------------------------------
+
+
+class BenchmarkHistoryFingerprintTests(unittest.TestCase):
+    """History entries carry a fingerprint; the gate never spans a KB or
+    metric-version change."""
+
+    def setUp(self) -> None:
+        from backend.eval.run import append_benchmark_history
+
+        self._fn = append_benchmark_history
+
+    def test_entry_contains_n_docs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            history_path = Path(tmp) / "benchmark-history.jsonl"
+            self._fn([_make_result()], history_path=history_path)
+            entry = json.loads(history_path.read_text().strip())
+            self.assertIn("n_docs", entry)
+
+    def test_entry_contains_metric_version(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            history_path = Path(tmp) / "benchmark-history.jsonl"
+            self._fn([_make_result()], history_path=history_path)
+            entry = json.loads(history_path.read_text().strip())
+            self.assertIn("metric_version", entry)
+
+
+class BenchmarkMdTrendFingerprintFilterTests(unittest.TestCase):
+    """_generate_benchmark_md only plots history entries matching the
+    current run's fingerprint, and the heading names the real run count."""
+
+    def setUp(self) -> None:
+        import tempfile
+
+        from backend.eval.run import CURRENT_METRIC_VERSION, _generate_benchmark_md
+
+        self._fn = _generate_benchmark_md
+        self._metric_version = CURRENT_METRIC_VERSION
+        self._tmpdir = tempfile.TemporaryDirectory()
+        self._out = Path(self._tmpdir.name) / "benchmark.md"
+        self._history = Path(self._tmpdir.name) / "benchmark-history.jsonl"
+
+    def tearDown(self) -> None:
+        self._tmpdir.cleanup()
+
+    def _write_history(self, entries: list[dict]) -> None:
+        lines = [json.dumps(e) for e in entries]
+        self._history.write_text("\n".join(lines) + "\n")
+
+    def test_stale_fingerprint_entries_excluded_from_trend(self) -> None:
+        # Two old runs on a 62-doc KB with a stale metric version (the
+        # 05-30 keyword-mode runs from the bug report), one current run.
+        self._write_history(
+            [
+                {
+                    "timestamp": "2026-05-30T13:13:32",
+                    "avg_ndcg_at_5": 0.8111,
+                    "best_mode": "keyword",
+                    "n_docs": 62,
+                    "metric_version": "title-match-v1",
+                },
+                {
+                    "timestamp": "2026-05-31T10:28:22",
+                    "avg_ndcg_at_5": 0.2885,
+                    "best_mode": "hybrid+rerank",
+                    "n_docs": 62,
+                    "metric_version": "title-match-v1",
+                },
+                {
+                    "timestamp": "2026-07-03T10:00:00",
+                    "avg_ndcg_at_5": 0.29,
+                    "best_mode": "hybrid",
+                    "n_docs": 15,
+                    "metric_version": self._metric_version,
+                },
+            ]
+        )
+        self._fn([_make_result()], self._out, history_path=self._history)
+        content = self._out.read_text()
+        self.assertIn("*1 run recorded", content)
+
+    def test_heading_is_count_aware_not_hardcoded_20(self) -> None:
+        self._write_history(
+            [
+                {
+                    "timestamp": "2026-07-03T10:00:00",
+                    "avg_ndcg_at_5": 0.29,
+                    "best_mode": "hybrid",
+                    "n_docs": 15,
+                    "metric_version": self._metric_version,
+                }
+            ]
+        )
+        self._fn([_make_result()], self._out, history_path=self._history)
+        content = self._out.read_text()
+        self.assertNotIn("last 20 CI runs", content)
+
+    def test_matching_fingerprint_entries_all_included(self) -> None:
+        self._write_history(
+            [
+                {
+                    "timestamp": f"2026-07-0{i}T10:00:00",
+                    "avg_ndcg_at_5": 0.2 + i * 0.01,
+                    "best_mode": "hybrid",
+                    "n_docs": 15,
+                    "metric_version": self._metric_version,
+                }
+                for i in range(1, 4)
+            ]
+        )
+        self._fn([_make_result()], self._out, history_path=self._history)
+        content = self._out.read_text()
+        self.assertIn("*3 runs recorded", content)
 
 
 if __name__ == "__main__":
