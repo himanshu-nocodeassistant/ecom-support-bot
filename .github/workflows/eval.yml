@@ -45,7 +45,7 @@ jobs:
         id: regression_check
         run: |
           set -o pipefail
-          python -m backend.eval.check_regression 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
+          python -m backend.eval.check_regression --strict 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
 
       - name: Update benchmark history and regenerate benchmark.md
         if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != '' && github.event_name == 'pull_request'
