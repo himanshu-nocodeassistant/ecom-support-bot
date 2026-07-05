@@ -379,13 +379,26 @@ def evaluate_mode(
     # eval-only and is the only thing H@5/H@10/NDCG@5 may read from, so those
     # columns reflect a retrieval depth that actually happened instead of
     # re-slicing a 3-item list and calling it H@10.
+    # Voyage's unbilled tier caps at 3 RPM. Each iteration below issues up to two
+    # embed_query calls (k=3 and k=EVAL_DEPTH), so retry-after-429 thrashing turns
+    # a 62-query hybrid run into 40+ minutes of backoff. Pace proactively instead:
+    # sleep enough between each embed-triggering call to stay under the limit, so
+    # calls succeed on the first try. This is an eval-harness concern (sequential
+    # single-query calls are what trip the limit); production's per-request
+    # embed_query is unaffected.
+    pace_seconds = 21.0 if mode in ("hybrid", "hybrid+rerank") and voyage_api_key else 0.0
+
     search_results: list[
         tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], float]
     ] = []
-    for q in queries:
+    for i, q in enumerate(queries):
+        if pace_seconds and i > 0:
+            time.sleep(pace_seconds)
         t0 = time.perf_counter()
         retrieved = repo.search_knowledge(q["query"])
         latency = time.perf_counter() - t0
+        if pace_seconds:
+            time.sleep(pace_seconds)
         retrieved_deep = repo.search_knowledge(q["query"], k=EVAL_DEPTH)
         search_results.append((q, retrieved, retrieved_deep, latency))
 
@@ -425,8 +438,9 @@ def evaluate_mode(
         ndcg5 = ndcg_at_k(retrieved_deep, exp_doc_id, k=5)
         mrr_score = mrr(retrieved_deep, exp_doc_id)
         ctx_rel = _context_relevance(query_embeddings.get(q["query"]), retrieved, chunk_embeddings)
+        kw_text = " ".join(r.get("content", "") for r in retrieved[:3])
         kw_correctness = _answer_correctness(
-            " ".join(r.get("content", "") for r in retrieved[:3]),
+            kw_text,
             q.get("acceptable_answer_keywords", []),
         )
 
@@ -446,6 +460,7 @@ def evaluate_mode(
             "mrr": round(mrr_score, 4),
             "context_relevance": round(ctx_rel, 4),
             "answer_correctness_kw": round(kw_correctness, 4),
+            "kw_context_chars": len(kw_text),
             "latency_s": round(latency, 4),
             "retrieved_titles": [r.get("title") for r in retrieved],
             "retrieved_doc_ids": [r.get("id") for r in retrieved],
@@ -453,6 +468,9 @@ def evaluate_mode(
             "expected_title": q["expected_source_title"],
             "expected_doc_id": exp_doc_id,
             "top_score": round(float(retrieved[0]["score"]), 4) if retrieved else 0.0,
+            "degraded": next(
+                (r["degraded"] for r in retrieved + retrieved_deep if r.get("degraded")), None
+            ),
         }
 
         if use_llm_judge and anthropic_api_key and retrieved:
@@ -501,11 +519,13 @@ def evaluate_mode(
         "avg_mrr": _avg("mrr"),
         "avg_context_relevance": _avg("context_relevance"),
         "avg_answer_correctness_kw": _avg("answer_correctness_kw"),
+        "avg_kw_context_chars": _avg("kw_context_chars"),
         "p50_latency_s": round(p50, 4),
         "p95_latency_s": round(p95, 4),
         "estimated_cost": cost,
         "n_queries": len(queries),
         "n_answerable": len(answerable),
+        "n_degraded": sum(1 for r in per_query if r.get("degraded")),
         "per_query": per_query,
     }
     if use_llm_judge and anthropic_api_key:
@@ -554,48 +574,59 @@ def chunking_audit(
 
         per_query: list[dict[str, Any]] = []
         for q in queries:
+            exp_doc_id = q.get("expected_document_id")
             t0 = time.perf_counter()
             retrieved = repo.search_knowledge(q["query"])
             latency = time.perf_counter() - t0
-            p3 = _precision_at_k(retrieved, q["expected_source_title"])
+            hit3 = hit_rate_at_k(retrieved, exp_doc_id, k=3)
+            r3_doc = _recall_at_k_doc(retrieved, exp_doc_id, k=3)
             per_query.append(
                 {
                     "id": q["id"],
                     "query": q["query"],
-                    "precision_at_3": round(p3, 4),
+                    "hit_rate_at_3": round(hit3, 4),
+                    "recall_at_3_doc": round(r3_doc, 4),
                     "latency_s": round(latency, 4),
                     "retrieved_titles": [r.get("title") for r in retrieved],
+                    "retrieved_doc_ids": [r.get("id") for r in retrieved],
                     "expected_title": q["expected_source_title"],
+                    "expected_doc_id": exp_doc_id,
                 }
             )
 
-        answerable = [r for r in per_query if r["expected_title"]]
-        avg_p3 = (
-            sum(r["precision_at_3"] for r in answerable) / len(answerable) if answerable else 0.0
+        answerable = [r for r in per_query if r["expected_doc_id"]]
+        avg_hit3 = (
+            sum(r["hit_rate_at_3"] for r in answerable) / len(answerable) if answerable else 0.0
         )
         latencies_sorted = sorted(r["latency_s"] for r in per_query)
         p50 = latencies_sorted[len(latencies_sorted) // 2]
 
         results[strategy] = {
             "strategy": strategy,
-            "avg_precision_at_3": round(avg_p3, 4),
+            "avg_hit_rate_at_3": round(avg_hit3, 4),
             "p50_latency_s": round(p50, 4),
             "chunk_count": _count_chunks(database_url),
             "per_query": per_query,
         }
         print(
-            f"  strategy={strategy}: avg_precision@3={avg_p3:.3f}  "
+            f"  strategy={strategy}: avg_hit_rate@3={avg_hit3:.3f}  "
             f"p50={p50:.4f}s  chunks={results[strategy]['chunk_count']}"
         )
 
-    winner = max(strategies, key=lambda s: results[s]["avg_precision_at_3"])
+    winner = max(strategies, key=lambda s: results[s]["avg_hit_rate_at_3"])
     loser = next(s for s in strategies if s != winner)
     results["winner"] = winner
-    results["decision"] = (
-        f"Strategy '{winner}' wins with avg_precision@3="
-        f"{results[winner]['avg_precision_at_3']:.3f} vs "
-        f"{results[loser]['avg_precision_at_3']:.3f}"
-    )
+    if results[winner]["avg_hit_rate_at_3"] == results[loser]["avg_hit_rate_at_3"]:
+        results["decision"] = (
+            f"Tie on avg_hit_rate@3={results[winner]['avg_hit_rate_at_3']:.3f}; "
+            "no doc-id-based evidence favors either strategy."
+        )
+    else:
+        results["decision"] = (
+            f"Strategy '{winner}' wins with avg_hit_rate@3="
+            f"{results[winner]['avg_hit_rate_at_3']:.3f} vs "
+            f"{results[loser]['avg_hit_rate_at_3']:.3f}"
+        )
     return results
 
 
@@ -872,7 +903,7 @@ def _generate_benchmark_md(
 
     # Quality + latency + cost table
     lines += ["", "## Quality, Latency & Cost", ""]
-    qual_cols = ["Mode", "CtxRel", "KwCorr"]
+    qual_cols = ["Mode", "CtxRel", "KwCorr", "KwCorr chars"]
     if has_llm:
         qual_cols.append("LLMCorr")
     qual_cols += ["P50 (s)", "P95 (s)", "Cost ($)"]
@@ -884,6 +915,7 @@ def _generate_benchmark_md(
             f"`{r['mode']}`",
             f"{r['avg_context_relevance']:.3f}",
             f"{r.get('avg_answer_correctness_kw', 0.0):.3f}",
+            f"{r.get('avg_kw_context_chars', 0.0):.0f}",
         ]
         if has_llm:
             row.append(f"{r.get('avg_answer_correctness_llm', 0.0):.3f}")
@@ -921,7 +953,8 @@ def _generate_benchmark_md(
         "- **NDCG@5** — Normalised Discounted Cumulative Gain at 5 (single-relevant-doc; higher rank = higher score).",
         "- **MRR** — Mean Reciprocal Rank: 1/rank of the first relevant chunk retrieved.",
         "- **CtxRel** — average cosine similarity between query and retrieved chunk embeddings",
-        "- **KwCorr** — keyword-overlap answer correctness (fraction of expected keywords present)",
+        "- **KwCorr** — keyword-overlap answer correctness: fraction of expected keywords present in the concatenated top-3 retrieved *content*. **Not valid for cross-mode comparison** — modes that return whole documents (e.g. `keyword`) search far more text per query than modes that return short chunks, so a higher score there reflects text volume, not better retrieval. Only compare KwCorr across runs of the *same* mode over time. See `KwCorr chars`.",
+        "- **KwCorr chars** — average character count of the text KwCorr was computed over, per mode. Included so a KwCorr gap is legible as a text-volume artifact rather than a quality difference.",
         "- **LLMCorr** — Claude-as-judge factual accuracy score (0–1); `null` if not run with `--llm-judge`",
         "- **P50/P95** — median and 95th-percentile end-to-end retrieval latency",
         "- **Cost** — estimated Voyage + Claude API cost for the full eval run",
@@ -1215,6 +1248,11 @@ def main() -> None:
         default="gold",
         help="9d: which query set to evaluate against (default: gold)",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="fail the run if any query degraded to fulltext fallback (used in CI)",
+    )
     args = parser.parse_args()
 
     import os
@@ -1326,6 +1364,18 @@ def main() -> None:
             f"p50={result['p50_latency_s']:.4f}s  "
             f"cost=${result['estimated_cost']['total_cost_usd']:.6f}"
         )
+        if result["n_degraded"]:
+            print(
+                f"  WARNING: {result['n_degraded']}/{result['n_queries']} queries in mode "
+                f"'{mode}' fell back to fulltext search (embed_query/hybrid-query failure). "
+                "This run's retrieval metrics are not comparable to an undegraded run.",
+                flush=True,
+            )
+            if args.strict:
+                raise SystemExit(
+                    f"--strict: mode '{mode}' had {result['n_degraded']} degraded "
+                    "queries; refusing to publish results from a partially-fallback run."
+                )
 
     if len(all_results) > 1:
         _print_comparison_table(all_results)

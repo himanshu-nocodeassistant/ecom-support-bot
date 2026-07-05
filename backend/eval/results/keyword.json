@@ -13,6 +13,7 @@
   "avg_mrr": 0.7869,
   "avg_context_relevance": 0.0,
   "avg_answer_correctness_kw": 0.7686,
+  "avg_kw_context_chars": 519.4808,
   "p50_latency_s": 0.0001,
   "p95_latency_s": 0.0001,
   "estimated_cost": {
@@ -22,6 +23,7 @@
   },
   "n_queries": 62,
   "n_answerable": 52,
+  "n_degraded": 0,
   "per_query": [
     {
       "id": "q01",
@@ -39,6 +41,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.8,
+      "kw_context_chars": 712,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -58,7 +61,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q02",
@@ -76,6 +80,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 598,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -94,7 +99,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q03",
@@ -112,6 +118,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 266,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy"
@@ -124,7 +131,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q04",
@@ -142,6 +150,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 594,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -162,7 +171,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q05",
@@ -180,6 +190,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 450,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -195,7 +206,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q06",
@@ -213,6 +225,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 594,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -233,7 +246,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q07",
@@ -251,6 +265,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 545,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Address change",
@@ -272,7 +287,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q08",
@@ -290,6 +306,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 397,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -305,7 +322,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q09",
@@ -323,6 +341,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 589,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -345,7 +364,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q10",
@@ -363,6 +383,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 638,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -381,7 +402,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q11",
@@ -399,6 +421,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 425,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Noise-cancelling headphones guide",
@@ -414,7 +437,8 @@
       ],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q12",
@@ -432,6 +456,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 586,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Noise-cancelling headphones guide",
@@ -450,7 +475,8 @@
       ],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q13",
@@ -468,6 +494,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 586,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Noise-cancelling headphones guide",
@@ -487,7 +514,8 @@
       ],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q14",
@@ -505,6 +533,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 352,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Noise-cancelling headphones guide",
@@ -520,7 +549,8 @@
       ],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q15",
@@ -538,6 +568,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 421,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Portable blender guide",
@@ -553,7 +584,8 @@
       ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q16",
@@ -571,6 +603,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 639,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Portable blender guide",
@@ -589,7 +622,8 @@
       ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q17",
@@ -607,6 +641,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 601,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -627,7 +662,8 @@
       ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q18",
@@ -645,6 +681,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 646,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Portable blender guide",
@@ -664,7 +701,8 @@
       ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q19",
@@ -682,6 +720,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.25,
+      "kw_context_chars": 606,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -702,7 +741,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q20",
@@ -720,6 +760,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
+      "kw_context_chars": 397,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -735,7 +776,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q21",
@@ -753,6 +795,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
+      "kw_context_chars": 712,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -774,7 +817,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q22",
@@ -792,6 +836,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 179,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy"
@@ -804,7 +849,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q23",
@@ -822,13 +868,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 0,
       "latency_s": 0.0001,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q24",
@@ -846,13 +894,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 0,
       "latency_s": 0.0001,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q25",
@@ -870,6 +920,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 542,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -892,7 +943,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q26",
@@ -910,6 +962,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 594,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -930,7 +983,8 @@
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q27",
@@ -948,13 +1002,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
       "latency_s": 0.0001,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q28",
@@ -972,6 +1028,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 712,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -990,7 +1047,8 @@
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q29",
@@ -1008,6 +1066,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 421,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Warranty policy",
@@ -1023,7 +1082,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q30",
@@ -1041,6 +1101,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 408,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Gift wrapping",
@@ -1056,7 +1117,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q31",
@@ -1074,6 +1136,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 266,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy"
@@ -1086,7 +1149,8 @@
       ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q32",
@@ -1104,6 +1168,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 712,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -1122,7 +1187,8 @@
       ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q33",
@@ -1140,6 +1206,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 630,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -1160,7 +1227,8 @@
       ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q34",
@@ -1178,6 +1246,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 564,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -1193,7 +1262,8 @@
       ],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q35",
@@ -1211,6 +1281,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 646,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Warranty policy",
@@ -1233,7 +1304,8 @@
       ],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q36",
@@ -1251,6 +1323,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 297,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Warranty policy"
@@ -1263,7 +1336,8 @@
       ],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q37",
@@ -1281,6 +1355,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 431,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Payment methods",
@@ -1296,7 +1371,8 @@
       ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q38",
@@ -1314,6 +1390,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.5,
+      "kw_context_chars": 431,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Payment methods",
@@ -1329,7 +1406,8 @@
       ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q39",
@@ -1347,6 +1425,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
+      "kw_context_chars": 223,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Payment methods"
@@ -1359,7 +1438,8 @@
       ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q40",
@@ -1377,6 +1457,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 418,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Account management",
@@ -1392,7 +1473,8 @@
       ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q41",
@@ -1410,6 +1492,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 410,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Account management",
@@ -1425,7 +1508,8 @@
       ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q42",
@@ -1443,6 +1527,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 676,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -1466,7 +1551,8 @@
       ],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q43",
@@ -1484,6 +1570,7 @@
       "mrr": 0.3333,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 606,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -1505,7 +1592,8 @@
       ],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q44",
@@ -1523,6 +1611,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 557,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Order modification",
@@ -1546,7 +1635,8 @@
       ],
       "expected_title": "Address change",
       "expected_doc_id": "address-change",
-      "top_score": 4.0
+      "top_score": 4.0,
+      "degraded": null
     },
     {
       "id": "q45",
@@ -1564,6 +1654,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 621,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Address change",
@@ -1583,7 +1674,8 @@
       ],
       "expected_title": "Address change",
       "expected_doc_id": "address-change",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q46",
@@ -1601,6 +1693,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 598,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Gift wrapping",
@@ -1621,7 +1714,8 @@
       ],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q47",
@@ -1639,6 +1733,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 593,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Gift wrapping",
@@ -1662,7 +1757,8 @@
       ],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 4.0
+      "top_score": 4.0,
+      "degraded": null
     },
     {
       "id": "q48",
@@ -1680,6 +1776,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 224,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Subscription billing"
@@ -1692,7 +1789,8 @@
       ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q49",
@@ -1710,6 +1808,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 388,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Subscription billing",
@@ -1725,7 +1824,8 @@
       ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q50",
@@ -1743,6 +1843,7 @@
       "mrr": 0.25,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
+      "kw_context_chars": 621,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Shipping policy",
@@ -1763,7 +1864,8 @@
       ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q51",
@@ -1781,6 +1883,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 432,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Subscription billing",
@@ -1796,7 +1899,8 @@
       ],
       "expected_title": "B2B and wholesale orders",
       "expected_doc_id": "b2b-wholesale",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q52",
@@ -1814,6 +1918,7 @@
       "mrr": 0.1667,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
+      "kw_context_chars": 606,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Refund policy",
@@ -1835,7 +1940,8 @@
       ],
       "expected_title": "B2B and wholesale orders",
       "expected_doc_id": "b2b-wholesale",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q53",
@@ -1853,6 +1959,7 @@
       "mrr": 0.3333,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
+      "kw_context_chars": 622,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy",
@@ -1871,7 +1978,8 @@
       ],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q54",
@@ -1889,6 +1997,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 430,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Accessibility",
@@ -1904,7 +2013,8 @@
       ],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q55",
@@ -1922,6 +2032,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.5,
+      "kw_context_chars": 457,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Smart home hub guide",
@@ -1937,7 +2048,8 @@
       ],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 4.0
+      "top_score": 4.0,
+      "degraded": null
     },
     {
       "id": "q56",
@@ -1955,6 +2067,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 356,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Smart home hub guide",
@@ -1970,7 +2083,8 @@
       ],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q57",
@@ -1988,6 +2102,7 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 691,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Smart home hub guide",
@@ -2006,7 +2121,8 @@
       ],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 3.0
+      "top_score": 3.0,
+      "degraded": null
     },
     {
       "id": "q58",
@@ -2024,6 +2140,7 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 670,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Warranty policy",
@@ -2043,7 +2160,8 @@
       ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q59",
@@ -2061,6 +2179,7 @@
       "mrr": 0.3333,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
+      "kw_context_chars": 638,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Order modification",
@@ -2086,7 +2205,8 @@
       ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 2.0,
+      "degraded": null
     },
     {
       "id": "q60",
@@ -2104,6 +2224,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 266,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Returns policy"
@@ -2116,7 +2237,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q61",
@@ -2134,6 +2256,7 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 421,
       "latency_s": 0.0001,
       "retrieved_titles": [
         "Portable blender guide",
@@ -2149,7 +2272,8 @@
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 1.0,
+      "degraded": null
     },
     {
       "id": "q62",
@@ -2167,13 +2291,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
+      "kw_context_chars": 0,
       "latency_s": 0.0001,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     }
   ]
 }

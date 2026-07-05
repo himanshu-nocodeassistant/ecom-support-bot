@@ -42,4 +42,4 @@ H@5 (0.923) and H@10 (0.942) now genuinely exceed H@3 (0.904) for every mode —
 
 ## Remaining work
 
-The gated CI metrics (`avg_precision_at_3_doc`, `avg_recall_at_3_doc`, `avg_context_relevance` in `thresholds.json`) are all computed from the k=3 pass and are unaffected by this change — no baseline re-save was needed. Findings (g)-(j) from the eval audit (chunking bias, KwCorr cross-mode invalidity, LLM-judge scoring the wrong text, CtxRel circularity) remain open and tracked separately.
+The gated CI metrics (`avg_precision_at_3_doc`, `avg_recall_at_3_doc`, `avg_context_relevance` in `thresholds.json`) are all computed from the k=3 pass and are unaffected by this change — no baseline re-save was needed. Finding (g) (chunking bias) is resolved in `plans/decisions/chunking.md`; finding (h) (KwCorr cross-mode invalidity) is resolved in `plans/decisions/kwcorr-cross-mode.md`. Findings (i)-(j) from the eval audit (LLM-judge scoring the wrong text, CtxRel circularity) remain open and tracked separately.

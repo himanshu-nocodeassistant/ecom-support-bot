@@ -203,14 +203,24 @@ class PostgresRepository:
         ][:k]
 
     def _hybrid_search(self, query_text: str, k: int = 3) -> list[dict[str, Any]]:
+        import logging
+
         import psycopg
 
         from .data_loader import embed_query
 
         try:
             query_embedding = embed_query(query_text, api_key=self.voyage_api_key)
-        except Exception:
-            return self._fulltext_search(query_text, k=k)
+        except Exception as exc:
+            logging.getLogger(__name__).warning(
+                "hybrid search degraded to fulltext: embed_query failed (%s: %s)",
+                type(exc).__name__,
+                exc,
+            )
+            results = self._fulltext_search(query_text, k=k)
+            for r in results:
+                r["degraded"] = "embed_query_failed"
+            return results
 
         embedding_str = "[" + ",".join(str(v) for v in query_embedding) + "]"
 
@@ -238,10 +248,19 @@ class PostgresRepository:
                         sql, {"q": query_text, "emb": embedding_str, "limit": max(k * 2, 6)}
                     )
                     rows = cur.fetchall()
-        except psycopg.Error:
-            return self._fulltext_search(query_text, k=k)
+        except psycopg.Error as exc:
+            logging.getLogger(__name__).warning(
+                "hybrid search degraded to fulltext: query failed (%s)", exc
+            )
+            results = self._fulltext_search(query_text, k=k)
+            for r in results:
+                r["degraded"] = "hybrid_query_failed"
+            return results
         if not rows:
-            return self._fulltext_search(query_text, k=k)
+            results = self._fulltext_search(query_text, k=k)
+            for r in results:
+                r["degraded"] = "hybrid_no_rows"
+            return results
         return [
             {
                 "id": row[0],

@@ -1,1 +1,2 @@
 {"timestamp": "2026-07-03T17:16:19", "best_mode": "hybrid+rerank", "avg_ndcg_at_5": 0.8482, "avg_precision_at_3_doc": 0.3013, "avg_recall_at_3_doc": 0.9038, "avg_mrr": 0.8157, "p95_latency_s": 6.1534, "total_cost_usd": 0.000961, "n_queries": 62, "n_docs": 15, "metric_version": "doc-id-v2"}
+{"timestamp": "2026-07-05T15:32:55", "best_mode": "hybrid+rerank", "avg_ndcg_at_5": 0.9602, "avg_precision_at_3_doc": 0.6474, "avg_recall_at_3_doc": 0.9423, "avg_mrr": 0.9535, "p95_latency_s": 4.3947, "total_cost_usd": 0.000961, "n_queries": 62, "n_docs": 15, "metric_version": "doc-id-v2"}

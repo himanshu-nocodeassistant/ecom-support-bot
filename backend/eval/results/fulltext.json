@@ -1,20 +1,21 @@
 {
   "mode": "fulltext",
   "backend": "postgres",
-  "avg_precision_at_3": 0.3013,
-  "avg_recall_at_3": 0.9038,
-  "avg_precision_at_3_doc": 0.3013,
-  "avg_recall_at_3_doc": 0.9038,
-  "avg_hit_rate_at_1": 0.6731,
-  "avg_hit_rate_at_3": 0.9038,
-  "avg_hit_rate_at_5": 0.9231,
-  "avg_hit_rate_at_10": 0.9423,
-  "avg_ndcg_at_5": 0.8194,
-  "avg_mrr": 0.7869,
+  "avg_precision_at_3": 0.0833,
+  "avg_recall_at_3": 0.25,
+  "avg_precision_at_3_doc": 0.0833,
+  "avg_recall_at_3_doc": 0.25,
+  "avg_hit_rate_at_1": 0.2115,
+  "avg_hit_rate_at_3": 0.25,
+  "avg_hit_rate_at_5": 0.25,
+  "avg_hit_rate_at_10": 0.25,
+  "avg_ndcg_at_5": 0.2333,
+  "avg_mrr": 0.2276,
   "avg_context_relevance": 0.0,
-  "avg_answer_correctness_kw": 0.7686,
-  "p50_latency_s": 2.3364,
-  "p95_latency_s": 3.7999,
+  "avg_answer_correctness_kw": 0.1862,
+  "avg_kw_context_chars": 46.2308,
+  "p50_latency_s": 1.7978,
+  "p95_latency_s": 2.9921,
   "estimated_cost": {
     "embed_cost_usd": 6.2e-05,
     "rerank_cost_usd": 0.0,
@@ -22,6 +23,7 @@
   },
   "n_queries": 62,
   "n_answerable": 52,
+  "n_degraded": 0,
   "per_query": [
     {
       "id": "q01",
@@ -38,63 +40,48 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.8,
-      "latency_s": 2.4014,
+      "answer_correctness_kw": 0.6,
+      "kw_context_chars": 55,
+      "latency_s": 3.0113,
       "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Warranty policy"
+        "Refund policy"
       ],
       "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy"
+        "refund-policy"
       ],
       "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy",
-        "accessibility"
+        "refund-policy"
       ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 0.0991,
+      "degraded": null
     },
     {
       "id": "q02",
       "category": "refund",
       "query": "My item arrived damaged, can I get my money back?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.1751,
-      "retrieved_titles": [
-        "Returns policy",
-        "Refund policy",
-        "Gift wrapping"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "refund-policy",
-        "gift-wrapping"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "refund-policy",
-        "gift-wrapping"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7329,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q03",
@@ -111,58 +98,42 @@
       "ndcg_at_5": 0.0,
       "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.3016,
-      "retrieved_titles": [
-        "Returns policy"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7238,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q04",
       "category": "refund",
       "query": "Can I get a refund if the product is defective?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.1701,
-      "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Shipping policy"
-      ],
-      "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "shipping-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "shipping-policy",
-        "warranty-policy",
-        "address-change"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.3116,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q05",
@@ -179,61 +150,42 @@
       "ndcg_at_5": 0.0,
       "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.1904,
-      "retrieved_titles": [
-        "Returns policy",
-        "Gift wrapping"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "gift-wrapping"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "gift-wrapping"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.0972,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q06",
       "category": "shipping",
       "query": "How long does delivery take?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.3021,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Refund policy",
-        "Returns policy"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "refund-policy",
-        "returns-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
-        "address-change"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.513,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q07",
@@ -247,313 +199,240 @@
       "hit_rate_at_3": 1.0,
       "hit_rate_at_5": 1.0,
       "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "ndcg_at_5": 0.5,
+      "mrr": 0.3333,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 3.3044,
+      "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 270,
+      "latency_s": 1.6473,
       "retrieved_titles": [
-        "Address change",
-        "Shipping policy",
-        "Refund policy"
+        "B2B and wholesale orders",
+        "Gift wrapping",
+        "Shipping policy"
       ],
       "retrieved_doc_ids": [
-        "address-change",
-        "shipping-policy",
-        "refund-policy"
+        "b2b-wholesale",
+        "gift-wrapping",
+        "shipping-policy"
       ],
       "retrieved_doc_ids_deep": [
-        "address-change",
+        "b2b-wholesale",
+        "gift-wrapping",
         "shipping-policy",
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
-        "gift-wrapping"
+        "subscription-billing"
       ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 2.0
+      "top_score": 0.1349,
+      "degraded": null
     },
     {
       "id": "q08",
       "category": "shipping",
       "query": "My package is late, what should I do?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 3.581,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Address change"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "address-change"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "address-change"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5796,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q09",
       "category": "shipping",
       "query": "How quickly do you process and send orders?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.1309,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Payment methods",
-        "Account management"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "payment-methods",
-        "account-management"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "payment-methods",
-        "account-management",
-        "order-modification",
-        "gift-wrapping",
-        "b2b-wholesale",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6282,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q10",
       "category": "shipping",
       "query": "What is your shipping timeframe?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.4227,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Returns policy",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "returns-policy",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "returns-policy",
-        "order-modification"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7978,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q11",
       "category": "product",
       "query": "How long does the headphone battery last?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 2.749,
-      "retrieved_titles": [
-        "Noise-cancelling headphones guide",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "noise-cancelling-headphones-guide",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "noise-cancelling-headphones-guide",
-        "warranty-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.785,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q12",
       "category": "product",
       "query": "Does the headset support Bluetooth?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 2.7861,
-      "retrieved_titles": [
-        "Noise-cancelling headphones guide",
-        "Returns policy",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "noise-cancelling-headphones-guide",
-        "returns-policy",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "noise-cancelling-headphones-guide",
-        "returns-policy",
-        "order-modification"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.8739,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q13",
       "category": "product",
       "query": "Can I use the headphones with a cable instead of Bluetooth?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 3.6871,
-      "retrieved_titles": [
-        "Noise-cancelling headphones guide",
-        "Returns policy",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "noise-cancelling-headphones-guide",
-        "returns-policy",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "noise-cancelling-headphones-guide",
-        "returns-policy",
-        "order-modification",
-        "smart-home-hub-guide"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.4041,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q14",
       "category": "product",
       "query": "Do the headphones cancel background noise?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.6449,
-      "retrieved_titles": [
-        "Noise-cancelling headphones guide",
-        "Subscription billing"
-      ],
-      "retrieved_doc_ids": [
-        "noise-cancelling-headphones-guide",
-        "subscription-billing"
-      ],
-      "retrieved_doc_ids_deep": [
-        "noise-cancelling-headphones-guide",
-        "subscription-billing"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.344,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q15",
       "category": "product",
       "query": "How much liquid does the portable blender hold?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 3.7288,
-      "retrieved_titles": [
-        "Portable blender guide",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "portable-blender-guide",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "portable-blender-guide",
-        "warranty-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.8681,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q16",
@@ -570,101 +449,74 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.231,
+      "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 65,
+      "latency_s": 1.6104,
       "retrieved_titles": [
-        "Portable blender guide",
-        "Warranty policy",
-        "Address change"
+        "Portable blender guide"
       ],
       "retrieved_doc_ids": [
-        "portable-blender-guide",
-        "warranty-policy",
-        "address-change"
+        "portable-blender-guide"
       ],
       "retrieved_doc_ids_deep": [
-        "portable-blender-guide",
-        "warranty-policy",
-        "address-change"
+        "portable-blender-guide"
       ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 1.0
+      "top_score": 0.0398,
+      "degraded": null
     },
     {
       "id": "q17",
       "category": "product",
       "query": "My blender won't turn on, what should I check?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 3.3986,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Portable blender guide",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "portable-blender-guide",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "portable-blender-guide",
-        "warranty-policy",
-        "subscription-billing",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5987,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q18",
       "category": "product",
       "query": "Is there a safety feature on the blender?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.6502,
-      "retrieved_titles": [
-        "Portable blender guide",
-        "Warranty policy",
-        "Subscription billing"
-      ],
-      "retrieved_doc_ids": [
-        "portable-blender-guide",
-        "warranty-policy",
-        "subscription-billing"
-      ],
-      "retrieved_doc_ids_deep": [
-        "portable-blender-guide",
-        "warranty-policy",
-        "subscription-billing",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6587,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q19",
@@ -681,28 +533,35 @@
       "ndcg_at_5": 0.0,
       "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.25,
-      "latency_s": 2.1135,
+      "answer_correctness_kw": 0.5,
+      "kw_context_chars": 410,
+      "latency_s": 2.602,
       "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Order modification"
+        "Accessibility",
+        "Account management",
+        "Address change"
       ],
       "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification"
+        "accessibility",
+        "account-management",
+        "address-change"
       ],
       "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
+        "accessibility",
+        "account-management",
         "address-change",
-        "gift-wrapping"
+        "b2b-wholesale",
+        "b2b-wholesale",
+        "gift-wrapping",
+        "gift-wrapping",
+        "order-modification",
+        "order-modification",
+        "order-modification"
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 0.076,
+      "degraded": null
     },
     {
       "id": "q20",
@@ -720,61 +579,47 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
-      "latency_s": 3.7197,
+      "kw_context_chars": 74,
+      "latency_s": 2.9123,
       "retrieved_titles": [
-        "Shipping policy",
-        "Address change"
+        "Shipping policy"
       ],
       "retrieved_doc_ids": [
-        "shipping-policy",
-        "address-change"
+        "shipping-policy"
       ],
       "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "address-change"
+        "shipping-policy"
       ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 3.0
+      "top_score": 0.2328,
+      "degraded": null
     },
     {
       "id": "q21",
       "category": "refund",
       "query": "I want a refund but my order hasn't arrived yet",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.1563,
-      "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy",
-        "order-modification",
-        "address-change",
-        "gift-wrapping"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.8156,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q22",
@@ -792,19 +637,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 2.1394,
-      "retrieved_titles": [
-        "Shipping policy"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.7242,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q23",
@@ -822,13 +663,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 3.7999,
+      "kw_context_chars": 0,
+      "latency_s": 1.7652,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q24",
@@ -846,91 +689,67 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 2.1714,
+      "kw_context_chars": 0,
+      "latency_s": 1.7425,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q25",
       "category": "multi-intent",
       "query": "My headphones stopped working and I want a refund, the order arrived last week",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 4.2345,
-      "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Noise-cancelling headphones guide"
-      ],
-      "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "noise-cancelling-headphones-guide"
-      ],
-      "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "noise-cancelling-headphones-guide",
-        "warranty-policy",
-        "order-modification",
-        "address-change",
-        "gift-wrapping"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.185,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q26",
       "category": "multi-intent",
       "query": "How long does shipping take and what is your refund policy?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.1249,
-      "retrieved_titles": [
-        "Returns policy",
-        "Shipping policy",
-        "Refund policy"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "shipping-policy",
-        "refund-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "shipping-policy",
-        "refund-policy",
-        "warranty-policy",
-        "order-modification"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.8447,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 3.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q27",
@@ -948,49 +767,41 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 3.7168,
+      "kw_context_chars": 0,
+      "latency_s": 2.6314,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q28",
       "category": "refund",
       "query": "Give me a refund",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.6336,
-      "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.9921,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q29",
@@ -1008,22 +819,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 3.5539,
-      "retrieved_titles": [
-        "Warranty policy",
-        "Portable blender guide"
-      ],
-      "retrieved_doc_ids": [
-        "warranty-policy",
-        "portable-blender-guide"
-      ],
-      "retrieved_doc_ids_deep": [
-        "warranty-policy",
-        "portable-blender-guide"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.8028,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 3.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q30",
@@ -1041,22 +845,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 3.4648,
-      "retrieved_titles": [
-        "Gift wrapping",
-        "Subscription billing"
-      ],
-      "retrieved_doc_ids": [
-        "gift-wrapping",
-        "subscription-billing"
-      ],
-      "retrieved_doc_ids_deep": [
-        "gift-wrapping",
-        "subscription-billing"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.7602,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q31",
@@ -1073,8 +870,9 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.4026,
+      "answer_correctness_kw": 0.25,
+      "kw_context_chars": 163,
+      "latency_s": 1.6936,
       "retrieved_titles": [
         "Returns policy"
       ],
@@ -1086,48 +884,65 @@
       ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 0.276,
+      "degraded": null
     },
     {
       "id": "q32",
       "category": "returns",
       "query": "What is the difference between a return and a refund?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.1179,
-      "retrieved_titles": [
-        "Returns policy",
-        "Refund policy",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "refund-policy",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "refund-policy",
-        "warranty-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6999,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q33",
       "category": "returns",
       "query": "How long does it take to get my money back after returning an item?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5607,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "Returns policy",
+      "expected_doc_id": "returns-policy",
+      "top_score": 0.0,
+      "degraded": null
+    },
+    {
+      "id": "q34",
+      "category": "warranty",
+      "query": "Is my product under warranty?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
       "precision_at_3_doc": 0.3333,
@@ -1139,33 +954,105 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.2943,
+      "answer_correctness_kw": 0.6667,
+      "kw_context_chars": 109,
+      "latency_s": 1.7063,
       "retrieved_titles": [
-        "Returns policy",
-        "Gift wrapping",
-        "Shipping policy"
+        "Warranty policy"
       ],
       "retrieved_doc_ids": [
-        "returns-policy",
-        "gift-wrapping",
-        "shipping-policy"
+        "warranty-policy"
       ],
       "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "gift-wrapping",
-        "shipping-policy",
-        "account-management",
-        "subscription-billing"
+        "warranty-policy"
       ],
-      "expected_title": "Returns policy",
-      "expected_doc_id": "returns-policy",
-      "top_score": 3.0
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "warranty-policy",
+      "top_score": 0.0297,
+      "degraded": null
     },
     {
-      "id": "q34",
+      "id": "q35",
       "category": "warranty",
-      "query": "Is my product under warranty?",
+      "query": "My blender motor stopped working after 14 months, is that covered?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.8801,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "warranty-policy",
+      "top_score": 0.0,
+      "degraded": null
+    },
+    {
+      "id": "q36",
+      "category": "warranty",
+      "query": "Does warranty cover accidental damage?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7351,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "Warranty policy",
+      "expected_doc_id": "warranty-policy",
+      "top_score": 0.0,
+      "degraded": null
+    },
+    {
+      "id": "q37",
+      "category": "payment",
+      "query": "What payment methods do you accept?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5529,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "Payment methods",
+      "expected_doc_id": "payment-methods",
+      "top_score": 0.0,
+      "degraded": null
+    },
+    {
+      "id": "q38",
+      "category": "payment",
+      "query": "Why did my payment fail?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
       "precision_at_3_doc": 0.3333,
@@ -1177,159 +1064,25 @@
       "ndcg_at_5": 0.6309,
       "mrr": 0.5,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2341,
+      "answer_correctness_kw": 0.75,
+      "kw_context_chars": 390,
+      "latency_s": 1.6134,
       "retrieved_titles": [
-        "Returns policy",
-        "Warranty policy"
+        "Subscription billing",
+        "Payment methods"
       ],
       "retrieved_doc_ids": [
-        "returns-policy",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "warranty-policy"
-      ],
-      "expected_title": "Warranty policy",
-      "expected_doc_id": "warranty-policy",
-      "top_score": 1.0
-    },
-    {
-      "id": "q35",
-      "category": "warranty",
-      "query": "My blender motor stopped working after 14 months, is that covered?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.6896,
-      "retrieved_titles": [
-        "Warranty policy",
-        "Portable blender guide",
-        "Subscription billing"
-      ],
-      "retrieved_doc_ids": [
-        "warranty-policy",
-        "portable-blender-guide",
-        "subscription-billing"
-      ],
-      "retrieved_doc_ids_deep": [
-        "warranty-policy",
-        "portable-blender-guide",
         "subscription-billing",
-        "shipping-policy",
-        "returns-policy",
-        "account-management",
-        "gift-wrapping"
-      ],
-      "expected_title": "Warranty policy",
-      "expected_doc_id": "warranty-policy",
-      "top_score": 3.0
-    },
-    {
-      "id": "q36",
-      "category": "warranty",
-      "query": "Does warranty cover accidental damage?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 3.5926,
-      "retrieved_titles": [
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "warranty-policy"
+        "payment-methods"
       ],
       "retrieved_doc_ids_deep": [
-        "warranty-policy"
-      ],
-      "expected_title": "Warranty policy",
-      "expected_doc_id": "warranty-policy",
-      "top_score": 3.0
-    },
-    {
-      "id": "q37",
-      "category": "payment",
-      "query": "What payment methods do you accept?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2427,
-      "retrieved_titles": [
-        "Payment methods",
-        "B2B and wholesale orders"
-      ],
-      "retrieved_doc_ids": [
-        "payment-methods",
-        "b2b-wholesale"
-      ],
-      "retrieved_doc_ids_deep": [
-        "payment-methods",
-        "b2b-wholesale"
+        "subscription-billing",
+        "payment-methods"
       ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 3.0
-    },
-    {
-      "id": "q38",
-      "category": "payment",
-      "query": "Why did my payment fail?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 0.5,
-      "latency_s": 4.4092,
-      "retrieved_titles": [
-        "Payment methods",
-        "B2B and wholesale orders"
-      ],
-      "retrieved_doc_ids": [
-        "payment-methods",
-        "b2b-wholesale"
-      ],
-      "retrieved_doc_ids_deep": [
-        "payment-methods",
-        "b2b-wholesale"
-      ],
-      "expected_title": "Payment methods",
-      "expected_doc_id": "payment-methods",
-      "top_score": 1.0
+      "top_score": 0.2053,
+      "degraded": null
     },
     {
       "id": "q39",
@@ -1346,8 +1099,9 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.0,
-      "latency_s": 2.2359,
+      "answer_correctness_kw": 1.0,
+      "kw_context_chars": 50,
+      "latency_s": 1.9272,
       "retrieved_titles": [
         "Payment methods"
       ],
@@ -1359,7 +1113,8 @@
       ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 1.0
+      "top_score": 0.0952,
+      "degraded": null
     },
     {
       "id": "q40",
@@ -1376,23 +1131,22 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 4.4074,
+      "answer_correctness_kw": 1.0,
+      "kw_context_chars": 142,
+      "latency_s": 2.287,
       "retrieved_titles": [
-        "Account management",
-        "Smart home hub guide"
+        "Account management"
       ],
       "retrieved_doc_ids": [
-        "account-management",
-        "smart-home-hub-guide"
+        "account-management"
       ],
       "retrieved_doc_ids_deep": [
-        "account-management",
-        "smart-home-hub-guide"
+        "account-management"
       ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 1.0
+      "top_score": 0.2565,
+      "degraded": null
     },
     {
       "id": "q41",
@@ -1409,149 +1163,79 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.2814,
+      "answer_correctness_kw": 1.0,
+      "kw_context_chars": 225,
+      "latency_s": 2.9022,
       "retrieved_titles": [
-        "Account management",
-        "Subscription billing"
+        "Account management"
       ],
       "retrieved_doc_ids": [
-        "account-management",
-        "subscription-billing"
+        "account-management"
       ],
       "retrieved_doc_ids_deep": [
-        "account-management",
-        "subscription-billing"
+        "account-management"
       ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 1.0
+      "top_score": 0.3324,
+      "degraded": null
     },
     {
       "id": "q42",
       "category": "order",
       "query": "Can I change my order after placing it?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.6667,
-      "latency_s": 2.3172,
-      "retrieved_titles": [
-        "Returns policy",
-        "Order modification",
-        "Address change"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "order-modification",
-        "address-change"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "order-modification",
-        "address-change",
-        "gift-wrapping",
-        "shipping-policy",
-        "refund-policy",
-        "account-management",
-        "subscription-billing"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6791,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q43",
       "category": "order",
       "query": "I want to cancel my order",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.5,
-      "mrr": 0.3333,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2819,
-      "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
-        "address-change",
-        "gift-wrapping",
-        "subscription-billing"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7653,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q44",
       "category": "order",
       "query": "Can I change the delivery address on my order?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.1141,
-      "retrieved_titles": [
-        "Order modification",
-        "Address change",
-        "Refund policy"
-      ],
-      "retrieved_doc_ids": [
-        "order-modification",
-        "address-change",
-        "refund-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "order-modification",
-        "address-change",
-        "refund-policy",
-        "returns-policy",
-        "shipping-policy",
-        "gift-wrapping",
-        "subscription-billing",
-        "accessibility"
-      ],
-      "expected_title": "Address change",
-      "expected_doc_id": "address-change",
-      "top_score": 4.0
-    },
-    {
-      "id": "q45",
-      "category": "order",
-      "query": "My package was returned because the address was wrong. What happens now?",
       "precision_at_3": 0.3333,
       "recall_at_3": 1.0,
       "precision_at_3_doc": 0.3333,
@@ -1564,26 +1248,50 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 2.2397,
+      "kw_context_chars": 357,
+      "latency_s": 1.9293,
       "retrieved_titles": [
         "Address change",
-        "Shipping policy",
-        "Payment methods"
+        "Order modification"
       ],
       "retrieved_doc_ids": [
         "address-change",
-        "shipping-policy",
-        "payment-methods"
+        "order-modification"
       ],
       "retrieved_doc_ids_deep": [
         "address-change",
-        "shipping-policy",
-        "payment-methods",
         "order-modification"
       ],
       "expected_title": "Address change",
       "expected_doc_id": "address-change",
-      "top_score": 3.0
+      "top_score": 0.7517,
+      "degraded": null
+    },
+    {
+      "id": "q45",
+      "category": "order",
+      "query": "My package was returned because the address was wrong. What happens now?",
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.6539,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "Address change",
+      "expected_doc_id": "address-change",
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q46",
@@ -1600,69 +1308,48 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2588,
+      "answer_correctness_kw": 0.3333,
+      "kw_context_chars": 174,
+      "latency_s": 1.7454,
       "retrieved_titles": [
-        "Gift wrapping",
-        "Refund policy",
-        "Returns policy"
+        "Gift wrapping"
       ],
       "retrieved_doc_ids": [
-        "gift-wrapping",
-        "refund-policy",
-        "returns-policy"
+        "gift-wrapping"
       ],
       "retrieved_doc_ids_deep": [
-        "gift-wrapping",
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
-        "address-change"
+        "gift-wrapping"
       ],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 3.0
+      "top_score": 0.3609,
+      "degraded": null
     },
     {
       "id": "q47",
       "category": "policy",
       "query": "Will the price tag be included in a gift order?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2558,
-      "retrieved_titles": [
-        "Gift wrapping",
-        "Address change",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "gift-wrapping",
-        "address-change",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "gift-wrapping",
-        "address-change",
-        "order-modification",
-        "refund-policy",
-        "returns-policy",
-        "warranty-policy",
-        "subscription-billing",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 123.9057,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 4.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q48",
@@ -1679,8 +1366,9 @@
       "ndcg_at_5": 1.0,
       "mrr": 1.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.3992,
+      "answer_correctness_kw": 1.0,
+      "kw_context_chars": 178,
+      "latency_s": 1.7957,
       "retrieved_titles": [
         "Subscription billing"
       ],
@@ -1692,40 +1380,34 @@
       ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 2.0
+      "top_score": 0.2569,
+      "degraded": null
     },
     {
       "id": "q49",
       "category": "subscription",
       "query": "What discount do I get on a subscription?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.6301,
-      "retrieved_titles": [
-        "Subscription billing",
-        "Accessibility"
-      ],
-      "retrieved_doc_ids": [
-        "subscription-billing",
-        "accessibility"
-      ],
-      "retrieved_doc_ids_deep": [
-        "subscription-billing",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.7073,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 3.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q50",
@@ -1737,71 +1419,26 @@
       "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
       "hit_rate_at_3": 0.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.4307,
-      "mrr": 0.25,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.3886,
-      "retrieved_titles": [
-        "Shipping policy",
-        "Payment methods",
-        "Address change"
-      ],
-      "retrieved_doc_ids": [
-        "shipping-policy",
-        "payment-methods",
-        "address-change"
-      ],
-      "retrieved_doc_ids_deep": [
-        "shipping-policy",
-        "payment-methods",
-        "address-change",
-        "subscription-billing",
-        "b2b-wholesale"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.8386,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q51",
       "category": "b2b",
       "query": "Do you offer bulk discounts for businesses?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
-      "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 3.4396,
-      "retrieved_titles": [
-        "Subscription billing",
-        "B2B and wholesale orders"
-      ],
-      "retrieved_doc_ids": [
-        "subscription-billing",
-        "b2b-wholesale"
-      ],
-      "retrieved_doc_ids_deep": [
-        "subscription-billing",
-        "b2b-wholesale"
-      ],
-      "expected_title": "B2B and wholesale orders",
-      "expected_doc_id": "b2b-wholesale",
-      "top_score": 1.0
-    },
-    {
-      "id": "q52",
-      "category": "b2b",
-      "query": "How do I place a wholesale order?",
       "precision_at_3": 0.0,
       "recall_at_3": 0.0,
       "precision_at_3_doc": 0.0,
@@ -1809,284 +1446,234 @@
       "hit_rate_at_1": 0.0,
       "hit_rate_at_3": 0.0,
       "hit_rate_at_5": 0.0,
-      "hit_rate_at_10": 1.0,
+      "hit_rate_at_10": 0.0,
       "ndcg_at_5": 0.0,
-      "mrr": 0.1667,
+      "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.3304,
+      "kw_context_chars": 0,
+      "latency_s": 1.5439,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
+      "expected_title": "B2B and wholesale orders",
+      "expected_doc_id": "b2b-wholesale",
+      "top_score": 0.0,
+      "degraded": null
+    },
+    {
+      "id": "q52",
+      "category": "b2b",
+      "query": "How do I place a wholesale order?",
+      "precision_at_3": 0.3333,
+      "recall_at_3": 1.0,
+      "precision_at_3_doc": 0.3333,
+      "recall_at_3_doc": 1.0,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_3": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "ndcg_at_5": 1.0,
+      "mrr": 1.0,
+      "context_relevance": 0.0,
+      "answer_correctness_kw": 1.0,
+      "kw_context_chars": 226,
+      "latency_s": 1.8844,
       "retrieved_titles": [
-        "Refund policy",
-        "Returns policy",
-        "Order modification"
+        "B2B and wholesale orders"
       ],
       "retrieved_doc_ids": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification"
+        "b2b-wholesale"
       ],
       "retrieved_doc_ids_deep": [
-        "refund-policy",
-        "returns-policy",
-        "order-modification",
-        "address-change",
-        "gift-wrapping",
         "b2b-wholesale"
       ],
       "expected_title": "B2B and wholesale orders",
       "expected_doc_id": "b2b-wholesale",
-      "top_score": 1.0
+      "top_score": 0.2669,
+      "degraded": null
     },
     {
       "id": "q53",
       "category": "accessibility",
       "query": "Is your website accessible for visually impaired users?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.5,
-      "mrr": 0.3333,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.3333,
-      "latency_s": 2.6084,
-      "retrieved_titles": [
-        "Returns policy",
-        "Order modification",
-        "Accessibility"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy",
-        "order-modification",
-        "accessibility"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy",
-        "order-modification",
-        "accessibility"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5311,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q54",
       "category": "accessibility",
       "query": "Can I get a large-print manual for my product?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 3.6895,
-      "retrieved_titles": [
-        "Accessibility",
-        "Returns policy"
-      ],
-      "retrieved_doc_ids": [
-        "accessibility",
-        "returns-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "accessibility",
-        "returns-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.5531,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q55",
       "category": "product",
       "query": "How do I set up the smart home hub?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.5,
-      "latency_s": 2.5752,
-      "retrieved_titles": [
-        "Smart home hub guide",
-        "Subscription billing"
-      ],
-      "retrieved_doc_ids": [
-        "smart-home-hub-guide",
-        "subscription-billing"
-      ],
-      "retrieved_doc_ids_deep": [
-        "smart-home-hub-guide",
-        "subscription-billing"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.1558,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 4.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q56",
       "category": "product",
       "query": "The smart hub has a red light, what does that mean?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.2972,
-      "retrieved_titles": [
-        "Smart home hub guide",
-        "Portable blender guide"
-      ],
-      "retrieved_doc_ids": [
-        "smart-home-hub-guide",
-        "portable-blender-guide"
-      ],
-      "retrieved_doc_ids_deep": [
-        "smart-home-hub-guide",
-        "portable-blender-guide"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 3.4429,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 3.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q57",
       "category": "product",
       "query": "Does the hub work with Alexa?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
-      "hit_rate_at_1": 1.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 1.0,
-      "mrr": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
+      "hit_rate_at_1": 0.0,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 1.0,
-      "latency_s": 2.29,
-      "retrieved_titles": [
-        "Smart home hub guide",
-        "Returns policy",
-        "Order modification"
-      ],
-      "retrieved_doc_ids": [
-        "smart-home-hub-guide",
-        "returns-policy",
-        "order-modification"
-      ],
-      "retrieved_doc_ids_deep": [
-        "smart-home-hub-guide",
-        "returns-policy",
-        "order-modification"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6909,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 3.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q58",
       "category": "multi-intent",
       "query": "I want to cancel my subscription and get a refund for this month",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.6309,
-      "mrr": 0.5,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.2342,
-      "retrieved_titles": [
-        "Warranty policy",
-        "Subscription billing",
-        "Refund policy"
-      ],
-      "retrieved_doc_ids": [
-        "warranty-policy",
-        "subscription-billing",
-        "refund-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "warranty-policy",
-        "subscription-billing",
-        "refund-policy",
-        "returns-policy"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 2.6184,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q59",
       "category": "multi-intent",
       "query": "Can I return the hub and also update my address for future orders?",
-      "precision_at_3": 0.3333,
-      "recall_at_3": 1.0,
-      "precision_at_3_doc": 0.3333,
-      "recall_at_3_doc": 1.0,
+      "precision_at_3": 0.0,
+      "recall_at_3": 0.0,
+      "precision_at_3_doc": 0.0,
+      "recall_at_3_doc": 0.0,
       "hit_rate_at_1": 0.0,
-      "hit_rate_at_3": 1.0,
-      "hit_rate_at_5": 1.0,
-      "hit_rate_at_10": 1.0,
-      "ndcg_at_5": 0.5,
-      "mrr": 0.3333,
+      "hit_rate_at_3": 0.0,
+      "hit_rate_at_5": 0.0,
+      "hit_rate_at_10": 0.0,
+      "ndcg_at_5": 0.0,
+      "mrr": 0.0,
       "context_relevance": 0.0,
-      "answer_correctness_kw": 0.75,
-      "latency_s": 2.3165,
-      "retrieved_titles": [
-        "Order modification",
-        "Shipping policy",
-        "Returns policy"
-      ],
-      "retrieved_doc_ids": [
-        "order-modification",
-        "shipping-policy",
-        "returns-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "order-modification",
-        "shipping-policy",
-        "returns-policy",
-        "payment-methods",
-        "account-management",
-        "address-change",
-        "gift-wrapping",
-        "b2b-wholesale",
-        "accessibility",
-        "smart-home-hub-guide"
-      ],
+      "answer_correctness_kw": 0.0,
+      "kw_context_chars": 0,
+      "latency_s": 1.6179,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 2.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q60",
@@ -2104,19 +1691,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 2.1696,
-      "retrieved_titles": [
-        "Returns policy"
-      ],
-      "retrieved_doc_ids": [
-        "returns-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "returns-policy"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.6752,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q61",
@@ -2134,22 +1717,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 2.0909,
-      "retrieved_titles": [
-        "Portable blender guide",
-        "Warranty policy"
-      ],
-      "retrieved_doc_ids": [
-        "portable-blender-guide",
-        "warranty-policy"
-      ],
-      "retrieved_doc_ids_deep": [
-        "portable-blender-guide",
-        "warranty-policy"
-      ],
+      "kw_context_chars": 0,
+      "latency_s": 1.8214,
+      "retrieved_titles": [],
+      "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 1.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q62",
@@ -2167,13 +1743,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 2.3364,
+      "kw_context_chars": 0,
+      "latency_s": 1.8513,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
       "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     }
   ]
 }
