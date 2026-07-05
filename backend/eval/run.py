@@ -4,7 +4,7 @@ Usage:
     python -m backend.eval.run --mode hybrid
     python -m backend.eval.run --all-modes
     python -m backend.eval.run --chunking-audit   # 5b: compare fixed vs semantic chunking
-    python -m backend.eval.run --all-modes --llm-judge  # 6b: LLM-judge correctness
+    python -m backend.eval.run --all-modes --llm-judge  # 6b/6i: LLM-judged context relevance
     python -m backend.eval.run --agent-eval        # 6c: agent fixture eval
     python -m backend.eval.run --all-modes --benchmark  # 6a: commit benchmark.md
 """
@@ -254,7 +254,13 @@ def evaluate_faithfulness(context: str, answer: str, api_key: str) -> float:
 
 
 # ---------------------------------------------------------------------------
-# 6b: LLM-judge answer correctness
+# 6b/6i: LLM-judged context relevance
+#
+# This scores the top *retrieved chunk* against the query, not a generated
+# agent answer — the retrieval eval loop never calls the agent, so there is
+# no answer to judge. Originally labeled "answer correctness"; renamed after
+# an audit found the label overclaimed what was measured (see
+# plans/decisions/eval-audit.md, finding 6i).
 # ---------------------------------------------------------------------------
 
 # Approximate Claude Haiku input/output token costs ($/million tokens)
@@ -262,16 +268,16 @@ CLAUDE_INPUT_PRICE_PER_M = 0.80
 CLAUDE_OUTPUT_PRICE_PER_M = 4.00
 
 
-def _llm_judge_correctness(
+def _llm_judge_context_relevance(
     query: str,
     context: str,
-    answer: str,
+    top_chunk: str,
     api_key: str,
 ) -> tuple[float, float]:
-    """Score answer factual accuracy using Claude as a judge.
+    """Score how relevant the top retrieved chunk is to the query, using Claude as a judge.
 
     Returns (score 0.0–1.0, estimated_cost_usd).
-    Score interpretation: 0 = wrong/hallucinated, 0.5 = partially correct, 1 = fully correct.
+    Score interpretation: 0 = irrelevant, 0.5 = partially relevant, 1 = fully relevant.
     """
     try:
         import anthropic
@@ -279,12 +285,12 @@ def _llm_judge_correctness(
         prompt = (
             f"Query: {query}\n\n"
             f"Retrieved context:\n{context}\n\n"
-            f"Answer to evaluate:\n{answer}\n\n"
-            "Score the factual accuracy of the answer given the query and context. "
+            f"Top retrieved chunk to evaluate:\n{top_chunk}\n\n"
+            "Score how relevant and useful the top retrieved chunk is for answering the query. "
             'Respond with ONLY a JSON object: {"score": <float 0.0-1.0>, "reason": "<one sentence>"}. '
-            "1.0 = fully correct and grounded in context. "
-            "0.5 = partially correct or missing key facts. "
-            "0.0 = wrong, hallucinated, or contradicts the context."
+            "1.0 = directly and fully answers the query. "
+            "0.5 = partially relevant or missing key facts. "
+            "0.0 = irrelevant or contradicts the query's intent."
         )
 
         client = anthropic.Anthropic(api_key=api_key)
@@ -332,7 +338,6 @@ def evaluate_mode(
     voyage_api_key: str | None,
     anthropic_api_key: str | None = None,
     use_llm_judge: bool = False,
-    faithfulness: bool = False,
 ) -> dict[str, Any]:
     from backend.app.data import KNOWLEDGE_BASE, ORDERS
     from backend.app.repository import InMemoryRepository, PostgresRepository
@@ -475,18 +480,13 @@ def evaluate_mode(
 
         if use_llm_judge and anthropic_api_key and retrieved:
             context = "\n".join(r.get("content", "") for r in retrieved[:3])
-            answer = retrieved[0].get("content", "") if retrieved else ""
-            judge_score, judge_cost = _llm_judge_correctness(
-                q["query"], context, answer, anthropic_api_key
+            top_chunk = retrieved[0].get("content", "") if retrieved else ""
+            judge_score, judge_cost = _llm_judge_context_relevance(
+                q["query"], context, top_chunk, anthropic_api_key
             )
-            row["answer_correctness_llm"] = judge_score
+            row["context_relevance_llm"] = judge_score
             row["judge_cost_usd"] = judge_cost
             total_judge_cost += judge_cost
-
-        if faithfulness and anthropic_api_key and retrieved:
-            context = "\n".join(r.get("content", "") for r in retrieved[:3])
-            answer = retrieved[0].get("content", "") if retrieved else ""
-            row["faithfulness"] = evaluate_faithfulness(context, answer, anthropic_api_key)
 
         per_query.append(row)
 
@@ -529,9 +529,7 @@ def evaluate_mode(
         "per_query": per_query,
     }
     if use_llm_judge and anthropic_api_key:
-        result["avg_answer_correctness_llm"] = _avg("answer_correctness_llm")
-    if faithfulness and anthropic_api_key:
-        result["avg_faithfulness"] = _avg("faithfulness")
+        result["avg_context_relevance_llm"] = _avg("context_relevance_llm")
     return result
 
 
@@ -648,7 +646,7 @@ def _count_chunks(database_url: str) -> int:
 
 
 def _print_comparison_table(mode_results: list[dict[str, Any]]) -> None:
-    has_llm = any("avg_answer_correctness_llm" in r for r in mode_results)
+    has_llm = any("avg_context_relevance_llm" in r for r in mode_results)
     # Ranking metrics table
     header1 = f"{'Mode':<28} {'P@3(d)':>7} {'R@3(d)':>7} {'H@1':>6} {'H@3':>6} {'H@5':>6} {'H@10':>7} {'NDCG@5':>8} {'MRR':>6}"
     print("\n" + header1)
@@ -668,7 +666,7 @@ def _print_comparison_table(mode_results: list[dict[str, Any]]) -> None:
     # Quality + latency + cost table
     header2 = f"\n{'Mode':<28} {'KwCorr':>8}"
     if has_llm:
-        header2 += f" {'LLMCorr':>8}"
+        header2 += f" {'CtxRelLLM':>9}"
     header2 += f" {'P50':>8} {'P95':>8} {'Cost$':>8}"
     print(header2)
     print("-" * len(header2.lstrip("\n")))
@@ -676,7 +674,7 @@ def _print_comparison_table(mode_results: list[dict[str, Any]]) -> None:
         cost = r.get("estimated_cost", {}).get("total_cost_usd", 0.0)
         line = f"{r['mode']:<28} {r.get('avg_answer_correctness_kw', 0.0):>8.3f}"
         if has_llm:
-            line += f" {r.get('avg_answer_correctness_llm', 0.0):>8.3f}"
+            line += f" {r.get('avg_context_relevance_llm', 0.0):>9.3f}"
         line += f" {r['p50_latency_s']:>7.4f}s {r['p95_latency_s']:>7.4f}s {cost:>8.6f}"
         print(line)
 
@@ -854,7 +852,7 @@ def _generate_benchmark_md(
     history_path: Path = BENCHMARK_HISTORY_PATH,
 ) -> None:
     """Write a committed markdown comparison table from eval results."""
-    has_llm = any("avg_answer_correctness_llm" in r for r in mode_results)
+    has_llm = any("avg_context_relevance_llm" in r for r in mode_results)
     backends = {r.get("backend", "unknown") for r in mode_results}
     backend_label = "Postgres (Supabase)" if "postgres" in backends else "In-memory"
     lines = [
@@ -905,7 +903,7 @@ def _generate_benchmark_md(
     lines += ["", "## Quality, Latency & Cost", ""]
     qual_cols = ["Mode", "CtxRel", "KwCorr", "KwCorr chars"]
     if has_llm:
-        qual_cols.append("LLMCorr")
+        qual_cols.append("CtxRelLLM")
     qual_cols += ["P50 (s)", "P95 (s)", "Cost ($)"]
     lines.append("| " + " | ".join(qual_cols) + " |")
     lines.append("| " + " | ".join(["---"] * len(qual_cols)) + " |")
@@ -918,7 +916,7 @@ def _generate_benchmark_md(
             f"{r.get('avg_kw_context_chars', 0.0):.0f}",
         ]
         if has_llm:
-            row.append(f"{r.get('avg_answer_correctness_llm', 0.0):.3f}")
+            row.append(f"{r.get('avg_context_relevance_llm', 0.0):.3f}")
         row += [
             f"{r['p50_latency_s']:.4f}",
             f"{r['p95_latency_s']:.4f}",
@@ -955,7 +953,7 @@ def _generate_benchmark_md(
         "- **CtxRel** — average cosine similarity between query and retrieved chunk embeddings",
         "- **KwCorr** — keyword-overlap answer correctness: fraction of expected keywords present in the concatenated top-3 retrieved *content*. **Not valid for cross-mode comparison** — modes that return whole documents (e.g. `keyword`) search far more text per query than modes that return short chunks, so a higher score there reflects text volume, not better retrieval. Only compare KwCorr across runs of the *same* mode over time. See `KwCorr chars`.",
         "- **KwCorr chars** — average character count of the text KwCorr was computed over, per mode. Included so a KwCorr gap is legible as a text-volume artifact rather than a quality difference.",
-        "- **LLMCorr** — Claude-as-judge factual accuracy score (0–1); `null` if not run with `--llm-judge`",
+        "- **CtxRelLLM** — Claude-as-judge relevance score (0–1) for the top retrieved chunk vs. the query; `null` if not run with `--llm-judge`. Judges retrieval, not a generated answer.",
         "- **P50/P95** — median and 95th-percentile end-to-end retrieval latency",
         "- **Cost** — estimated Voyage + Claude API cost for the full eval run",
         "",
@@ -1229,7 +1227,7 @@ def main() -> None:
         "--chunking-audit", action="store_true", help="5b: fixed vs semantic chunking"
     )
     parser.add_argument(
-        "--llm-judge", action="store_true", help="6b: score answer correctness with Claude"
+        "--llm-judge", action="store_true", help="6b/6i: score context relevance with Claude"
     )
     parser.add_argument(
         "--benchmark", action="store_true", help="6a: write docs/benchmark.md after run"
@@ -1237,9 +1235,6 @@ def main() -> None:
     parser.add_argument("--agent-eval", action="store_true", help="6c: run agent fixture eval")
     parser.add_argument(
         "--adversarial-eval", action="store_true", help="9e: run adversarial query eval"
-    )
-    parser.add_argument(
-        "--faithfulness", action="store_true", help="score answer faithfulness via Claude Haiku"
     )
     parser.add_argument("--knowledge-dir", default="backend/knowledge")
     parser.add_argument(
@@ -1346,14 +1341,13 @@ def main() -> None:
             voyage_api_key,
             anthropic_api_key=anthropic_api_key,
             use_llm_judge=args.llm_judge,
-            faithfulness=args.faithfulness,
         )
         all_results.append(result)
         out_path = RESULTS_DIR / f"{mode.replace('+', '_')}.json"
         out_path.write_text(json.dumps(result, indent=2))
         llm_str = (
-            f"  LLMCorr={result['avg_answer_correctness_llm']:.3f}"
-            if "avg_answer_correctness_llm" in result
+            f"  CtxRelLLM={result['avg_context_relevance_llm']:.3f}"
+            if "avg_context_relevance_llm" in result
             else ""
         )
         print(

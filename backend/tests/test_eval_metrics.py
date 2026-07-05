@@ -5,7 +5,7 @@ Covers six areas — all without external deps (no DB, no Voyage, no Claude API)
                          _answer_correctness, _estimate_cost
   2. DocIdMetrics      — _precision_at_k_doc, _recall_at_k_doc: document-id-based
                          versions that fix the structural bias against chunked modes
-  3. LlmJudge         — _llm_judge_correctness: valid response, score clamping,
+  3. LlmJudge         — _llm_judge_context_relevance: valid response, score clamping,
                          malformed JSON, API exception
   4. BenchmarkMd      — _generate_benchmark_md: file structure with and without
                          LLM column
@@ -303,11 +303,11 @@ class EstimateCostTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
-class LlmJudgeCorrectnessTests(unittest.TestCase):
+class LlmJudgeContextRelevanceTests(unittest.TestCase):
     def setUp(self) -> None:
-        from backend.eval.run import _llm_judge_correctness
+        from backend.eval.run import _llm_judge_context_relevance
 
-        self._fn = _llm_judge_correctness
+        self._fn = _llm_judge_context_relevance
 
     def _mock_response(self, text: str) -> MagicMock:
         block = MagicMock()
@@ -384,7 +384,7 @@ def _make_mode_result(mode: str, llm_score: float | None = None) -> dict:
         "n_answerable": 25,
     }
     if llm_score is not None:
-        r["avg_answer_correctness_llm"] = llm_score
+        r["avg_context_relevance_llm"] = llm_score
     return r
 
 
@@ -411,13 +411,13 @@ class BenchmarkMdTests(unittest.TestCase):
     def test_contains_header_columns_without_llm(self) -> None:
         self._fn([_make_mode_result("keyword")], self._out)
         lines = self._out.read_text().splitlines()
-        # LLMCorr column should not appear in any table header row (| ... | lines)
+        # CtxRelLLM column should not appear in any table header row (| ... | lines)
         table_header_lines = [line for line in lines if line.startswith("| Mode")]
         self.assertTrue(table_header_lines, "expected at least one table header row")
         self.assertIn("P@3", self._out.read_text())
         self.assertIn("KwCorr", self._out.read_text())
         for header in table_header_lines:
-            self.assertNotIn("LLMCorr", header)
+            self.assertNotIn("CtxRelLLM", header)
 
     def test_contains_doc_id_columns(self) -> None:
         self._fn([_make_mode_result("hybrid")], self._out)
@@ -442,7 +442,7 @@ class BenchmarkMdTests(unittest.TestCase):
     def test_contains_llm_column_when_present(self) -> None:
         self._fn([_make_mode_result("hybrid", llm_score=0.88)], self._out)
         content = self._out.read_text()
-        self.assertIn("LLMCorr", content)
+        self.assertIn("CtxRelLLM", content)
 
     def test_multiple_modes_all_appear(self) -> None:
         modes = ["keyword", "fulltext", "hybrid"]

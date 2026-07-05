@@ -56,7 +56,7 @@ What to look at:
 | Welcome-back banner for returning customers | ✅ Email-gated, 90-day TTL on memory facts |
 | Eval: doc-id P@3/R@3 (bias-corrected) | ✅ Fixes structural bias against chunked retrieval modes |
 | Eval: hit@k, NDCG@5, MRR | ✅ Full ranking metric suite |
-| Eval: LLM-as-judge answer correctness | ✅ `--llm-judge` flag |
+| Eval: LLM-judged context relevance | ✅ `--llm-judge` flag; scores the top retrieved chunk against the query, not a generated answer |
 | Eval: adversarial query set (40 queries) | ✅ Injection, ambiguous, multi-intent, OOS — all CI-gated ≥ 0.80 |
 | Eval: synthetic query generation | ✅ Claude generates 5 paraphrase + 2 adversarial per doc; dedup by embedding |
 | Eval dashboard | ✅ `GET /eval` + `/eval/memory` |

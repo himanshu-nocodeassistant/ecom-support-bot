@@ -35,7 +35,7 @@ python -m backend.eval.run --mode hybrid
 # All modes side-by-side
 python -m backend.eval.run --all-modes
 
-# With LLM-as-judge (faithfulness, context relevance, answer relevance)
+# With LLM-as-judge (context relevance, scored on the top retrieved chunk)
 python -m backend.eval.run --all-modes --llm-judge
 
 # Agent fixture eval
@@ -71,13 +71,14 @@ python -m backend.eval.check_regression --save-baseline
 
 `avg_answer_correctness_kw` — fraction of expected keywords found in the concatenated top-3 retrieved content. **Not valid for cross-mode comparison.** Modes that return whole documents (e.g. `keyword`) search 5–10x more text per query than modes returning ~220-char chunks, so a higher score reflects text volume, not retrieval quality. `benchmark.md` publishes `avg_kw_context_chars` alongside it so a KwCorr gap is legible as a volume artifact. Only compare KwCorr across runs of the *same* mode over time (e.g. regression tracking), never across modes.
 
-### Generation (LLM-as-judge)
+### Context relevance
 
 | Metric | Description |
 |---|---|
-| `avg_context_relevance` | Is the retrieved context relevant to the query? |
-| `avg_faithfulness` | Is the answer grounded in the retrieved context? |
-| `avg_answer_relevance` | Does the answer address the query? |
+| `avg_context_relevance` | Cosine similarity between query and retrieved chunk embeddings |
+| `avg_context_relevance_llm` | Claude-as-judge relevance score (0–1) for the top retrieved chunk vs. the query, via `--llm-judge` |
+
+Both metrics score retrieval quality, not a generated answer — the retrieval eval loop never calls the agent, so there is no answer to judge. An earlier version of `avg_context_relevance_llm` was named `avg_answer_correctness_llm` and implied it scored a generated answer; it was renamed after an audit found the label overclaimed what was measured (`plans/decisions/eval-audit.md`). A prior `avg_faithfulness` metric was removed for the same reason — it was fed the top retrieved chunk as both the "context" and the "answer" being checked, so it could only ever score its own consistency with itself. Faithfulness (is the *agent's actual reply* grounded in what it retrieved) is a property of generation, not retrieval, and belongs in the agent-fixture eval path if reintroduced.
 
 ### Agent
 
