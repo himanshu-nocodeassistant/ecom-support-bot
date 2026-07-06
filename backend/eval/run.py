@@ -224,39 +224,6 @@ def compute_context_relevance(query: str, chunk_text: str, api_key: str) -> floa
         return None
 
 
-def evaluate_faithfulness(context: str, answer: str, api_key: str) -> float:
-    """Ask Claude Haiku: is this answer faithfully grounded in the context?
-
-    Returns 0.0–1.0. 1.0 = fully grounded. 0.0 = contradicts or ignores context.
-    """
-    try:
-        import anthropic
-
-        prompt = (
-            f"Context:\n{context}\n\n"
-            f"Answer:\n{answer}\n\n"
-            "Score how faithfully the answer is grounded in the context above. "
-            'Return ONLY a JSON object: {"score": <float 0.0-1.0>}. '
-            "1.0 = fully grounded. 0.0 = completely unsupported or contradicts context."
-        )
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=64,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        text = response.content[0].text.strip()
-        # Handle markdown code fences e.g. ```json\n{...}\n```
-        import re as _re
-
-        m = _re.search(r"\{[^{}]*\}", text)
-        raw = m.group(0) if m else text
-        parsed = json.loads(raw)
-        return round(min(max(float(parsed.get("score", 0.0)), 0.0), 1.0), 4)
-    except Exception:
-        return 0.0
-
-
 # ---------------------------------------------------------------------------
 # 6b/6i: LLM-judged context relevance
 #

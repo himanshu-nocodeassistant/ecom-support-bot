@@ -1082,46 +1082,6 @@ class ComputeContextRelevanceTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Gap 5 — evaluate_faithfulness
-# ---------------------------------------------------------------------------
-
-
-@unittest.skipUnless(_anthropic_key(), "Requires ANTHROPIC_API_KEY")
-class FaithfulnessTests(unittest.TestCase):
-    """Gap 5: evaluate_faithfulness must score hallucinations low and grounded answers high."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls._key = _anthropic_key()
-
-    def test_hallucinated_answer_scores_below_half(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Refunds are eligible within 30 days of delivery."
-        hallucination = "You can get a refund any time within 90 days, no questions asked."
-        score = evaluate_faithfulness(context, hallucination, api_key=self._key)
-        self.assertLess(score, 0.5)
-
-    def test_grounded_answer_scores_above_threshold(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Refunds are eligible within 30 days of delivery."
-        grounded = "Refunds are available within 30 days of delivery."
-        score = evaluate_faithfulness(context, grounded, api_key=self._key)
-        # Grounded answers must score meaningfully higher than hallucinated ones (> 0.5)
-        self.assertGreater(score, 0.5)
-
-    def test_score_is_in_valid_range(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Standard delivery takes 3 to 7 business days."
-        answer = "Delivery takes 3 to 7 business days."
-        score = evaluate_faithfulness(context, answer, api_key=self._key)
-        self.assertGreaterEqual(score, 0.0)
-        self.assertLessEqual(score, 1.0)
-
-
-# ---------------------------------------------------------------------------
 # Gap 2 unit — evaluate_mode result has backend field
 # ---------------------------------------------------------------------------
 
