@@ -226,13 +226,13 @@ class ContextRelevanceTests(unittest.TestCase):
         score = self._fn(q_vec, [chunk], chunk_embs)
         self.assertAlmostEqual(score, 0.0)
 
-    def test_no_query_embedding_returns_zero(self) -> None:
+    def test_no_query_embedding_returns_none(self) -> None:
         chunk = {"content": "x", "score": 0.5}
-        self.assertAlmostEqual(self._fn(None, [chunk], {}), 0.0)
+        self.assertIsNone(self._fn(None, [chunk], {}))
 
-    def test_empty_results_returns_zero(self) -> None:
+    def test_empty_results_returns_none(self) -> None:
         v = self._unit_vec(4, 0)
-        self.assertAlmostEqual(self._fn(v, [], {}), 0.0)
+        self.assertIsNone(self._fn(v, [], {}))
 
     def test_missing_chunk_embedding_skipped(self) -> None:
         v = self._unit_vec(4, 0)
