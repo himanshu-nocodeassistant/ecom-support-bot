@@ -19,3 +19,10 @@ repos:
         language: fail
         entry: "__pycache__ files should not be committed"
         files: __pycache__/
+
+      - id: check-benchmark-history
+        name: Validate benchmark-history.jsonl fingerprints
+        language: system
+        entry: python3 -m backend.eval.check_benchmark_history
+        pass_filenames: false
+        files: ^docs/benchmark-history\.jsonl$

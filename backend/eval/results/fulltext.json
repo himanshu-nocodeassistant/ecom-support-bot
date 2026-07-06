@@ -13,8 +13,9 @@
   "avg_mrr": 0.2276,
   "avg_context_relevance": 0.0,
   "avg_answer_correctness_kw": 0.1862,
-  "p50_latency_s": 1.7603,
-  "p95_latency_s": 2.0703,
+  "avg_kw_context_chars": 46.2308,
+  "p50_latency_s": 1.7978,
+  "p95_latency_s": 2.9921,
   "estimated_cost": {
     "embed_cost_usd": 6.2e-05,
     "rerank_cost_usd": 0.0,
@@ -22,6 +23,7 @@
   },
   "n_queries": 62,
   "n_answerable": 52,
+  "n_degraded": 0,
   "per_query": [
     {
       "id": "q01",
@@ -39,16 +41,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6,
-      "latency_s": 1.7869,
+      "kw_context_chars": 55,
+      "latency_s": 3.0113,
       "retrieved_titles": [
         "Refund policy"
       ],
       "retrieved_doc_ids": [
         "refund-policy"
       ],
+      "retrieved_doc_ids_deep": [
+        "refund-policy"
+      ],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0991
+      "top_score": 0.0991,
+      "degraded": null
     },
     {
       "id": "q02",
@@ -66,12 +73,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.0666,
+      "kw_context_chars": 0,
+      "latency_s": 1.7329,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q03",
@@ -89,12 +99,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7966,
+      "kw_context_chars": 0,
+      "latency_s": 1.7238,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q04",
@@ -112,12 +125,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8713,
+      "kw_context_chars": 0,
+      "latency_s": 2.3116,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q05",
@@ -135,12 +151,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.9598,
+      "kw_context_chars": 0,
+      "latency_s": 2.0972,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q06",
@@ -158,12 +177,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8298,
+      "kw_context_chars": 0,
+      "latency_s": 2.513,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q07",
@@ -181,7 +203,8 @@
       "mrr": 0.3333,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 2.1569,
+      "kw_context_chars": 270,
+      "latency_s": 1.6473,
       "retrieved_titles": [
         "B2B and wholesale orders",
         "Gift wrapping",
@@ -192,9 +215,16 @@
         "gift-wrapping",
         "shipping-policy"
       ],
+      "retrieved_doc_ids_deep": [
+        "b2b-wholesale",
+        "gift-wrapping",
+        "shipping-policy",
+        "subscription-billing"
+      ],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.1349
+      "top_score": 0.1349,
+      "degraded": null
     },
     {
       "id": "q08",
@@ -212,12 +242,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7364,
+      "kw_context_chars": 0,
+      "latency_s": 1.5796,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q09",
@@ -235,12 +268,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7055,
+      "kw_context_chars": 0,
+      "latency_s": 1.6282,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q10",
@@ -258,12 +294,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.6519,
+      "kw_context_chars": 0,
+      "latency_s": 1.7978,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q11",
@@ -281,12 +320,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7239,
+      "kw_context_chars": 0,
+      "latency_s": 1.785,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q12",
@@ -304,12 +346,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7338,
+      "kw_context_chars": 0,
+      "latency_s": 2.8739,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q13",
@@ -327,12 +372,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7043,
+      "kw_context_chars": 0,
+      "latency_s": 2.4041,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q14",
@@ -350,12 +398,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7603,
+      "kw_context_chars": 0,
+      "latency_s": 2.344,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q15",
@@ -373,12 +424,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7009,
+      "kw_context_chars": 0,
+      "latency_s": 2.8681,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q16",
@@ -396,16 +450,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 1.6532,
+      "kw_context_chars": 65,
+      "latency_s": 1.6104,
       "retrieved_titles": [
         "Portable blender guide"
       ],
       "retrieved_doc_ids": [
         "portable-blender-guide"
       ],
+      "retrieved_doc_ids_deep": [
+        "portable-blender-guide"
+      ],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 0.0398
+      "top_score": 0.0398,
+      "degraded": null
     },
     {
       "id": "q17",
@@ -423,12 +482,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8008,
+      "kw_context_chars": 0,
+      "latency_s": 1.5987,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q18",
@@ -446,12 +508,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.4948,
+      "kw_context_chars": 0,
+      "latency_s": 1.6587,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Portable blender guide",
       "expected_doc_id": "portable-blender-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q19",
@@ -469,7 +534,8 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.5,
-      "latency_s": 1.8357,
+      "kw_context_chars": 410,
+      "latency_s": 2.602,
       "retrieved_titles": [
         "Accessibility",
         "Account management",
@@ -480,9 +546,22 @@
         "account-management",
         "address-change"
       ],
+      "retrieved_doc_ids_deep": [
+        "accessibility",
+        "account-management",
+        "address-change",
+        "b2b-wholesale",
+        "b2b-wholesale",
+        "gift-wrapping",
+        "gift-wrapping",
+        "order-modification",
+        "order-modification",
+        "order-modification"
+      ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.076
+      "top_score": 0.076,
+      "degraded": null
     },
     {
       "id": "q20",
@@ -500,16 +579,21 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
-      "latency_s": 1.6853,
+      "kw_context_chars": 74,
+      "latency_s": 2.9123,
       "retrieved_titles": [
         "Shipping policy"
       ],
       "retrieved_doc_ids": [
         "shipping-policy"
       ],
+      "retrieved_doc_ids_deep": [
+        "shipping-policy"
+      ],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.2328
+      "top_score": 0.2328,
+      "degraded": null
     },
     {
       "id": "q21",
@@ -527,12 +611,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7298,
+      "kw_context_chars": 0,
+      "latency_s": 1.8156,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q22",
@@ -550,12 +637,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7139,
+      "kw_context_chars": 0,
+      "latency_s": 1.7242,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q23",
@@ -573,12 +663,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7555,
+      "kw_context_chars": 0,
+      "latency_s": 1.7652,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q24",
@@ -596,12 +689,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7394,
+      "kw_context_chars": 0,
+      "latency_s": 1.7425,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q25",
@@ -619,12 +715,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7477,
+      "kw_context_chars": 0,
+      "latency_s": 2.185,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q26",
@@ -642,12 +741,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7671,
+      "kw_context_chars": 0,
+      "latency_s": 1.8447,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Shipping policy",
       "expected_doc_id": "shipping-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q27",
@@ -665,12 +767,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8024,
+      "kw_context_chars": 0,
+      "latency_s": 2.6314,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Noise-cancelling headphones guide",
       "expected_doc_id": "noise-cancelling-headphones-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q28",
@@ -688,12 +793,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8412,
+      "kw_context_chars": 0,
+      "latency_s": 2.9921,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Refund policy",
       "expected_doc_id": "refund-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q29",
@@ -711,12 +819,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.6841,
+      "kw_context_chars": 0,
+      "latency_s": 1.8028,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q30",
@@ -734,12 +845,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.9675,
+      "kw_context_chars": 0,
+      "latency_s": 1.7602,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q31",
@@ -757,16 +871,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.25,
-      "latency_s": 1.7762,
+      "kw_context_chars": 163,
+      "latency_s": 1.6936,
       "retrieved_titles": [
         "Returns policy"
       ],
       "retrieved_doc_ids": [
         "returns-policy"
       ],
+      "retrieved_doc_ids_deep": [
+        "returns-policy"
+      ],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 0.276
+      "top_score": 0.276,
+      "degraded": null
     },
     {
       "id": "q32",
@@ -784,12 +903,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.1859,
+      "kw_context_chars": 0,
+      "latency_s": 1.6999,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q33",
@@ -807,12 +929,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7765,
+      "kw_context_chars": 0,
+      "latency_s": 1.5607,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q34",
@@ -830,16 +955,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.6667,
-      "latency_s": 1.7572,
+      "kw_context_chars": 109,
+      "latency_s": 1.7063,
       "retrieved_titles": [
         "Warranty policy"
       ],
       "retrieved_doc_ids": [
         "warranty-policy"
       ],
+      "retrieved_doc_ids_deep": [
+        "warranty-policy"
+      ],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 0.0297
+      "top_score": 0.0297,
+      "degraded": null
     },
     {
       "id": "q35",
@@ -857,12 +987,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 2.0703,
+      "kw_context_chars": 0,
+      "latency_s": 1.8801,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q36",
@@ -880,12 +1013,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7,
+      "kw_context_chars": 0,
+      "latency_s": 1.7351,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Warranty policy",
       "expected_doc_id": "warranty-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q37",
@@ -903,12 +1039,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7582,
+      "kw_context_chars": 0,
+      "latency_s": 1.5529,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q38",
@@ -926,7 +1065,8 @@
       "mrr": 0.5,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 1.7252,
+      "kw_context_chars": 390,
+      "latency_s": 1.6134,
       "retrieved_titles": [
         "Subscription billing",
         "Payment methods"
@@ -935,9 +1075,14 @@
         "subscription-billing",
         "payment-methods"
       ],
+      "retrieved_doc_ids_deep": [
+        "subscription-billing",
+        "payment-methods"
+      ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 0.2053
+      "top_score": 0.2053,
+      "degraded": null
     },
     {
       "id": "q39",
@@ -955,16 +1100,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7985,
+      "kw_context_chars": 50,
+      "latency_s": 1.9272,
       "retrieved_titles": [
         "Payment methods"
       ],
       "retrieved_doc_ids": [
         "payment-methods"
       ],
+      "retrieved_doc_ids_deep": [
+        "payment-methods"
+      ],
       "expected_title": "Payment methods",
       "expected_doc_id": "payment-methods",
-      "top_score": 0.0952
+      "top_score": 0.0952,
+      "degraded": null
     },
     {
       "id": "q40",
@@ -982,16 +1132,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.8095,
+      "kw_context_chars": 142,
+      "latency_s": 2.287,
       "retrieved_titles": [
         "Account management"
       ],
       "retrieved_doc_ids": [
         "account-management"
       ],
+      "retrieved_doc_ids_deep": [
+        "account-management"
+      ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 0.2565
+      "top_score": 0.2565,
+      "degraded": null
     },
     {
       "id": "q41",
@@ -1009,16 +1164,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.695,
+      "kw_context_chars": 225,
+      "latency_s": 2.9022,
       "retrieved_titles": [
         "Account management"
       ],
       "retrieved_doc_ids": [
         "account-management"
       ],
+      "retrieved_doc_ids_deep": [
+        "account-management"
+      ],
       "expected_title": "Account management",
       "expected_doc_id": "account-management",
-      "top_score": 0.3324
+      "top_score": 0.3324,
+      "degraded": null
     },
     {
       "id": "q42",
@@ -1036,12 +1196,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.734,
+      "kw_context_chars": 0,
+      "latency_s": 1.6791,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q43",
@@ -1059,12 +1222,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.789,
+      "kw_context_chars": 0,
+      "latency_s": 1.7653,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Order modification",
       "expected_doc_id": "order-modification",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q44",
@@ -1082,7 +1248,8 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.75,
-      "latency_s": 1.7207,
+      "kw_context_chars": 357,
+      "latency_s": 1.9293,
       "retrieved_titles": [
         "Address change",
         "Order modification"
@@ -1091,9 +1258,14 @@
         "address-change",
         "order-modification"
       ],
+      "retrieved_doc_ids_deep": [
+        "address-change",
+        "order-modification"
+      ],
       "expected_title": "Address change",
       "expected_doc_id": "address-change",
-      "top_score": 0.7517
+      "top_score": 0.7517,
+      "degraded": null
     },
     {
       "id": "q45",
@@ -1111,12 +1283,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.676,
+      "kw_context_chars": 0,
+      "latency_s": 2.6539,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Address change",
       "expected_doc_id": "address-change",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q46",
@@ -1134,16 +1309,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.3333,
-      "latency_s": 1.72,
+      "kw_context_chars": 174,
+      "latency_s": 1.7454,
       "retrieved_titles": [
         "Gift wrapping"
       ],
       "retrieved_doc_ids": [
         "gift-wrapping"
       ],
+      "retrieved_doc_ids_deep": [
+        "gift-wrapping"
+      ],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 0.3609
+      "top_score": 0.3609,
+      "degraded": null
     },
     {
       "id": "q47",
@@ -1161,12 +1341,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.9572,
+      "kw_context_chars": 0,
+      "latency_s": 123.9057,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Gift wrapping",
       "expected_doc_id": "gift-wrapping",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q48",
@@ -1184,16 +1367,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7579,
+      "kw_context_chars": 178,
+      "latency_s": 1.7957,
       "retrieved_titles": [
         "Subscription billing"
       ],
       "retrieved_doc_ids": [
         "subscription-billing"
       ],
+      "retrieved_doc_ids_deep": [
+        "subscription-billing"
+      ],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 0.2569
+      "top_score": 0.2569,
+      "degraded": null
     },
     {
       "id": "q49",
@@ -1211,12 +1399,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8307,
+      "kw_context_chars": 0,
+      "latency_s": 1.7073,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q50",
@@ -1234,12 +1425,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7002,
+      "kw_context_chars": 0,
+      "latency_s": 1.8386,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q51",
@@ -1257,12 +1451,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7731,
+      "kw_context_chars": 0,
+      "latency_s": 1.5439,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "B2B and wholesale orders",
       "expected_doc_id": "b2b-wholesale",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q52",
@@ -1280,16 +1477,21 @@
       "mrr": 1.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7465,
+      "kw_context_chars": 226,
+      "latency_s": 1.8844,
       "retrieved_titles": [
         "B2B and wholesale orders"
       ],
       "retrieved_doc_ids": [
         "b2b-wholesale"
       ],
+      "retrieved_doc_ids_deep": [
+        "b2b-wholesale"
+      ],
       "expected_title": "B2B and wholesale orders",
       "expected_doc_id": "b2b-wholesale",
-      "top_score": 0.2669
+      "top_score": 0.2669,
+      "degraded": null
     },
     {
       "id": "q53",
@@ -1307,12 +1509,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7497,
+      "kw_context_chars": 0,
+      "latency_s": 1.5311,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q54",
@@ -1330,12 +1535,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.766,
+      "kw_context_chars": 0,
+      "latency_s": 1.5531,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Accessibility",
       "expected_doc_id": "accessibility",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q55",
@@ -1353,12 +1561,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.6834,
+      "kw_context_chars": 0,
+      "latency_s": 2.1558,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q56",
@@ -1376,12 +1587,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8578,
+      "kw_context_chars": 0,
+      "latency_s": 3.4429,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q57",
@@ -1399,12 +1613,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.8583,
+      "kw_context_chars": 0,
+      "latency_s": 1.6909,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Smart home hub guide",
       "expected_doc_id": "smart-home-hub-guide",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q58",
@@ -1422,12 +1639,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.6585,
+      "kw_context_chars": 0,
+      "latency_s": 2.6184,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Subscription billing",
       "expected_doc_id": "subscription-billing",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q59",
@@ -1445,12 +1665,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 0.0,
-      "latency_s": 1.7499,
+      "kw_context_chars": 0,
+      "latency_s": 1.6179,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": "Returns policy",
       "expected_doc_id": "returns-policy",
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q60",
@@ -1468,12 +1691,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.77,
+      "kw_context_chars": 0,
+      "latency_s": 1.6752,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q61",
@@ -1491,12 +1717,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.7647,
+      "kw_context_chars": 0,
+      "latency_s": 1.8214,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     },
     {
       "id": "q62",
@@ -1514,12 +1743,15 @@
       "mrr": 0.0,
       "context_relevance": 0.0,
       "answer_correctness_kw": 1.0,
-      "latency_s": 1.8744,
+      "kw_context_chars": 0,
+      "latency_s": 1.8513,
       "retrieved_titles": [],
       "retrieved_doc_ids": [],
+      "retrieved_doc_ids_deep": [],
       "expected_title": null,
       "expected_doc_id": null,
-      "top_score": 0.0
+      "top_score": 0.0,
+      "degraded": null
     }
   ]
 }

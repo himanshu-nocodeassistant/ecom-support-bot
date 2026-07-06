@@ -56,7 +56,7 @@ What to look at:
 | Welcome-back banner for returning customers | ✅ Email-gated, 90-day TTL on memory facts |
 | Eval: doc-id P@3/R@3 (bias-corrected) | ✅ Fixes structural bias against chunked retrieval modes |
 | Eval: hit@k, NDCG@5, MRR | ✅ Full ranking metric suite |
-| Eval: LLM-as-judge answer correctness | ✅ `--llm-judge` flag |
+| Eval: LLM-judged context relevance | ✅ `--llm-judge` flag; scores the top retrieved chunk against the query, not a generated answer |
 | Eval: adversarial query set (40 queries) | ✅ Injection, ambiguous, multi-intent, OOS — all CI-gated ≥ 0.80 |
 | Eval: synthetic query generation | ✅ Claude generates 5 paraphrase + 2 adversarial per doc; dedup by embedding |
 | Eval dashboard | ✅ `GET /eval` + `/eval/memory` |
@@ -163,7 +163,7 @@ python -m backend.eval.run --all-modes --llm-judge --benchmark
 python -m backend.eval.run --agent-eval
 
 # Adversarial eval (injection, ambiguous, multi-intent, out-of-scope)
-# python -m backend.eval.run --adversarial-eval   # coming in 9e wiring
+python -m backend.eval.run --adversarial-eval
 
 # Synthetic query generation (5 paraphrase + 2 adversarial per doc)
 python -m backend.eval.generate_queries --api-key $ANTHROPIC_API_KEY
@@ -176,6 +176,8 @@ python -m backend.eval.run --all-modes --query-set both
 Per-mode and per-query JSON is written to `backend/eval/results/`. The browser dashboard is at `GET /eval` once the API is running.
 
 The `docs/benchmark.md` table includes Pareto visualisations (cost vs NDCG@5, latency vs NDCG@5) and a trend sparkline from `docs/benchmark-history.jsonl`.
+
+**Eval scope:** RAG retrieval (doc-id P@3/R@3, hit-rate, NDCG, MRR), agent tool-selection (fixture suite), and adversarial robustness (40 queries: injection, ambiguous, multi-intent, out-of-scope). Not covered: exhaustive order-lookup data correctness across ID-extraction variants, hallucination on unknown IDs, or backend-parity edge cases — those require live Supabase fixtures and are out of scope for this eval layer.
 
 ---
 

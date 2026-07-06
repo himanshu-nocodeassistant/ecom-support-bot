@@ -1,11 +1,16 @@
 """6d: Regression gate — compare current eval results against committed baseline.
 
 Usage (called by CI):
-    python -m backend.eval.check_regression
+    python -m backend.eval.check_regression --strict
+
+--strict treats a gated metric missing from baseline.json (or the current
+run) as a failure instead of silently skipping it. Without --strict, missing
+metrics only print a warning — used for permissive local runs.
 
 Exit codes:
     0  — all metrics within threshold
-    1  — one or more metrics regressed beyond threshold
+    1  — one or more metrics regressed beyond threshold (or, in --strict
+         mode, one or more gated metrics were skipped)
 """
 
 from __future__ import annotations
@@ -45,13 +50,19 @@ def _current_adversarial() -> dict | None:
     return _load_json(p) if p.exists() else None
 
 
-def check_retrieval_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
+def check_retrieval_regression(
+    thresholds: dict, baseline: dict, current: dict, strict: bool = False
+) -> tuple[list[str], list[str]]:
+    """Returns (failures, skipped). In --strict mode, skipped gated metrics are
+    treated as failures so CI can't silently pass with a stale/incomplete baseline."""
     failures: list[str] = []
+    skipped: list[str] = []
     max_drop = thresholds["regression_max_drop"]
     for metric in thresholds["metrics_to_gate"]:
         base_val = baseline.get(metric)
         curr_val = current.get(metric)
         if base_val is None or curr_val is None:
+            skipped.append(metric)
             continue
         drop = base_val - curr_val
         if drop > max_drop:
@@ -59,7 +70,11 @@ def check_retrieval_regression(thresholds: dict, baseline: dict, current: dict) 
                 f"  {metric}: baseline={base_val:.4f}  current={curr_val:.4f}  "
                 f"drop={drop:.4f} > threshold={max_drop:.2f}"
             )
-    return failures
+    if strict and skipped:
+        failures.append(
+            f"  --strict: gated metric(s) missing from baseline or current run: {skipped}"
+        )
+    return failures, skipped
 
 
 def check_memory_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
@@ -106,7 +121,7 @@ def check_agent_regression(thresholds: dict, baseline: dict, current: dict) -> l
     return failures
 
 
-def main() -> None:
+def main(strict: bool = False) -> None:
     if not THRESHOLDS_PATH.exists():
         print("ERROR: thresholds.json not found", file=sys.stderr)
         sys.exit(1)
@@ -127,13 +142,17 @@ def main() -> None:
     # Retrieval regression
     current = _current_best(thresholds)
     if current is None:
-        print(
-            f"WARNING: no result file for best_mode={thresholds['best_mode']}; skipping retrieval check",
-            file=sys.stderr,
-        )
+        msg = f"no result file for best_mode={thresholds['best_mode']}; skipping retrieval check"
+        if strict:
+            all_failures.append(f"  --strict: {msg}")
+            print(f"ERROR: {msg}", file=sys.stderr)
+        else:
+            print(f"WARNING: {msg}", file=sys.stderr)
     else:
         retrieval_baseline = baseline.get("retrieval", {})
-        failures = check_retrieval_regression(thresholds, retrieval_baseline, current)
+        failures, skipped = check_retrieval_regression(
+            thresholds, retrieval_baseline, current, strict=strict
+        )
         if failures:
             print("RETRIEVAL REGRESSION DETECTED:")
             print("\n".join(failures))
@@ -144,6 +163,11 @@ def main() -> None:
                 b = retrieval_baseline.get(m, "n/a")
                 c = current.get(m, "n/a")
                 print(f"  {m}: baseline={b}  current={c}")
+        if skipped and not strict:
+            print(
+                f"WARNING: gated metric(s) skipped (missing from baseline/current): {skipped}",
+                file=sys.stderr,
+            )
 
     # Agent regression
     agent_baseline = baseline.get("agent", {})
@@ -222,4 +246,4 @@ if __name__ == "__main__":
     if "--save-baseline" in sys.argv:
         save_baseline()
     else:
-        main()
+        main(strict="--strict" in sys.argv)

@@ -1,8 +1,8 @@
 {
-  "n_fixtures": 12,
-  "avg_tool_accuracy": 0.9583,
-  "avg_extra_tool_calls": 0.1667,
-  "avg_refusal_accuracy": 0.75,
+  "n_fixtures": 15,
+  "avg_tool_accuracy": 0.9,
+  "avg_extra_tool_calls": 0.0667,
+  "avg_refusal_accuracy": 1.0,
   "per_fixture": [
     {
       "id": "af01",
@@ -18,7 +18,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Great! Here's the status of your order **ORD-1001**:\n\n\ud83d\udce6 **Status:** Shipped  \n\ud83d\udcc5 **Shipped Date:** May 18, 2026  \n\ud83c\udfaf **Estimated Delivery:** May 24, 2026  \n\ud83d\udcdd **Item:** Portable blender\n\nYour order is on"
+      "final_reply_excerpt": "Great! Here's the status of your order:\n\n**Order ID:** ORD-1001  \n**Status:** Shipped  \n**Item:** Portable blender  \n**Shipped Date:** May 18, 2026  \n**Estimated Delivery:** May 24, 2026  \n\nYour order"
     },
     {
       "id": "af02",
@@ -36,7 +36,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Great news! Your refund has been approved. \ud83c\udf89\n\n**Refund Details:**\n- **Order ID:** ORD-1002\n- **Item:** Noise-cancelling headphones\n- **Refund Reference:** RFD-1002\n- **Status:** Approved\n\nThe refund h"
+      "final_reply_excerpt": "Great news! Your refund has been approved. Here are the details:\n\n- **Order ID:** ORD-1002\n- **Refund Reference:** RFD-1002\n- **Item:** Noise-cancelling headphones\n- **Reason:** Broken\n\nThe refund has"
     },
     {
       "id": "af03",
@@ -52,7 +52,7 @@
       "extra_tool_names": [],
       "should_refuse": true,
       "refusal_correct": true,
-      "final_reply_excerpt": "I can see that your order **ORD-1001** is currently **shipped** and hasn't been delivered yet (estimated delivery: May 24, 2026). \n\nUnfortunately, I can only process refunds for orders that have alrea"
+      "final_reply_excerpt": "I found your order, but it hasn't been delivered yet\u2014it's currently **shipped** and expected to arrive on **May 24, 2026**. \n\nI can only process refunds for delivered orders. Once your order arrives, "
     },
     {
       "id": "af04",
@@ -70,7 +70,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Perfect! Your refund has been approved! \n\n**Refund Details:**\n- **Refund Reference**: RFD-1002\n- **Original Order**: ORD-1002\n- **Reason**: Headphones stopped working\n\nYou should see the refund credit"
+      "final_reply_excerpt": "Great news! Your refund has been **approved**. \n\n**Refund Details:**\n- **Refund Reference:** RFD-1002\n- **Order:** ORD-1002\n- **Reason:** Headphones stopped working\n\nThe refund has been processed. You"
     },
     {
       "id": "af05",
@@ -86,7 +86,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Based on our shipping policy:\n\n**Standard shipping typically takes 3 to 7 business days after shipment.** Orders usually ship within 2 business days from the time they're placed.\n\nSo in total, you can"
+      "final_reply_excerpt": "Great! According to our shipping policy, **standard delivery takes 3 to 7 business days after your order ships**.\n\nThis means once your package is picked, packed, and handed off to the carrier, you ca"
     },
     {
       "id": "af06",
@@ -95,17 +95,14 @@
         "search_knowledge_base"
       ],
       "called_tools": [
-        "search_knowledge_base",
-        "create_ticket"
+        "search_knowledge_base"
       ],
       "tool_accuracy": 1.0,
-      "extra_tool_calls": 1,
-      "extra_tool_names": [
-        "create_ticket"
-      ],
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "I've created a support ticket (TCK-GEN) for you. A human agent will follow up with specific details about our refund deadline and policy. Thank you for your patience!"
+      "final_reply_excerpt": "Great! According to our refund policy, **refunds are eligible within 30 days of delivery** for items that are damaged, defective, or incorrect.\n\nThis means you have up to 30 days from the date your or"
     },
     {
       "id": "af07",
@@ -114,7 +111,6 @@
         "search_knowledge_base"
       ],
       "called_tools": [
-        "search_knowledge_base",
         "search_knowledge_base"
       ],
       "tool_accuracy": 1.0,
@@ -122,7 +118,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Great! I found the answer. **Yes, the portable blender does have a safety lock.** It prevents blending when the lid is not secured, so you can blend safely without worrying about the lid coming loose "
+      "final_reply_excerpt": "Great news! Yes, the portable blender **does have a safety lock**. According to our product guide, it includes a safety lock that prevents blending when the lid is not secured. This is a helpful safet"
     },
     {
       "id": "af08",
@@ -131,17 +127,16 @@
         "create_ticket"
       ],
       "called_tools": [
-        "search_knowledge_base",
-        "create_ticket"
+        "search_knowledge_base"
       ],
-      "tool_accuracy": 1.0,
+      "tool_accuracy": 0.0,
       "extra_tool_calls": 1,
       "extra_tool_names": [
         "search_knowledge_base"
       ],
       "should_refuse": true,
-      "refusal_correct": false,
-      "final_reply_excerpt": "I've created a support ticket for you (TCK-GEN). A human agent will review your request and get back to you shortly.\n\nIn the meantime, here's what I can tell you: **Once an order has shipped, it's typ"
+      "refusal_correct": true,
+      "final_reply_excerpt": "Based on our policy, **unfortunately you cannot change the delivery address through us once your order has shipped**. However, here are your options:\n\n1. **If your order is still pending or processing"
     },
     {
       "id": "af09",
@@ -158,7 +153,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "Based on your order status, it has already been delivered. To help you with a return, I need to know the reason. Can you tell me why you'd like to return the noise-cancelling headphones? Is there a qu"
+      "final_reply_excerpt": "I can help you with a return! Since your order has been delivered, I can process a refund for you.\n\nTo proceed, could you please let me know the reason for the return? For example:\n- Defective or dama"
     },
     {
       "id": "af10",
@@ -170,7 +165,7 @@
       "extra_tool_names": [],
       "should_refuse": false,
       "refusal_correct": true,
-      "final_reply_excerpt": "I'd be happy to help you with a refund for your headphones! To get started, I'll need your **order ID**. \n\nDo you have your order ID available? It typically looks something like \"ORD-1001\" or a longer"
+      "final_reply_excerpt": "I'd be happy to help you with a refund for your headphones! To get started, I need your order ID. Could you please provide it?"
     },
     {
       "id": "af11",
@@ -186,7 +181,7 @@
       "extra_tool_names": [],
       "should_refuse": true,
       "refusal_correct": true,
-      "final_reply_excerpt": "I wasn't able to find an order with ID **ORD-9999** in our system. \n\nCould you please double-check the order ID? It might be:\n- A different order number (e.g., ORD-1001, or a longer alphanumeric code)"
+      "final_reply_excerpt": "I wasn't able to find an order with ID **ORD-9999**. A few possibilities:\n\n- The order ID might be slightly different (check for typos)\n- The order may not exist in our system\n\nCould you please double"
     },
     {
       "id": "af12",
@@ -198,7 +193,55 @@
       "extra_tool_names": [],
       "should_refuse": true,
       "refusal_correct": true,
-      "final_reply_excerpt": "The capital of France is **Paris**. \n\nHowever, I should mention that I'm specifically designed to help with e-commerce customer support for our store\u2014questions about order status, refunds, shipping, a"
+      "final_reply_excerpt": "The capital of France is **Paris**.\n\nHowever, I should mention that I'm specifically designed to help with e-commerce customer support tasks like looking up orders, processing refunds, searching our s"
+    },
+    {
+      "id": "af13",
+      "description": "Order ID extraction \u2014 bare numeric reference without ORD- prefix",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Great! Here's the status of order **ORD-1001**:\n\n- **Status**: Shipped\n- **Item**: Portable blender\n- **Shipped Date**: May 18, 2026\n- **Estimated Delivery**: May 24, 2026\n\nYour order is on its way! I"
+    },
+    {
+      "id": "af14",
+      "description": "Unknown order ID across two turns \u2014 no hallucinated status on repeat ask",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": true,
+      "refusal_correct": true,
+      "final_reply_excerpt": "I've already performed the lookup, and the system confirms that no order exists with ID ORD-8888. The system searched the database and returned a result stating \"No order found for ORD-8888.\"\n\nTo help"
+    },
+    {
+      "id": "af15",
+      "description": "Order ID embedded mid-sentence \u2014 extraction from natural prose",
+      "expected_tools": [
+        "lookup_order"
+      ],
+      "called_tools": [
+        "lookup_order"
+      ],
+      "tool_accuracy": 1.0,
+      "extra_tool_calls": 0,
+      "extra_tool_names": [],
+      "should_refuse": false,
+      "refusal_correct": true,
+      "final_reply_excerpt": "Good news, Liam! According to our system, your order **ORD-1002** shows a status of **delivered** as of May 16th, which matches your delivery estimate. \n\nHowever, if you haven't physically received it"
     }
   ]
 }

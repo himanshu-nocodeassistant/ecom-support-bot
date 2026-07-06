@@ -5,7 +5,7 @@ Covers six areas — all without external deps (no DB, no Voyage, no Claude API)
                          _answer_correctness, _estimate_cost
   2. DocIdMetrics      — _precision_at_k_doc, _recall_at_k_doc: document-id-based
                          versions that fix the structural bias against chunked modes
-  3. LlmJudge         — _llm_judge_correctness: valid response, score clamping,
+  3. LlmJudge         — _llm_judge_context_relevance: valid response, score clamping,
                          malformed JSON, API exception
   4. BenchmarkMd      — _generate_benchmark_md: file structure with and without
                          LLM column
@@ -303,11 +303,11 @@ class EstimateCostTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
-class LlmJudgeCorrectnessTests(unittest.TestCase):
+class LlmJudgeContextRelevanceTests(unittest.TestCase):
     def setUp(self) -> None:
-        from backend.eval.run import _llm_judge_correctness
+        from backend.eval.run import _llm_judge_context_relevance
 
-        self._fn = _llm_judge_correctness
+        self._fn = _llm_judge_context_relevance
 
     def _mock_response(self, text: str) -> MagicMock:
         block = MagicMock()
@@ -384,7 +384,7 @@ def _make_mode_result(mode: str, llm_score: float | None = None) -> dict:
         "n_answerable": 25,
     }
     if llm_score is not None:
-        r["avg_answer_correctness_llm"] = llm_score
+        r["avg_context_relevance_llm"] = llm_score
     return r
 
 
@@ -411,13 +411,13 @@ class BenchmarkMdTests(unittest.TestCase):
     def test_contains_header_columns_without_llm(self) -> None:
         self._fn([_make_mode_result("keyword")], self._out)
         lines = self._out.read_text().splitlines()
-        # LLMCorr column should not appear in any table header row (| ... | lines)
+        # CtxRelLLM column should not appear in any table header row (| ... | lines)
         table_header_lines = [line for line in lines if line.startswith("| Mode")]
         self.assertTrue(table_header_lines, "expected at least one table header row")
         self.assertIn("P@3", self._out.read_text())
         self.assertIn("KwCorr", self._out.read_text())
         for header in table_header_lines:
-            self.assertNotIn("LLMCorr", header)
+            self.assertNotIn("CtxRelLLM", header)
 
     def test_contains_doc_id_columns(self) -> None:
         self._fn([_make_mode_result("hybrid")], self._out)
@@ -442,7 +442,7 @@ class BenchmarkMdTests(unittest.TestCase):
     def test_contains_llm_column_when_present(self) -> None:
         self._fn([_make_mode_result("hybrid", llm_score=0.88)], self._out)
         content = self._out.read_text()
-        self.assertIn("LLMCorr", content)
+        self.assertIn("CtxRelLLM", content)
 
     def test_multiple_modes_all_appear(self) -> None:
         modes = ["keyword", "fulltext", "hybrid"]
@@ -485,7 +485,7 @@ class EvaluateModeDocIdTests(unittest.TestCase):
                 "category": "refund",
                 "query": "refund",
                 "expected_source_title": "Refund policy",
-                "expected_document_id": "kb-refund",
+                "expected_document_id": "refund-policy",
                 "acceptable_answer_keywords": ["refund"],
             },
             {
@@ -530,7 +530,7 @@ class EvaluateModeDocIdTests(unittest.TestCase):
     def test_correct_retrieval_scores_doc_precision_one(self) -> None:
         from backend.eval.run import evaluate_mode
 
-        # "refund" query should retrieve kb-refund from InMemoryRepository
+        # "refund" query should retrieve refund-policy from InMemoryRepository
         result = evaluate_mode(
             mode="keyword",
             queries=[self._minimal_queries()[0]],
@@ -538,8 +538,8 @@ class EvaluateModeDocIdTests(unittest.TestCase):
             voyage_api_key=None,
         )
         row = result["per_query"][0]
-        # kb-refund should appear in retrieved doc IDs
-        self.assertIn("kb-refund", row["retrieved_doc_ids"])
+        # refund-policy should appear in retrieved doc IDs
+        self.assertIn("refund-policy", row["retrieved_doc_ids"])
         self.assertGreater(row["precision_at_3_doc"], 0.0)
         self.assertEqual(row["recall_at_3_doc"], 1.0)
 
@@ -1082,46 +1082,6 @@ class ComputeContextRelevanceTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Gap 5 — evaluate_faithfulness
-# ---------------------------------------------------------------------------
-
-
-@unittest.skipUnless(_anthropic_key(), "Requires ANTHROPIC_API_KEY")
-class FaithfulnessTests(unittest.TestCase):
-    """Gap 5: evaluate_faithfulness must score hallucinations low and grounded answers high."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls._key = _anthropic_key()
-
-    def test_hallucinated_answer_scores_below_half(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Refunds are eligible within 30 days of delivery."
-        hallucination = "You can get a refund any time within 90 days, no questions asked."
-        score = evaluate_faithfulness(context, hallucination, api_key=self._key)
-        self.assertLess(score, 0.5)
-
-    def test_grounded_answer_scores_above_threshold(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Refunds are eligible within 30 days of delivery."
-        grounded = "Refunds are available within 30 days of delivery."
-        score = evaluate_faithfulness(context, grounded, api_key=self._key)
-        # Grounded answers must score meaningfully higher than hallucinated ones (> 0.5)
-        self.assertGreater(score, 0.5)
-
-    def test_score_is_in_valid_range(self) -> None:
-        from backend.eval.run import evaluate_faithfulness
-
-        context = "Standard delivery takes 3 to 7 business days."
-        answer = "Delivery takes 3 to 7 business days."
-        score = evaluate_faithfulness(context, answer, api_key=self._key)
-        self.assertGreaterEqual(score, 0.0)
-        self.assertLessEqual(score, 1.0)
-
-
-# ---------------------------------------------------------------------------
 # Gap 2 unit — evaluate_mode result has backend field
 # ---------------------------------------------------------------------------
 
@@ -1136,7 +1096,7 @@ class EvaluateModeBackendFieldTests(unittest.TestCase):
                 "query": "Does the blender have a safety lock?",
                 "category": "product",
                 "expected_source_title": "Portable blender guide",
-                "expected_document_id": "kb-blender",
+                "expected_document_id": "portable-blender-guide",
                 "acceptable_answer_keywords": ["safety lock"],
             }
         ]

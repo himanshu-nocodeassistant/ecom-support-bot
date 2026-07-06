@@ -422,11 +422,7 @@ def embed_queries(texts: list[str], api_key: str) -> list[list[float]]:
 
 
 def embed_query(text: str, api_key: str) -> list[float]:
-    import voyageai
-
-    client = voyageai.Client(api_key=api_key)
-    result = client.embed([text], model="voyage-3-lite", input_type="query")
-    return result.embeddings[0]
+    return embed_queries([text], api_key=api_key)[0]
 
 
 def import_knowledge_to_postgres(

@@ -166,6 +166,81 @@ class SupportBotTests(unittest.TestCase):
         self.assertEqual(result["tool_events"][0]["name"], "request_refund")
         self.assertIn("Refund request created", result["reply"])
 
+    # ------------------------------------------------------------------
+    # Stochastic-slice coverage (order-lookup path, §6k)
+    # ------------------------------------------------------------------
+
+    def test_unknown_order_no_hallucinated_status(self) -> None:
+        """When lookup_order returns not-found, reply must not contain fabricated order fields."""
+        self._patch_anthropic(
+            [
+                _response(
+                    "tool_use",
+                    _tool_use_block("tu-1", "lookup_order", {"order_id": "ORD-9999"}),
+                ),
+                _response(
+                    "end_turn",
+                    _text_block("I could not find any order with ID ORD-9999 in our system."),
+                ),
+            ]
+        )
+
+        result = handle_message("session-unknown-order", "What is the status of ORD-9999?")
+
+        reply = result["reply"].lower()
+        # Must report not found
+        self.assertIn("ord-9999", reply)
+        # Must not fabricate any status value from existing orders
+        for fabricated in (
+            "delivered",
+            "shipped",
+            "in_transit",
+            "2026-05-",
+            "portable blender",
+            "headphones",
+        ):
+            self.assertNotIn(
+                fabricated, reply, f"Reply must not contain fabricated field: {fabricated!r}"
+            )
+
+    def test_order_id_extracted_from_bare_number(self) -> None:
+        """Claude adds the ORD- prefix when user supplies only the numeric part."""
+        self._patch_anthropic(
+            [
+                _response(
+                    "tool_use",
+                    _tool_use_block("tu-1", "lookup_order", {"order_id": "ORD-1001"}),
+                ),
+                _response("end_turn", _text_block("Order ORD-1001 is currently shipped.")),
+            ]
+        )
+
+        result = handle_message("session-bare-number", "Can you check on order 1001 for me?")
+
+        self.assertEqual(result["tool_events"][0]["name"], "lookup_order")
+        self.assertEqual(result["tool_events"][0]["input"]["order_id"], "ORD-1001")
+
+    def test_inmemory_repository_order_schema(self) -> None:
+        """InMemoryRepository.get_order returns all fields the agent depends on."""
+        required_keys = {
+            "order_id",
+            "customer_name",
+            "status",
+            "shipping_date",
+            "delivery_estimate",
+            "item",
+            "delivered",
+        }
+        repo = _in_memory_repo()
+
+        order = repo.get_order("ORD-1001")
+        self.assertIsNotNone(order)
+        missing = required_keys - set(order.keys())
+        self.assertFalse(missing, f"InMemoryRepository order missing keys: {missing}")
+
+        # Unknown order returns None — no KeyError, no fabricated dict
+        self.assertIsNone(repo.get_order("ORD-9999"))
+
     def test_low_confidence_creates_ticket(self) -> None:
         self._patch_anthropic(
             [

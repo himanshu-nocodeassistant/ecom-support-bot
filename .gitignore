@@ -9,3 +9,8 @@ dist/
 build/
 local/
 data-set/
+
+# Eval — generated result files (baseline.json is committed as CI anchor)
+backend/eval/results/*.json
+!backend/eval/results/baseline.json
+backend/eval/queries_synthetic.json

@@ -1,5 +1,15 @@
 # Reranking Decision
 
+> **Unverified pending re-run (2026-07-05):** the hybrid/hybrid+rerank numbers below were
+> measured before `plans/decisions/eval-audit-degraded-fallback.md`'s fix — `_hybrid_search`
+> could silently fall back to fulltext search under Voyage rate limits or network failure,
+> with no logging and no way to detect it after the fact. This doc's own `hybrid` P@3(doc)
+> of 0.109 matches neither the previously-committed benchmark (0.301) nor the newly
+> confirmed clean, deterministic baseline (0.6474) — a third, independently unverifiable
+> number. The reranking conclusion (net direction: reranking helps) is plausibly still
+> correct, but the specific deltas here should not be cited until this comparison is
+> re-run against the clean baseline and this note is removed.
+
 ## Updated finding (15-doc KB, 62-query eval)
 
 The initial Gap 7 spot-check tested 3 queries and found reranking did not change result ordering

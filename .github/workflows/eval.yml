@@ -31,7 +31,7 @@ jobs:
 
       - name: Run retrieval eval (best mode — hybrid)
         if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != ''
-        run: python -m backend.eval.run --mode hybrid
+        run: python -m backend.eval.run --mode hybrid --strict
 
       - name: Run agent eval
         if: env.DATABASE_URL != '' && env.ANTHROPIC_API_KEY != ''
@@ -45,12 +45,12 @@ jobs:
         id: regression_check
         run: |
           set -o pipefail
-          python -m backend.eval.check_regression 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
+          python -m backend.eval.check_regression --strict 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
 
       - name: Update benchmark history and regenerate benchmark.md
         if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != '' && github.event_name == 'pull_request'
         run: |
-          python -m backend.eval.run --all-modes --benchmark
+          python -m backend.eval.run --all-modes --benchmark --strict
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/benchmark.md docs/benchmark-history.jsonl || true
