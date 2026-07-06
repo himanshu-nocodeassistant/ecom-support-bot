@@ -1,16 +1,35 @@
 # SupportBot
 
+An e-commerce support agent built in phased releases: knowledge retrieval, order lookup, refund flows, escalation, persistent customer memory. Each phase shipped working, with numbers showing what it improved and what it broke.
+
+<!-- Demo GIF: capture frontend/index.html mid-tool-call on "My order ORD-1002 arrived damaged, I want a refund" (tool cards + source chips visible) + the GET /eval dashboard. -->
+
 > **Blog:** [I kept adding AI to my support bot. It kept breaking in new ways.](https://himanshu-sharma.medium.com/i-kept-adding-ai-to-my-support-bot-it-kept-breaking-in-new-ways-49b1ae4ff658)
 
-An e-commerce customer support agent built in phases to show how production-grade AI support systems work under the hood — knowledge retrieval, order lookup, persistent customer memory, escalation, and model-driven tool orchestration. Each phase ships as a working demo, not a toy.
-
 **Stack:** Python · FastAPI · Claude API (Haiku + Sonnet) · Voyage AI embeddings + rerank · Supabase/Postgres + pgvector
+
+## Why I built this
+
+I run a software agency. Clients ask for "an AI support bot" like it's one thing you buy. It isn't. It's a system that breaks in a new way every time you add a capability. Before selling one to a client, I wanted to watch each failure mode happen on my own build, with an eval suite that catches regressions instead of me eyeballing chat transcripts.
+
+## Measured decisions
+
+The knowledge base is small on purpose (15 docs, 62 labeled queries), so the absolute scores aren't the point. The point is that every architecture decision was settled by measurement, and twice the measurement said "delete what you just built":
+
+| Decision | What the numbers said | Outcome |
+|---|---|---|
+| Chunking: semantic vs fixed | hit_rate@3: fixed 0.346 vs semantic 0.327 — no strong evidence either wins; original +29% claim rested on a metric biased toward finer chunking | +29% claim retired; no config change ([decision](plans/decisions/chunking.md)) |
+| Voyage reranking on/off | NDCG@5 0.934 → 0.960, H@1 0.904 → 0.942 | Recommended for prod; off by default (adds ~326ms and 15× the Voyage cost per query) ([decision](plans/decisions/reranking.md)) |
+| Category pre-filter | 4.3% hard-miss rate on multi-intent queries | Deleted |
+| "Keyword beats hybrid" baseline | Metric bias: title-string matching penalized chunked modes; the CI gate was guarding the worst-performing mode | Rebuilt metrics on document IDs ([full investigation](plans/decisions/retrieval-finding.md)) |
+| Adversarial set: 40 queries (injection, ambiguous, multi-intent, out-of-scope) | All gated at ≥ 0.80 | CI fails on regression |
+| Any gated retrieval metric | Drops more than 10% vs committed baseline | CI fails the PR |
 
 ---
 
 ## How this was built
 
-Pair-programmed with [Claude Code](https://claude.ai/code). Architecture, phase scoping, eval design, and every ship decision are owned by Himanshu. Decision artefacts live in [`plans/`](plans/) and [`docs/improvement-log.md`](docs/improvement-log.md).
+Pair-programmed with [Claude Code](https://claude.ai/code). I own the architecture, the phase scoping, the eval design, and every ship decision. The paper trail is in [`plans/decisions/`](plans/decisions/) and [`docs/improvement-log.md`](docs/improvement-log.md), including the calls that didn't survive measurement.
 
 ---
 
@@ -39,8 +58,6 @@ What to look at:
 3. Source chips below the reply show which KB document grounded the answer
 4. Switch to the Compare tab to see phase1/2/3 side by side on the same query
 
-<!-- Screenshots: to be added on first demo run. Capture frontend/index.html mid-tool-call and GET /eval. -->
-
 ---
 
 ## Current capabilities
@@ -68,11 +85,9 @@ What to look at:
 
 ## Known gaps
 
-This project is to show how a typical RAG project gets complex at each stage. It's not a full blown codebase ready to be deployed.
+This repo shows how a RAG support system gets complex at each stage. It is not a deploy-ready codebase, and that's deliberate.
 
-One client pointed out there is no rate limiting or auth in the project. Yes, that is intentional. And there are many other things I haven't added for the same reason. It's not meant to be a complete production system. It's meant to show the AI layer clearly, so clients can see how each phase builds on the last. And to know they're in safe hands. Before deploying any RAG chatbot to production, there will be many levels of security and protection added on top.
-
-So I've listed more than 10 gaps below. None of them affect the output quality of the RAG agent. But all need attention before deployment.
+A client reviewing this repo pointed out there's no rate limiting or auth. Correct, and intentional: they belong to the deployment layer (API gateway, JWT middleware), and adding them here would have buried what each phase was demonstrating. That conversation is why this section exists. I've listed 10+ gaps below; none affect the output quality of the RAG agent, all need attention before anything ships to production.
 
 **Out of scope by design.** CORS, auth, rate limiting, session security. These belong to the deployment layer, not the RAG layer. An API gateway, a JWT middleware, an auth service. Adding them here would have buried what each phase was actually demonstrating.
 
@@ -186,3 +201,7 @@ The `docs/benchmark.md` table includes Pareto visualisations (cost vs NDCG@5, la
 The Phase 6 baseline showed keyword retrieval (in-memory) outperforming hybrid (Postgres). Investigation confirmed this was a **metric bias**: `_precision_at_k` compared chunk titles by string equality, giving chunked modes a structural disadvantage when multiple chunks from the same correct document were returned. The `_infer_category` pre-filter was also deleted after measurement showed a 4.3% hard-miss rate on multi-intent queries.
 
 Details: [`plans/decisions/retrieval-finding.md`](plans/decisions/retrieval-finding.md)
+
+---
+
+Built by [Himanshu Sharma](https://nocodeassistant.agency), founder of NocodeAssistant, where I build internal tools and AI automation for SMB operations teams.
