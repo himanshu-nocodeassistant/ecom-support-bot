@@ -1,8 +1,6 @@
 # SupportBot
 
-An e-commerce support agent built in phased releases: knowledge retrieval, order lookup, refund flows, escalation, persistent customer memory. Each phase shipped working, with numbers showing what it improved and what it broke.
-
-<!-- Demo GIF: capture frontend/index.html mid-tool-call on "My order ORD-1002 arrived damaged, I want a refund" (tool cards + source chips visible) + the GET /eval dashboard. -->
+An e-commerce support agent with: knowledge retrieval, order lookup, refund flows, escalation, persistent customer memory. Each phase has numbers showing what it improved and what it broke.
 
 > **Blog:** [I kept adding AI to my support bot. It kept breaking in new ways.](https://himanshu-sharma.medium.com/i-kept-adding-ai-to-my-support-bot-it-kept-breaking-in-new-ways-49b1ae4ff658)
 
@@ -10,11 +8,11 @@ An e-commerce support agent built in phased releases: knowledge retrieval, order
 
 ## Why I built this
 
-I run a software agency. Clients ask for "an AI support bot" like it's one thing you buy. It isn't. It's a system that breaks in a new way every time you add a capability. Before selling one to a client, I wanted to watch each failure mode happen on my own build, with an eval suite that catches regressions instead of me eyeballing chat transcripts.
+I run a software agency. Clients ask for "an AI support bot" like it's one thing you buy. It isn't. It's a system that breaks in a new way every time you add a capability. Before selling one to a client, I wanted to watch each failure mode happen on my own build, with evals that catches regressions.
 
 ## Measured decisions
 
-The knowledge base is small on purpose (15 docs, 62 labeled queries), so the absolute scores aren't the point. The point is that every architecture decision was settled by measurement, and twice the measurement said "delete what you just built":
+The knowledge base is small on purpose (15 docs, 62 labeled queries), so the absolute scores aren't the point. The point is that every architecture decision is important and there are instances where things didn't go as expected.
 
 | Decision | What the numbers said | Outcome |
 |---|---|---|
@@ -29,7 +27,7 @@ The knowledge base is small on purpose (15 docs, 62 labeled queries), so the abs
 
 ## How this was built
 
-Pair-programmed with [Claude Code](https://claude.ai/code). I own the architecture, the phase scoping, the eval design, and every ship decision. The paper trail is in [`plans/decisions/`](plans/decisions/) and [`docs/improvement-log.md`](docs/improvement-log.md), including the calls that didn't survive measurement.
+Pair-programmed with [Claude Code](https://claude.ai/code). I planned the architecture, scoping, the eval design etc. Major decision are in [`plans/decisions/`](plans/decisions/) and [`docs/improvement-log.md`](docs/improvement-log.md), including the things I did but which didn't survive measurement.
 
 ---
 
@@ -46,7 +44,7 @@ Pair-programmed with [Claude Code](https://claude.ai/code). I own the architectu
 
 ---
 
-## Demo path
+## Demo
 
 Start the server and open the frontend. Send this query:
 
@@ -91,9 +89,9 @@ A client reviewing this repo pointed out there's no rate limiting or auth. Corre
 
 **Out of scope by design.** CORS, auth, rate limiting, session security. These belong to the deployment layer, not the RAG layer. An API gateway, a JWT middleware, an auth service. Adding them here would have buried what each phase was actually demonstrating.
 
-**Deferred for clarity.** The tool loop has no iteration cap. Postgres stores hold a single persistent connection with no pooling. Settings are read from `.env` on every request. A new DB connection is created per request. All straightforward fixes. Left because adding connection pooling in phase 3 wouldn't have affected the outcome of phase 3.
+**Deferred.** The tool loop has no iteration cap. Postgres stores hold a single persistent connection with no pooling. Settings are read from `.env` on every request. A new DB connection is created per request. All straightforward fixes. Left because adding connection pooling in phase 3 wouldn't have affected the outcome of phase 3.
 
-**Worth fixing before prod.** Customer memory facts are included into the system prompt without sanitization. If adversarial text gets written as a fact in a prior session, it shows up in every future session for that customer. And error messages are sent raw to the client, which would expose DB internals. Again, these are intentional because for demo purposes, hardening is left out.
+**Worth fixing.** Customer memory facts are included into the system prompt without sanitization. If adversarial text gets written as a fact in a prior session, it shows up in every future session for that customer. And error messages are sent raw to the client, which would expose DB internals. Again, these are intentional because for demo purposes, hardening is left out.
 
 ---
 
