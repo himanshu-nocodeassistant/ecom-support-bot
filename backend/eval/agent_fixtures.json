@@ -113,5 +113,36 @@
     "expected_tools": [],
     "should_refuse": true,
     "refuse_reason": "Off-topic geography question; bot should not answer and should redirect."
+  },
+  {
+    "id": "af13",
+    "description": "Order ID extraction — bare numeric reference without ORD- prefix",
+    "turns": [
+      {"role": "user", "content": "Can you check on order 1001 for me?"}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": false,
+    "_note": "Stochastic slice: Claude must infer and normalise the order ID to ORD-1001 without an explicit prefix."
+  },
+  {
+    "id": "af14",
+    "description": "Unknown order ID across two turns — no hallucinated status on repeat ask",
+    "turns": [
+      {"role": "user", "content": "What is the status of ORD-8888?"},
+      {"role": "user", "content": "Are you sure? Can you double-check that order?"}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": true,
+    "refuse_reason": "ORD-8888 does not exist; bot must report not found on both turns without fabricating a status, date, or item name."
+  },
+  {
+    "id": "af15",
+    "description": "Order ID embedded mid-sentence — extraction from natural prose",
+    "turns": [
+      {"role": "user", "content": "Hi, I placed order ORD-1002 last Tuesday and it still hasn't arrived, though the estimate has passed."}
+    ],
+    "expected_tools": ["lookup_order"],
+    "should_refuse": false,
+    "_note": "Stochastic slice: Claude must extract ORD-1002 from a longer sentence that includes unrelated date context."
   }
 ]
