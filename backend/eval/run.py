@@ -172,10 +172,14 @@ def _context_relevance(
     query_embedding: list[float] | None,
     retrieved: list[dict[str, Any]],
     chunk_embeddings: dict[str, list[float]],
-) -> float:
-    """Average cosine similarity between query embedding and retrieved chunk embeddings."""
+) -> float | None:
+    """Average cosine similarity between query embedding and retrieved chunk embeddings.
+
+    Returns None when embeddings are unavailable (keyword/fulltext modes), so the
+    caller can record n/a instead of a false zero.
+    """
     if query_embedding is None or not retrieved:
-        return 0.0
+        return None
 
     def cosine(a: list[float], b: list[float]) -> float:
         dot = sum(x * y for x, y in zip(a, b))
@@ -312,9 +316,11 @@ def _llm_judge_context_relevance(
         return 0.0, 0.0
 
 
-def _estimate_cost(n_queries: int, uses_rerank: bool) -> dict[str, float]:
-    embed_tokens = n_queries * AVG_QUERY_TOKENS
-    embed_cost = (embed_tokens / 1_000_000) * VOYAGE_EMBED_PRICE_PER_M
+def _estimate_cost(n_queries: int, uses_rerank: bool, uses_embed: bool = True) -> dict[str, float]:
+    embed_cost = 0.0
+    if uses_embed:
+        embed_tokens = n_queries * AVG_QUERY_TOKENS
+        embed_cost = (embed_tokens / 1_000_000) * VOYAGE_EMBED_PRICE_PER_M
     rerank_cost = 0.0
     if uses_rerank:
         rerank_tokens = n_queries * (AVG_QUERY_TOKENS + 3 * AVG_CHUNK_TOKENS)
@@ -463,7 +469,7 @@ def evaluate_mode(
             "hit_rate_at_10": round(h10, 4),
             "ndcg_at_5": round(ndcg5, 4),
             "mrr": round(mrr_score, 4),
-            "context_relevance": round(ctx_rel, 4),
+            "context_relevance": None if ctx_rel is None else round(ctx_rel, 4),
             "answer_correctness_kw": round(kw_correctness, 4),
             "kw_context_chars": len(kw_text),
             "latency_s": round(latency, 4),
@@ -492,14 +498,15 @@ def evaluate_mode(
 
     answerable = [r for r in per_query if r["expected_title"]]
 
-    def _avg(key: str) -> float:
-        vals = [r[key] for r in answerable if key in r]
-        return round(sum(vals) / len(vals), 4) if vals else 0.0
+    def _avg(key: str) -> float | None:
+        vals = [r[key] for r in answerable if key in r and r[key] is not None]
+        return round(sum(vals) / len(vals), 4) if vals else None
 
     latencies = sorted(r["latency_s"] for r in per_query)
     p50 = latencies[len(latencies) // 2]
     p95 = latencies[int(len(latencies) * 0.95)]
-    cost = _estimate_cost(len(queries), uses_rerank)
+    uses_embed = mode not in ("keyword", "fulltext")
+    cost = _estimate_cost(len(queries), uses_rerank, uses_embed=uses_embed)
     if total_judge_cost:
         cost["judge_cost_usd"] = round(total_judge_cost, 6)
         cost["total_cost_usd"] = round(cost["total_cost_usd"] + total_judge_cost, 6)
@@ -674,7 +681,8 @@ def _print_comparison_table(mode_results: list[dict[str, Any]]) -> None:
         cost = r.get("estimated_cost", {}).get("total_cost_usd", 0.0)
         line = f"{r['mode']:<28} {r.get('avg_answer_correctness_kw', 0.0):>8.3f}"
         if has_llm:
-            line += f" {r.get('avg_context_relevance_llm', 0.0):>9.3f}"
+            ctx_llm = r.get("avg_context_relevance_llm")
+            line += f" {ctx_llm:>9.3f}" if ctx_llm is not None else f" {'—':>9}"
         line += f" {r['p50_latency_s']:>7.4f}s {r['p95_latency_s']:>7.4f}s {cost:>8.6f}"
         print(line)
 
@@ -909,18 +917,21 @@ def _generate_benchmark_md(
     lines.append("| " + " | ".join(["---"] * len(qual_cols)) + " |")
     for r in mode_results:
         cost = r.get("estimated_cost", {}).get("total_cost_usd", 0.0)
+        ctx_rel = r.get("avg_context_relevance")
+        ctx_rel_str = f"{ctx_rel:.3f}" if ctx_rel is not None else "—"
         row = [
             f"`{r['mode']}`",
-            f"{r['avg_context_relevance']:.3f}",
+            ctx_rel_str,
             f"{r.get('avg_answer_correctness_kw', 0.0):.3f}",
             f"{r.get('avg_kw_context_chars', 0.0):.0f}",
         ]
         if has_llm:
-            row.append(f"{r.get('avg_context_relevance_llm', 0.0):.3f}")
+            ctx_rel_llm = r.get("avg_context_relevance_llm")
+            row.append(f"{ctx_rel_llm:.3f}" if ctx_rel_llm is not None else "—")
         row += [
             f"{r['p50_latency_s']:.4f}",
             f"{r['p95_latency_s']:.4f}",
-            f"{cost:.6f}",
+            f"{cost:.6f}" if cost > 0 else "$0",
         ]
         lines.append("| " + " | ".join(row) + " |")
 
@@ -950,12 +961,12 @@ def _generate_benchmark_md(
         f"- **H@k** — Hit Rate@k: binary 1 if the correct document appears anywhere in the top-k results. Production retrieval only returns 3 results; H@5/H@10 and NDCG@5 are computed from an eval-only deeper retrieval (top {EVAL_DEPTH}) so the columns reflect real candidates, not a re-sliced top-3 list.",
         "- **NDCG@5** — Normalised Discounted Cumulative Gain at 5 (single-relevant-doc; higher rank = higher score).",
         "- **MRR** — Mean Reciprocal Rank: 1/rank of the first relevant chunk retrieved.",
-        "- **CtxRel** — average cosine similarity between query and retrieved chunk embeddings",
+        "- **CtxRel** — average cosine similarity between query and retrieved chunk embeddings. `—` for `keyword`/`fulltext` modes (no embeddings computed; not measured, not zero).",
         "- **KwCorr** — keyword-overlap answer correctness: fraction of expected keywords present in the concatenated top-3 retrieved *content*. **Not valid for cross-mode comparison** — modes that return whole documents (e.g. `keyword`) search far more text per query than modes that return short chunks, so a higher score there reflects text volume, not better retrieval. Only compare KwCorr across runs of the *same* mode over time. See `KwCorr chars`.",
         "- **KwCorr chars** — average character count of the text KwCorr was computed over, per mode. Included so a KwCorr gap is legible as a text-volume artifact rather than a quality difference.",
         "- **CtxRelLLM** — Claude-as-judge relevance score (0–1) for the top retrieved chunk vs. the query; `null` if not run with `--llm-judge`. Judges retrieval, not a generated answer.",
-        "- **P50/P95** — median and 95th-percentile end-to-end retrieval latency",
-        "- **Cost** — estimated Voyage + Claude API cost for the full eval run",
+        "- **P50/P95** — median and 95th-percentile end-to-end retrieval latency. **Not comparable across backends**: `keyword` uses an in-memory dict (~0.0001s), while `fulltext`/`hybrid` measure a Supabase network round-trip (~1–2s). The difference is infrastructure, not algorithm quality.",
+        "- **Cost** — estimated Voyage + Claude API cost for the full eval run. Formula-derived, not metered. `$0` for modes that issue no API calls (`keyword`, `fulltext`).",
         "",
         "## Regenerating",
         "",
