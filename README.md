@@ -177,6 +177,8 @@ Per-mode and per-query JSON is written to `backend/eval/results/`. The browser d
 
 The `docs/benchmark.md` table includes Pareto visualisations (cost vs NDCG@5, latency vs NDCG@5) and a trend sparkline from `docs/benchmark-history.jsonl`.
 
+**Eval scope:** RAG retrieval (doc-id P@3/R@3, hit-rate, NDCG, MRR), agent tool-selection (fixture suite), and adversarial robustness (40 queries: injection, ambiguous, multi-intent, out-of-scope). Not covered: exhaustive order-lookup data correctness across ID-extraction variants, hallucination on unknown IDs, or backend-parity edge cases — those require live Supabase fixtures and are out of scope for this eval layer.
+
 ---
 
 ## Retrieval finding (Phase 9)
