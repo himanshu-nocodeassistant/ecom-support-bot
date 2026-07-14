@@ -4,6 +4,40 @@ Use this file after each release. Keep it short and honest.
 
 ---
 
+## Phase 9.2 — Eval Contracts and Safe Multi-Intent Handling
+
+### Release
+
+- Version: `v0.9.2-eval-contracts`
+- Date: 2026-07-15
+
+### What changed
+
+- Replaced the multi-intent `>= 2 distinct tools` oracle with explicit scenario contracts:
+  required tools, forbidden tools, required clarification, and required escalation
+- Updated the multi-intent prompt rules so unsupported actions create a ticket while safe supported
+  work continues; refunds without a concrete reason must ask a follow-up instead of executing
+- Added deterministic tests for the prompt contract and for poisoned knowledge; no test requires a
+  network call merely because a local API key exists
+- Added reproducibility metadata to live agent/adversarial results and made strict regression checks
+  fail when a configured live result is missing
+
+### Why it matters
+
+- User impact: a mixed request is less likely to be “completed” by pretending an unsupported action
+  happened or by processing an under-specified refund
+- Engineering impact: the regression gate now measures safe resolution behaviour rather than tool
+  volume, and a skipped eval cannot silently look green
+
+### What is still weak
+
+- The live-model suite must be re-run to establish a fresh baseline for the new contract metric;
+  no historical `multi_tool_rate` should be compared with it
+- Prompt guidance improves consistency but is not a policy enforcement layer; irreversible actions
+  still need server-side authorization, idempotency, and audit records
+
+---
+
 ## Phase 7 — Persistent Customer Memory (data layer)
 
 ### Release

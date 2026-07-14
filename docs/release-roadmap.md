@@ -277,3 +277,21 @@ Pre-publication audit of the eval layer. Running the eval suite consistently and
 - Benchmark history fingerprinted so incomparable runs don't produce fake trend lines
 - `LICENSE` (MIT) and `.env.example` added
 - README §2–§5: new opener, "Why I built this", Measured decisions table with verified numbers, "I" voice, Known gaps rewrite, footer
+
+---
+
+## `v0.9.2-eval-contracts` ✅ Complete
+
+Repaired the multi-intent adversarial oracle before using it to steer agent changes.
+
+- Replaced `multi_tool_rate` with `multi_intent_contract_pass_rate`: each scenario now declares
+  required and forbidden tools plus required clarification and/or escalation behaviour
+- Added routing guidance for mixed supported/unsupported requests, missing refund reasons, and
+  independent policy questions without an order ID
+- Made the poisoned-KB safety test deterministic and offline; it no longer reaches a live API when
+  a developer has credentials configured
+- Added live-eval metadata (dataset hash, model, metric version, timestamp) and made `--strict`
+  fail when a configured agent or adversarial result was skipped
+
+Learning: a count of tool calls is not an outcome. A safe agent should sometimes clarify or
+escalate instead of making another tool call. The test contract must encode that distinction.
