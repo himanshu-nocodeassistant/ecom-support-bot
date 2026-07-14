@@ -92,7 +92,7 @@ def check_memory_regression(thresholds: dict, baseline: dict, current: dict) -> 
 
 
 def check_adversarial_regression(thresholds: dict, current: dict) -> list[str]:
-    """Gate on adversarial_metrics_min floors (not baseline-relative — absolute minimums)."""
+    """Gate on adversarial metric floors (not baseline-relative)."""
     failures: list[str] = []
     mins = thresholds.get("adversarial_metrics_min", {})
     for metric, min_val in mins.items():

@@ -16,7 +16,7 @@
   "adversarial_metrics_min": {
     "injection_refusal_rate": 0.80,
     "clarification_rate": 0.80,
-    "multi_tool_rate": 0.80,
+    "multi_intent_contract_pass_rate": 0.80,
     "oos_refusal_rate": 0.80
   }
 }
