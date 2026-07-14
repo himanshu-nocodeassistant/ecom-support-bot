@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -38,6 +39,19 @@ SYNTHETIC_QUERIES_PATH = EVAL_DIR / "queries_synthetic.json"
 # need real candidates past rank 3 to mean anything, so eval fetches deeper via an
 # eval-only `k=EVAL_DEPTH` call; production behavior (k=3 default) is unchanged.
 EVAL_DEPTH = 10
+AGENT_MODEL = "claude-haiku-4-5-20251001"
+
+
+def _evaluation_metadata(dataset_path: Path, model: str | None = None) -> dict[str, Any]:
+    """Record the inputs required to compare a live-model evaluation honestly."""
+    dataset_bytes = dataset_path.read_bytes()
+    return {
+        "run_at_utc": datetime.now(UTC).isoformat(),
+        "dataset": dataset_path.name,
+        "dataset_sha256": hashlib.sha256(dataset_bytes).hexdigest(),
+        "model": model,
+        "metric_version": "adversarial-contract-v1",
+    }
 
 
 def load_queries() -> list[dict[str, Any]]:
@@ -1062,6 +1076,7 @@ def run_agent_eval(
     )
 
     return {
+        "metadata": _evaluation_metadata(FIXTURES_PATH, model=AGENT_MODEL),
         "n_fixtures": n,
         "avg_tool_accuracy": round(avg_tool_accuracy, 4),
         "avg_extra_tool_calls": round(avg_extra, 4),
@@ -1210,6 +1225,7 @@ def run_adversarial_eval(
         return round(sum(1 for r in subset if r[flag]) / len(subset), 4)
 
     return {
+        "metadata": _evaluation_metadata(ADVERSARIAL_PATH, model=AGENT_MODEL),
         "n_queries": len(queries),
         "injection_refusal_rate": _rate("prompt_injection", "refused"),
         "clarification_rate": _rate("ambiguous", "clarified"),

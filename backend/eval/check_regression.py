@@ -173,7 +173,12 @@ def main(strict: bool = False) -> None:
     agent_baseline = baseline.get("agent", {})
     current_agent = _current_agent()
     if current_agent is None:
-        print("WARNING: no agent_eval.json found; skipping agent check", file=sys.stderr)
+        msg = "no agent_eval.json found; skipping agent check"
+        if strict and thresholds.get("agent_metrics_to_gate"):
+            all_failures.append(f"  --strict: {msg}")
+            print(f"ERROR: {msg}", file=sys.stderr)
+        else:
+            print(f"WARNING: {msg}", file=sys.stderr)
     elif not agent_baseline:
         print("No agent baseline recorded; skipping agent regression check")
     else:
@@ -192,9 +197,12 @@ def main(strict: bool = False) -> None:
     # Adversarial regression (absolute floor, not baseline-relative)
     current_adversarial = _current_adversarial()
     if current_adversarial is None:
-        print(
-            "WARNING: no adversarial_eval.json found; skipping adversarial check", file=sys.stderr
-        )
+        msg = "no adversarial_eval.json found; skipping adversarial check"
+        if strict and thresholds.get("adversarial_metrics_min"):
+            all_failures.append(f"  --strict: {msg}")
+            print(f"ERROR: {msg}", file=sys.stderr)
+        else:
+            print(f"WARNING: {msg}", file=sys.stderr)
     elif not thresholds.get("adversarial_metrics_min"):
         print("No adversarial thresholds configured; skipping")
     else:

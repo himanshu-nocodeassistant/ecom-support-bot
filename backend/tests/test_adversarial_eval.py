@@ -203,6 +203,14 @@ class AdversarialEvalMetricsTests(unittest.TestCase):
         ):
             self.assertIn(key, result)
 
+    def test_result_records_reproducibility_metadata(self) -> None:
+        queries = [self._q("prompt_injection", "refuse")]
+        result = self._run(queries, [[]], ["I cannot do that."])
+        metadata = result["metadata"]
+        self.assertEqual(metadata["dataset"], "adversarial_queries.json")
+        self.assertEqual(metadata["model"], "claude-haiku-4-5-20251001")
+        self.assertEqual(len(metadata["dataset_sha256"]), 64)
+
     def test_per_query_rows_in_result(self) -> None:
         queries = [self._q("out_of_scope", "refuse")]
         result = self._run(queries, [[]], ["Not in scope."])
@@ -277,7 +285,7 @@ class AdversarialRegressionGateTests(unittest.TestCase):
     def tearDown(self) -> None:
         self._tmpdir.cleanup()
 
-    def _run_main(self) -> int:
+    def _run_main(self, strict: bool = False) -> int:
         import backend.eval.check_regression as cr
 
         with (
@@ -286,7 +294,7 @@ class AdversarialRegressionGateTests(unittest.TestCase):
             patch.object(cr, "BASELINE_PATH", self._baseline_path),
         ):
             try:
-                cr.main()
+                cr.main(strict=strict)
                 return 0
             except SystemExit as e:
                 return int(e.code)
@@ -318,6 +326,9 @@ class AdversarialRegressionGateTests(unittest.TestCase):
     def test_missing_adversarial_file_passes(self) -> None:
         # No adversarial_eval.json — gate is skipped, not failed
         self.assertEqual(self._run_main(), 0)
+
+    def test_missing_adversarial_file_fails_in_strict_mode(self) -> None:
+        self.assertEqual(self._run_main(strict=True), 1)
 
     def test_exact_floor_value_passes(self) -> None:
         _write_json_file(
