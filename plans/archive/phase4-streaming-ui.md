@@ -1,6 +1,11 @@
 # Plan: Phase 4 — Streaming Product Experience
 
-> Source PRD: Phase 4 of supportbot-plan.md — Streaming Product Experience with Replay/Diff Showcase UI
+> **Archived.** Phase 4 is the only release that got its own expanded plan. It is kept as a sample of
+> how a phase was broken down in detail. See [`docs/changelog.md`](../../docs/changelog.md) for what
+> Phase 4 actually did.
+>
+> Source PRD: Phase 4 of [`supportbot-plan.md`](supportbot-plan.md) — Streaming Product Experience
+> with Replay/Diff Showcase UI
 
 ## Architectural decisions
 

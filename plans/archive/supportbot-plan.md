@@ -1,5 +1,13 @@
 # Plan: SupportBot
 
+> **Archived.** This is the original plan, written before Phase 1. It stops at Phase 8, and its
+> checkboxes were never kept up to date, so do not read them as a status board.
+>
+> For what each release actually did, see [`docs/changelog.md`](../../docs/changelog.md). For work
+> that has not started yet, see [`plans/roadmap.md`](../roadmap.md).
+>
+> Kept because it shows how the work was scoped up front, before any of it existed.
+
 ## Architectural decisions
 
 Durable decisions that should survive across releases:
