@@ -125,21 +125,21 @@ class InMemoryCustomerStore:
 class PostgresCustomerStore:
     """Postgres-backed customer store.
 
-    Requires psycopg2. Instantiated only when DATABASE_URL is set; the caller
-    is responsible for falling back to InMemoryCustomerStore when unavailable.
+    Requires psycopg 3 (the driver declared in backend/requirements.txt).
+    Instantiated only when DATABASE_URL is set; the caller is responsible for
+    falling back to InMemoryCustomerStore when unavailable.
     """
 
     def __init__(self, database_url: str) -> None:
-        import psycopg2
-        import psycopg2.extras
+        import psycopg
 
-        self._conn = psycopg2.connect(database_url)
+        self._conn = psycopg.connect(database_url)
         self._conn.autocommit = True
 
     def upsert_customer(self, email: str, name: str) -> dict[str, Any]:
-        import psycopg2.extras
+        from psycopg.rows import dict_row
 
-        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with self._conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 INSERT INTO customers (email, name)
@@ -153,9 +153,9 @@ class PostgresCustomerStore:
         return dict(row)
 
     def get_customer(self, customer_id: str) -> dict[str, Any] | None:
-        import psycopg2.extras
+        from psycopg.rows import dict_row
 
-        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with self._conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 "SELECT customer_id, email, name FROM customers WHERE customer_id = %s",
                 (customer_id,),
@@ -213,9 +213,9 @@ class PostgresCustomerStore:
             )
 
     def load_memory_facts(self, customer_id: str) -> list[dict[str, Any]]:
-        import psycopg2.extras
+        from psycopg.rows import dict_row
 
-        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with self._conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT fact_type, fact_text, confidence, source_session_id

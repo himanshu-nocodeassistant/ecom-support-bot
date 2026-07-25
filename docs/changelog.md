@@ -10,6 +10,34 @@ that has not started yet, see [`plans/roadmap.md`](../plans/roadmap.md).
 
 ---
 
+## Unreleased
+
+### What changed
+
+- Merged three overlapping phase histories into this file. `plans/supportbot-plan.md`,
+  `docs/release-roadmap.md` and `docs/improvement-log.md` all told the same story, so the same facts
+  were kept in up to three places. Docs are now split by tense: this file for past releases,
+  `plans/roadmap.md` for work not started, `plans/decisions/` for why a call was made.
+- Wrote up Phases 8, 9.0 and 9.1, which the old improvement log skipped entirely.
+- **Fixed a driver bug that stopped both Postgres stores from loading.** They imported `psycopg2`,
+  but the project only installs `psycopg` version 3. On a clean install, creating either store
+  raised an `ImportError`. Both are now on psycopg 3.
+
+### Why it matters
+
+- For customers: nothing yet. The bug only bit when Postgres-backed memory was switched on from a
+  clean install, where it failed immediately rather than quietly.
+- For the codebase: the driver bug had been sitting there since Phase 8 because the tests for these
+  stores only checked that the methods existed. They never built one, so the broken import never
+  ran. The tests now construct both stores against a stubbed connection, and a guard test fails if
+  `psycopg2` reappears anywhere in `backend/app/`.
+
+### What is still weak
+
+- The stores still hold one connection each with no pool and no reconnect. That is Phase 10 work.
+
+---
+
 ## Phase 9.2 — Eval contracts and safer multi-intent handling
 
 `v0.9.2-eval-contracts` · 2026-07-15

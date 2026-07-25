@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import unittest
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from backend.app.customer_store import InMemoryCustomerStore
 
@@ -45,6 +46,77 @@ class PostgresStoreExistenceTests(unittest.TestCase):
         from backend.app.customer_store import PostgresCustomerStore
 
         self.assertTrue(hasattr(PostgresCustomerStore, "save_memory_fact"))
+
+
+# ---------------------------------------------------------------------------
+# Driver parity: the stores must use the driver the project declares
+#
+# The existence tests above only check hasattr, so they never run __init__ and
+# never execute its import. That let the stores keep importing psycopg2 while
+# requirements.txt declared psycopg 3 — an ImportError on any clean install,
+# invisible because the integration tests self-skip without DATABASE_URL.
+# ---------------------------------------------------------------------------
+
+
+class PostgresDriverTests(unittest.TestCase):
+    _DSN = "postgresql://user:pw@localhost:5432/db"
+
+    def test_no_app_module_imports_psycopg2(self) -> None:
+        """requirements.txt declares psycopg 3 only; psycopg2 would not be installed."""
+        app_dir = Path(__file__).resolve().parent.parent / "app"
+        offenders = [p.name for p in app_dir.glob("*.py") if "psycopg2" in p.read_text()]
+        self.assertEqual(offenders, [], f"modules importing psycopg2: {offenders}")
+
+    def test_conversation_store_connects_with_declared_driver(self) -> None:
+        import psycopg
+
+        from backend.app.conversation_store import PostgresConversationStore
+
+        with patch.object(psycopg, "connect", return_value=MagicMock()) as connect:
+            PostgresConversationStore(self._DSN)
+        connect.assert_called_once()
+
+    def test_customer_store_connects_with_declared_driver(self) -> None:
+        import psycopg
+
+        from backend.app.customer_store import PostgresCustomerStore
+
+        with patch.object(psycopg, "connect", return_value=MagicMock()) as connect:
+            PostgresCustomerStore(self._DSN)
+        connect.assert_called_once()
+
+    def test_conversation_store_save_turn_executes_insert(self) -> None:
+        import psycopg
+
+        from backend.app.conversation_store import PostgresConversationStore
+
+        conn = MagicMock()
+        cur = conn.cursor.return_value.__enter__.return_value
+        with patch.object(psycopg, "connect", return_value=conn):
+            store = PostgresConversationStore(self._DSN)
+            store.save_turn("sess-1", "user", "hello")
+
+        sql, params = cur.execute.call_args[0]
+        self.assertIn("INSERT INTO conversation_turns", sql)
+        self.assertEqual(params, ("sess-1", "user", "hello"))
+
+    def test_customer_store_upsert_uses_dict_rows(self) -> None:
+        """Row access is by column name, so the cursor must be opened with a dict row factory."""
+        import psycopg
+        from psycopg.rows import dict_row
+
+        from backend.app.customer_store import PostgresCustomerStore
+
+        conn = MagicMock()
+        cur = conn.cursor.return_value.__enter__.return_value
+        cur.fetchone.return_value = {"customer_id": "c1", "email": "a@b.com", "name": "Alice"}
+
+        with patch.object(psycopg, "connect", return_value=conn):
+            store = PostgresCustomerStore(self._DSN)
+            result = store.upsert_customer("a@b.com", "Alice")
+
+        self.assertEqual(conn.cursor.call_args.kwargs.get("row_factory"), dict_row)
+        self.assertEqual(result["email"], "a@b.com")
 
 
 # ---------------------------------------------------------------------------

@@ -33,14 +33,15 @@ class InMemoryConversationStore:
 class PostgresConversationStore:
     """Postgres-backed conversation store.
 
-    Requires psycopg2. Instantiated only when DATABASE_URL is set; the caller
-    is responsible for falling back to InMemoryConversationStore when unavailable.
+    Requires psycopg 3 (the driver declared in backend/requirements.txt).
+    Instantiated only when DATABASE_URL is set; the caller is responsible for
+    falling back to InMemoryConversationStore when unavailable.
     """
 
     def __init__(self, database_url: str) -> None:
-        import psycopg2
+        import psycopg
 
-        self._conn = psycopg2.connect(database_url)
+        self._conn = psycopg.connect(database_url)
         self._conn.autocommit = True
 
     def save_turn(self, session_id: str, role: str, content: str) -> None:
@@ -51,9 +52,9 @@ class PostgresConversationStore:
             )
 
     def load_turns(self, session_id: str, max_turns: int = 20) -> list[dict[str, Any]]:
-        import psycopg2.extras
+        from psycopg.rows import dict_row
 
-        with self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        with self._conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT role, content FROM (
