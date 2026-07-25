@@ -86,10 +86,33 @@ option 2 rather than for lowering the floor.
 
 ## Status of the other gated metrics
 
-Not re-measured. The retrieval and agent-fixture runs attempted alongside this one both died under
-Voyage rate limiting (the account is capped at 3 RPM; see
-`plans/decisions/eval-audit-degraded-fallback.md`) because they were run concurrently with each
-other. They need a serial re-run before any retrieval or tool-accuracy number here is trustworthy.
+**Agent fixtures — re-run, but degraded and not trustworthy.**
+
+```
+n_fixtures 15   avg_tool_accuracy 0.900   avg_refusal_accuracy 1.000   avg_extra_tool_calls 0.067
+```
+
+Against baseline that passes the gate (tool accuracy drops 0.058, inside the 0.10 tolerance; refusal
+accuracy rises from 0.75). But the run logged:
+
+```
+hybrid search degraded to fulltext: embed_query failed
+  (RuntimeError: Voyage rate limit persists after 5 retries)
+```
+
+At least one knowledge search fell back to fulltext, so these numbers describe a partly degraded
+system.
+
+**This exposes a hole in the finding-(n) fix.** That work added `n_degraded`, per-query `degraded`
+tags, and a `--strict` abort — but only to `evaluate_mode`, the retrieval path.
+`run_agent_eval` has none of it: `agent_eval.json` carries no degraded marker, and `--strict` does
+not apply to it. A degraded agent run publishes clean-looking numbers with the warning going only to
+stdout, which nobody reads in CI. Same class of failure as the original silent fallback, in the one
+eval path that was never patched. Fix before re-baselining anything agent-related.
+
+**Retrieval — not recorded here.** Still mid-run at the time of writing. The Voyage account is capped
+at 3 RPM and the harness paces ~21s between calls, so a 62-query hybrid run takes 40+ minutes; it
+must be run serially, not alongside another eval.
 
 `backend/eval/results/baseline.json` also still holds pre-9.x retrieval numbers
 (`avg_precision_at_3_doc` 0.109 against a current-run 0.647). The retrieval gate is comparing against
