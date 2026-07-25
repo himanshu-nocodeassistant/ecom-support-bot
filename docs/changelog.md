@@ -22,6 +22,10 @@ that has not started yet, see [`plans/roadmap.md`](../plans/roadmap.md).
 - **Fixed a driver bug that stopped both Postgres stores from loading.** They imported `psycopg2`,
   but the project only installs `psycopg` version 3. On a clean install, creating either store
   raised an `ImportError`. Both are now on psycopg 3.
+- **Ran the adversarial set against the new contract for the first time, and it fails.**
+  `multi_intent_contract_pass_rate` came in at 0.500 against a floor of 0.80. The other three
+  adversarial metrics pass. Written up in
+  [`plans/decisions/multi-intent-contract-finding.md`](../plans/decisions/multi-intent-contract-finding.md).
 
 ### Why it matters
 
@@ -35,6 +39,11 @@ that has not started yet, see [`plans/roadmap.md`](../plans/roadmap.md).
 ### What is still weak
 
 - The stores still hold one connection each with no pool and no reconnect. That is Phase 10 work.
+- The multi-intent failure is recorded, not fixed. The agent declines unsupported work correctly but
+  does not open a ticket for it, so nobody follows up.
+- Retrieval and agent-fixture metrics were not re-measured. Both runs died under Voyage rate
+  limiting, and `baseline.json` still holds pre-9.x retrieval numbers, so the retrieval gate is
+  comparing against a floor that no longer means anything.
 
 ---
 
