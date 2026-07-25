@@ -111,8 +111,9 @@ Both metrics score retrieval quality, not a generated answer — the retrieval e
 - **Retrieval & agent:** fails if any gated metric drops more than `regression_max_drop` (10%) below baseline.
 - **Memory:** fails if `memory_recall_rate` drops below `memory_recall_rate_min` (0.75) — absolute floor, not relative.
 - **Adversarial:** absolute floor per metric, not baseline-relative.
-- **Strict mode:** fails if a configured retrieval, agent, or adversarial result file is missing. A
-  skipped live eval is not evidence that the metric passed.
+- **Strict mode:** fails if a configured retrieval, agent, or adversarial result file or metric is
+  missing. It also rejects live results with missing or incompatible dataset hash, model, or metric
+  version metadata. A skipped or stale live eval is not evidence that the metric passed.
 
 ### Multi-intent contracts
 

@@ -323,6 +323,22 @@ class AdversarialRegressionGateTests(unittest.TestCase):
         )
         self.assertEqual(self._run_main(), 1)
 
+    def test_missing_configured_metric_fails_in_strict_mode(self) -> None:
+        """A renamed metric must not turn a strict gate into a silent pass."""
+        import backend.eval.check_regression as cr
+
+        failures = cr.check_adversarial_regression(
+            json.loads(self._thresholds_path.read_text()),
+            {
+                "injection_refusal_rate": 0.90,
+                "clarification_rate": 0.85,
+                # Intentionally missing multi_intent_contract_pass_rate.
+                "oos_refusal_rate": 0.92,
+            },
+            strict=True,
+        )
+        self.assertTrue(any("multi_intent_contract_pass_rate" in failure for failure in failures))
+
     def test_missing_adversarial_file_passes(self) -> None:
         # No adversarial_eval.json — gate is skipped, not failed
         self.assertEqual(self._run_main(), 0)
@@ -363,6 +379,53 @@ class AdversarialRegressionGateTests(unittest.TestCase):
         saved = json.loads(self._baseline_path.read_text())
         self.assertIn("adversarial", saved)
         self.assertAlmostEqual(saved["adversarial"]["injection_refusal_rate"], 0.90)
+
+
+class LiveEvalMetadataTests(unittest.TestCase):
+    """Strict gates must reject stale live-eval result schemas and inputs."""
+
+    def test_strict_metadata_validation_rejects_missing_metadata(self) -> None:
+        from backend.eval.check_regression import validate_live_eval_metadata
+
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset_path = Path(tmp) / "adversarial_queries.json"
+            dataset_path.write_text("[]")
+            failures = validate_live_eval_metadata(
+                {}, dataset_path, model="test-model", strict=True
+            )
+        self.assertTrue(any("metadata" in failure for failure in failures))
+
+    def test_strict_metadata_validation_rejects_dataset_mismatch(self) -> None:
+        from backend.eval.check_regression import validate_live_eval_metadata
+
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset_path = Path(tmp) / "adversarial_queries.json"
+            dataset_path.write_text("[]")
+            failures = validate_live_eval_metadata(
+                {
+                    "metadata": {
+                        "dataset": "adversarial_queries.json",
+                        "dataset_sha256": "stale",
+                        "model": "test-model",
+                        "metric_version": "adversarial-contract-v1",
+                    }
+                },
+                dataset_path,
+                model="test-model",
+                strict=True,
+            )
+        self.assertTrue(any("dataset_sha256" in failure for failure in failures))
+
+    def test_strict_agent_gate_rejects_a_missing_configured_metric(self) -> None:
+        from backend.eval.check_regression import check_agent_regression
+
+        failures = check_agent_regression(
+            {"agent_metrics_to_gate": ["avg_tool_accuracy", "avg_refusal_accuracy"]},
+            {"avg_tool_accuracy": 0.9, "avg_refusal_accuracy": 0.9},
+            {"avg_tool_accuracy": 0.9},
+            strict=True,
+        )
+        self.assertTrue(any("avg_refusal_accuracy" in failure for failure in failures))
 
 
 # ---------------------------------------------------------------------------

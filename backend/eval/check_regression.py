@@ -15,6 +15,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -23,6 +24,8 @@ EVAL_DIR = Path(__file__).parent
 RESULTS_DIR = EVAL_DIR / "results"
 THRESHOLDS_PATH = EVAL_DIR / "thresholds.json"
 BASELINE_PATH = RESULTS_DIR / "baseline.json"
+LIVE_EVAL_METRIC_VERSION = "adversarial-contract-v1"
+AGENT_MODEL = "claude-haiku-4-5-20251001"
 
 
 def _load_json(path: Path) -> dict:
@@ -48,6 +51,38 @@ def _current_agent() -> dict | None:
 def _current_adversarial() -> dict | None:
     p = RESULTS_DIR / "adversarial_eval.json"
     return _load_json(p) if p.exists() else None
+
+
+def validate_live_eval_metadata(
+    current: dict, dataset_path: Path, model: str, strict: bool = False
+) -> list[str]:
+    """Return strict-mode failures for stale or incompatible live-eval results.
+
+    Live results are intentionally ignored by git, so a developer can otherwise
+    accidentally gate a change with output produced against a different dataset,
+    model, or scoring contract.
+    """
+    if not strict:
+        return []
+
+    metadata = current.get("metadata")
+    if not isinstance(metadata, dict):
+        return ["  --strict: live eval metadata is missing"]
+
+    expected = {
+        "dataset": dataset_path.name,
+        "dataset_sha256": hashlib.sha256(dataset_path.read_bytes()).hexdigest(),
+        "model": model,
+        "metric_version": LIVE_EVAL_METRIC_VERSION,
+    }
+    failures = []
+    for key, value in expected.items():
+        if metadata.get(key) != value:
+            failures.append(
+                f"  --strict: live eval metadata {key}={metadata.get(key)!r} "
+                f"does not match expected {value!r}"
+            )
+    return failures
 
 
 def check_retrieval_regression(
@@ -91,26 +126,37 @@ def check_memory_regression(thresholds: dict, baseline: dict, current: dict) -> 
     return failures
 
 
-def check_adversarial_regression(thresholds: dict, current: dict) -> list[str]:
+def check_adversarial_regression(
+    thresholds: dict, current: dict, strict: bool = False
+) -> list[str]:
     """Gate on adversarial metric floors (not baseline-relative)."""
     failures: list[str] = []
     mins = thresholds.get("adversarial_metrics_min", {})
     for metric, min_val in mins.items():
         curr_val = current.get(metric)
         if curr_val is None:
+            if strict:
+                failures.append(
+                    f"  --strict: adversarial metric missing from current run: {metric}"
+                )
             continue
         if curr_val < min_val:
             failures.append(f"  {metric}: current={curr_val:.4f} < minimum={min_val:.2f}")
     return failures
 
 
-def check_agent_regression(thresholds: dict, baseline: dict, current: dict) -> list[str]:
+def check_agent_regression(
+    thresholds: dict, baseline: dict, current: dict, strict: bool = False
+) -> list[str]:
     failures: list[str] = []
     max_drop = thresholds.get("agent_regression_max_drop", 0.10)
     for metric in thresholds.get("agent_metrics_to_gate", []):
         base_val = baseline.get(metric)
         curr_val = current.get(metric)
         if base_val is None or curr_val is None:
+            if strict:
+                missing_from = "baseline" if base_val is None else "current run"
+                failures.append(f"  --strict: agent metric missing from {missing_from}: {metric}")
             continue
         drop = base_val - curr_val
         if drop > max_drop:
@@ -180,9 +226,19 @@ def main(strict: bool = False) -> None:
         else:
             print(f"WARNING: {msg}", file=sys.stderr)
     elif not agent_baseline:
-        print("No agent baseline recorded; skipping agent regression check")
+        msg = "no agent baseline recorded; skipping agent regression check"
+        if strict and thresholds.get("agent_metrics_to_gate"):
+            all_failures.append(f"  --strict: {msg}")
+            print(f"ERROR: {msg}", file=sys.stderr)
+        else:
+            print(msg)
     else:
-        failures = check_agent_regression(thresholds, agent_baseline, current_agent)
+        failures = validate_live_eval_metadata(
+            current_agent, EVAL_DIR / "agent_fixtures.json", AGENT_MODEL, strict=strict
+        )
+        failures.extend(
+            check_agent_regression(thresholds, agent_baseline, current_agent, strict=strict)
+        )
         if failures:
             print("AGENT REGRESSION DETECTED:")
             print("\n".join(failures))
@@ -206,7 +262,15 @@ def main(strict: bool = False) -> None:
     elif not thresholds.get("adversarial_metrics_min"):
         print("No adversarial thresholds configured; skipping")
     else:
-        failures = check_adversarial_regression(thresholds, current_adversarial)
+        failures = validate_live_eval_metadata(
+            current_adversarial,
+            EVAL_DIR / "adversarial_queries.json",
+            AGENT_MODEL,
+            strict=strict,
+        )
+        failures.extend(
+            check_adversarial_regression(thresholds, current_adversarial, strict=strict)
+        )
         if failures:
             print("ADVERSARIAL REGRESSION DETECTED:")
             print("\n".join(failures))

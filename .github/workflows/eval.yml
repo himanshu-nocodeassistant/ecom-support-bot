@@ -43,6 +43,7 @@ jobs:
 
       - name: Check for regressions
         id: regression_check
+        if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != '' && env.ANTHROPIC_API_KEY != ''
         run: |
           set -o pipefail
           python -m backend.eval.check_regression --strict 2>&1 | tee "$GITHUB_WORKSPACE/regression_output.txt"
@@ -71,7 +72,8 @@ jobs:
             } catch (e) {
               output = 'Regression check did not run (likely missing DATABASE_URL / API key secrets).';
             }
-            const icon = '${{ steps.regression_check.outcome }}' === 'success' ? '✅' : '❌';
+            const outcome = '${{ steps.regression_check.outcome }}';
+            const icon = outcome === 'success' ? '✅' : outcome === 'skipped' ? '⚪' : '❌';
             const body = `## ${icon} Eval Regression Check\n\n\`\`\`\n${output}\n\`\`\`\n\n_Run \`python -m backend.eval.run --all-modes --benchmark\` locally to see the full comparison table._`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
