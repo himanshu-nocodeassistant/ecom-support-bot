@@ -26,6 +26,9 @@ that has not started yet, see [`plans/roadmap.md`](../plans/roadmap.md).
   `multi_intent_contract_pass_rate` came in at 0.500 against a floor of 0.80. The other three
   adversarial metrics pass. Written up in
   [`plans/decisions/multi-intent-contract-finding.md`](../plans/decisions/multi-intent-contract-finding.md).
+- **Re-measured retrieval, and it has not moved.** A clean run (no degraded queries) gives NDCG@5
+  0.9339 and Hit@1 0.9038, matching the numbers recorded in
+  [`plans/decisions/reranking.md`](../plans/decisions/reranking.md) to three decimal places.
 
 ### Why it matters
 
@@ -44,8 +47,11 @@ that has not started yet, see [`plans/roadmap.md`](../plans/roadmap.md).
 - The agent-fixture eval was re-run but came back degraded, and nothing in its output says so. The
   guard added for the same problem on the retrieval path was never extended to the agent path, so a
   degraded agent run publishes clean-looking numbers.
-- Retrieval was not re-measured, and `baseline.json` still holds pre-9.x numbers, so the retrieval
-  gate is comparing against a floor that no longer means anything.
+- `baseline.json` still holds pre-9.x retrieval numbers (P@3 0.109 against a measured 0.647), so the
+  retrieval gate is comparing against a floor that no longer means anything. It needs a deliberate
+  re-baseline.
+- Retrieval result files carry no reproducibility stamp. The one added in this branch covers the
+  agent and adversarial files only, so a stale retrieval result cannot be detected the same way.
 
 ---
 

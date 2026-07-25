@@ -110,9 +110,31 @@ not apply to it. A degraded agent run publishes clean-looking numbers with the w
 stdout, which nobody reads in CI. Same class of failure as the original silent fallback, in the one
 eval path that was never patched. Fix before re-baselining anything agent-related.
 
-**Retrieval — not recorded here.** Still mid-run at the time of writing. The Voyage account is capped
-at 3 RPM and the harness paces ~21s between calls, so a 62-query hybrid run takes 40+ minutes; it
-must be run serially, not alongside another eval.
+**Retrieval — re-run, clean, and unchanged.** `--strict` with `n_degraded: 0` and exit 0, so no query
+degraded.
+
+```
+P@3 (doc) 0.6474   R@3 (doc) 0.9423   NDCG@5 0.9339   MRR 0.9266
+H@1 0.9038   H@3 0.9423   H@5 0.9615   H@10 0.9808   CtxRel 0.5542
+62 queries, 52 answerable
+```
+
+This reproduces the committed baseline in `plans/decisions/reranking.md` (hybrid NDCG@5 0.934,
+H@1 0.904) to three decimal places, which is the useful result: retrieval quality has not moved, and
+nothing on this branch touched that path.
+
+Two caveats on this run:
+
+- **Latency is not usable** (p50 24.2s, p95 68.6s). It reflects Voyage rate-limit backoff, not
+  retrieval speed, and must not be published as a performance number.
+- **`hybrid.json` carries `metadata: null`.** The reproducibility stamp added in this branch covers
+  the agent and adversarial result files only. The retrieval path never got it, so
+  `validate_live_eval_metadata` cannot detect a stale retrieval result — the same shape of gap as
+  the missing degraded guard on `run_agent_eval` above.
+
+Operational note: the Voyage account is capped at 3 RPM, so a 62-query hybrid run takes upwards of
+an hour and **only one eval may run at a time**. Two concurrent runs starve each other into
+continuous backoff.
 
 `backend/eval/results/baseline.json` also still holds pre-9.x retrieval numbers
 (`avg_precision_at_3_doc` 0.109 against a current-run 0.647). The retrieval gate is comparing against
