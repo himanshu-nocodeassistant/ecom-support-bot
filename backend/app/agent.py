@@ -580,11 +580,18 @@ def _handle_message_deterministic(
         if not order_id:
             reply = "I can help with that refund request. Please share the order ID first."
         else:
-            result = request_refund(order_id, message)
-            tool_events.append(
-                ToolEvent("request_refund", {"order_id": order_id, "reason": message}, result)
-            )
-            reply = result["message"]
+            lookup_result = lookup_order(order_id)
+            tool_events.append(ToolEvent("lookup_order", {"order_id": order_id}, lookup_result))
+            if not lookup_result["found"]:
+                reply = lookup_result["message"]
+            elif not lookup_result["order"]["delivered"]:
+                reply = "Refunds can only start after delivery in the current release."
+            else:
+                result = request_refund(order_id, message)
+                tool_events.append(
+                    ToolEvent("request_refund", {"order_id": order_id, "reason": message}, result)
+                )
+                reply = result["message"]
     elif any(p in lower for p in ["ticket", "human", "agent", "escalate"]):
         result = create_ticket("Customer support follow-up", message, order_id)
         tool_events.append(

@@ -50,9 +50,10 @@ class Phase1ModeTests(unittest.TestCase):
 
     def test_refund_for_undelivered_order_is_rejected(self) -> None:
         result = _handle_message_deterministic("s5", "refund for ORD-1001", mode="phase1")
-        refund_evt = next((e for e in result["tool_events"] if e["name"] == "request_refund"), None)
-        self.assertIsNotNone(refund_evt)
-        self.assertFalse(refund_evt["output"]["approved"])
+        names = [e["name"] for e in result["tool_events"]]
+        self.assertIn("lookup_order", names)
+        self.assertNotIn("request_refund", names)
+        self.assertIn("only start after delivery", result["reply"])
 
     def test_result_includes_mode_field(self) -> None:
         result = _handle_message_deterministic("s6", "hello", mode="phase1")
