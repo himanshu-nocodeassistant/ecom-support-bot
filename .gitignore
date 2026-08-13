@@ -8,7 +8,11 @@ __pycache__/
 dist/
 build/
 local/
-data-set/
+
+# The public Olist dataset is intentionally versioned for reproducible demos.
+# Keep other local/generated data out of Git.
+data-set/*
+!data-set/*.csv
 
 # Eval — generated result files (baseline.json is committed as CI anchor)
 backend/eval/results/*.json

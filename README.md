@@ -133,6 +133,7 @@ Apply the schema, then import data:
 # Apply migrations: migrate_5c_metadata.sql, migrate_7_customer_memory.sql, migrate_8_memory_wiring.sql
 
 # Import orders from Olist dataset
+# The public Olist CSV files are included in this repository under ./data-set.
 python3 -m backend.app.cli import-orders --dataset-dir ./data-set --limit 10000
 
 # Import and embed knowledge docs (15 documents)
