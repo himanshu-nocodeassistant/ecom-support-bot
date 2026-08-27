@@ -1,0 +1,2 @@
+# Optional. Install this file only when Langfuse tracing is enabled.
+langfuse>=3.3.1,<4.0

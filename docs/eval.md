@@ -51,6 +51,21 @@ python -m backend.eval.check_regression
 python -m backend.eval.check_regression --save-baseline
 ```
 
+### End-to-end answer evaluation
+
+Phase 4 uses `backend/eval/e2e_queries.json`. Each case can define
+`reference_claims`, `expected_supporting_document_ids` (one or more), and
+`answerable`. Run it with:
+
+```bash
+python -m backend.eval.run --e2e-eval
+```
+
+The local `results/e2e_eval.json` file is authoritative. It records deterministic
+faithfulness, citation accuracy, and correct-refusal scores. An optional model
+judge can add metadata (model, prompt version, dataset version, and runtime),
+but it is not needed for CI. Langfuse score delivery is best effort.
+
 ---
 
 ## Metrics

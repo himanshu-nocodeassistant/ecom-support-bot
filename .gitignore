@@ -18,3 +18,6 @@ data-set/*
 backend/eval/results/*.json
 !backend/eval/results/baseline.json
 backend/eval/queries_synthetic.json
+
+# Local implementation plan for the RAG quality work.
+plans/rag-retrieval-quality.md

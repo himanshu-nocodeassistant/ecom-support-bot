@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,7 +13,13 @@ from .customer_store import CustomerStore, InMemoryCustomerStore
 from .data import KNOWLEDGE_BASE, ORDERS
 from .memory_context import build_customer_context, build_system_prompt
 from .prompts import SYSTEM_PROMPT
-from .repository import InMemoryRepository, PostgresRepository, get_repository
+from .repository import (
+    HYBRID_CONFIDENCE_THRESHOLD,
+    InMemoryRepository,
+    PostgresRepository,
+    get_repository,
+)
+from .tracing import begin_trace, finish_trace, timed_fields
 
 SESSION_MEMORY: dict[str, list[dict[str, Any]]] = {}
 
@@ -158,6 +165,10 @@ def _repo_for_mode(mode: str):
                 voyage_api_key=settings.voyage_api_key
                 if mode != "phase2" or settings.voyage_api_key
                 else None,
+                enable_reranking=getattr(settings, "enable_reranking", False),
+                candidate_depth=getattr(settings, "retrieval_candidate_depth", 20),
+                final_depth=getattr(settings, "retrieval_final_depth", 3),
+                retrieval_mode=getattr(settings, "retrieval_mode", "weighted"),
             )
         return fallback
 
@@ -169,7 +180,7 @@ def _repo_for_mode(mode: str):
 # ---------------------------------------------------------------------------
 
 
-def handle_message(
+def _handle_message_impl(
     session_id: str,
     message: str,
     mode: str = "phase3",
@@ -178,13 +189,16 @@ def handle_message(
     customer_store: CustomerStore | None = None,
 ) -> dict[str, Any]:
     settings = get_settings()
+    trace = begin_trace(session_id, {"mode": mode, "request": "chat"})
 
     if mode in ("phase1", "phase2") or not settings.anthropic_api_key:
-        return _handle_message_deterministic(session_id, message, mode=mode)
+        return _handle_message_deterministic(session_id, message, mode=mode, trace=trace)
 
     import anthropic
 
     repo = _repo_for_mode(mode)
+    if hasattr(repo, "tracer"):
+        repo.tracer = trace
 
     # --- conversation history ---
     if conv_store is not None:
@@ -215,12 +229,24 @@ def handle_message(
     reply = "I'm sorry, I couldn't process that request."
 
     while True:
+        started = time.monotonic()
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             system=system_prompt_text,
             tools=TOOLS,
             messages=messages,
+        )
+        usage = _usage_metadata(response)
+        trace.observe(
+            "generation",
+            timed_fields(
+                started,
+                model="claude-haiku-4-5-20251001",
+                **usage,
+                estimated_cost_usd=_estimated_cost(usage),
+                degraded=False,
+            ),
         )
 
         assistant_content = response.content
@@ -237,6 +263,7 @@ def handle_message(
         for block in assistant_content:
             if block.type == "tool_use":
                 result = _execute_tool(block.name, dict(block.input), repo=repo)
+                trace.observe("tool_call", {"name": block.name, "degraded": False})
                 tool_events.append(ToolEvent(block.name, dict(block.input), result))
                 if block.name == "lookup_order" and customer_id is not None:
                     order_id = dict(block.input).get("order_id")
@@ -259,7 +286,7 @@ def handle_message(
     else:
         SESSION_MEMORY[session_id] = messages
 
-    return {
+    result = {
         "reply": reply,
         "tool_events": [
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
@@ -268,6 +295,28 @@ def handle_message(
         "session_id": session_id,
         "mode": mode,
     }
+    finish_trace(session_id)
+    return result
+
+
+def handle_message(
+    session_id: str,
+    message: str,
+    mode: str = "phase3",
+    customer_email: str | None = None,
+    conv_store: ConversationStore | None = None,
+    customer_store: CustomerStore | None = None,
+) -> dict[str, Any]:
+    """Run a chat request. Tracing is always closed, including on exceptions."""
+    try:
+        return _handle_message_impl(
+            session_id, message, mode, customer_email, conv_store, customer_store
+        )
+    except Exception:
+        # The implementation owns the handle, but this fallback covers failures
+        # before it can return (for example, a provider exception).
+        finish_trace(session_id)
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -275,7 +324,7 @@ def handle_message(
 # ---------------------------------------------------------------------------
 
 
-async def handle_message_stream(
+async def _handle_message_stream_impl(
     session_id: str,
     message: str,
     customer_email: str | None = None,
@@ -284,9 +333,10 @@ async def handle_message_stream(
 ):
     """Async generator yielding SSE-formatted event strings for Phase 4."""
     settings = get_settings()
+    trace = begin_trace(session_id, {"mode": "phase4", "request": "chat_stream"})
 
     if not settings.anthropic_api_key:
-        result = _handle_message_deterministic(session_id, message, mode="phase3")
+        result = _handle_message_deterministic(session_id, message, mode="phase3", trace=trace)
         yield _sse("token", {"text": result["reply"]})
         for e in result["tool_events"]:
             yield _sse(
@@ -298,6 +348,8 @@ async def handle_message_stream(
     import anthropic
 
     repo = _repo_for_mode("phase4")
+    if hasattr(repo, "tracer"):
+        repo.tracer = trace
 
     # --- conversation history ---
     if conv_store is not None:
@@ -376,6 +428,9 @@ async def handle_message_stream(
                             result = _execute_tool(
                                 current_tool_use["name"], parsed_input, repo=repo
                             )
+                            trace.observe(
+                                "tool_call", {"name": current_tool_use["name"], "degraded": False}
+                            )
                             tool_events.append(
                                 ToolEvent(current_tool_use["name"], parsed_input, result)
                             )
@@ -404,6 +459,10 @@ async def handle_message_stream(
                             current_tool_use = None
 
                 final_message = stream.get_final_message()
+                usage = _usage_metadata(final_message)
+                trace.observe(
+                    "generation", {"model": "claude-haiku-4-5-20251001", **usage, "degraded": False}
+                )
                 assistant_content = final_message.content
                 stop_reason = final_message.stop_reason
 
@@ -433,6 +492,23 @@ async def handle_message_stream(
 
     except Exception as exc:
         yield _sse("error", {"message": str(exc)})
+
+
+async def handle_message_stream(
+    session_id: str,
+    message: str,
+    customer_email: str | None = None,
+    conv_store: ConversationStore | None = None,
+    customer_store: CustomerStore | None = None,
+):
+    """Stream a chat request and always close its tracing context."""
+    try:
+        async for event in _handle_message_stream_impl(
+            session_id, message, customer_email, conv_store, customer_store
+        ):
+            yield event
+    finally:
+        finish_trace(session_id)
 
 
 def _extract_sources(tool_events: list[ToolEvent]) -> list[dict[str, Any]]:
@@ -554,8 +630,9 @@ def _extract_order_id(text: str) -> str | None:
 
 
 def _handle_message_deterministic(
-    session_id: str, message: str, mode: str = "phase1"
+    session_id: str, message: str, mode: str = "phase1", trace=None
 ) -> dict[str, Any]:
+    trace = trace or begin_trace(session_id, {"mode": mode, "request": "chat"})
     _remember_fallback(session_id, "user", message)
     repo = _repo_for_mode(mode)
     tool_events: list[ToolEvent] = []
@@ -604,10 +681,20 @@ def _handle_message_deterministic(
         reply = f"{result['message']} Reference: {result['ticket_id']}."
     else:
         results = search_knowledge_base(message, repo=repo)
+        trace.observe(
+            "sparse_retrieval",
+            {
+                "candidate_depth": len(results),
+                "final_depth": min(3, len(results)),
+                "document_ids": [r.get("id") for r in results],
+                "stage_ranks": list(range(1, len(results) + 1)),
+                "degraded": not results,
+            },
+        )
         tool_events.append(
             ToolEvent("search_knowledge_base", {"query": message}, {"matches": results})
         )
-        if results and results[0]["score"] >= 0.25:
+        if results and results[0]["score"] >= HYBRID_CONFIDENCE_THRESHOLD:
             top = results[0]
             reply = f"Here's the best answer I found from {top['title']}: {top['content']}"
         else:
@@ -625,7 +712,9 @@ def _handle_message_deterministic(
             )
 
     _remember_fallback(session_id, "assistant", reply)
-    return {
+    for event in tool_events:
+        trace.observe("tool_call", {"name": event.name, "degraded": False})
+    result = {
         "reply": reply,
         "tool_events": [
             {"name": e.name, "input": e.input, "output": e.output} for e in tool_events
@@ -634,3 +723,26 @@ def _handle_message_deterministic(
         "session_id": session_id,
         "mode": mode,
     }
+    finish_trace(session_id)
+    return result
+
+
+def _usage_metadata(response: Any) -> dict[str, int]:
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return {}
+    result: dict[str, int] = {}
+    for key in ("input_tokens", "output_tokens", "total_tokens"):
+        value = getattr(usage, key, None)
+        if isinstance(value, int):
+            result[key] = value
+    return result
+
+
+def _estimated_cost(usage: dict[str, int]) -> float | None:
+    if not usage:
+        return None
+    # Approximate Haiku pricing. This is operational metadata only.
+    return round(
+        (usage.get("input_tokens", 0) * 0.8 + usage.get("output_tokens", 0) * 4) / 1_000_000, 8
+    )

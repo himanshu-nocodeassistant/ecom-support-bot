@@ -16,6 +16,7 @@ import hashlib
 import json
 import math
 import sys
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,7 +40,46 @@ SYNTHETIC_QUERIES_PATH = EVAL_DIR / "queries_synthetic.json"
 # need real candidates past rank 3 to mean anything, so eval fetches deeper via an
 # eval-only `k=EVAL_DEPTH` call; production behavior (k=3 default) is unchanged.
 EVAL_DEPTH = 10
+E2E_CASES_PATH = EVAL_DIR / "e2e_queries.json"
+# Production uses a deep candidate pool and a small final context. The eval also
+# records these settings so benchmark rows are reproducible.
+RETRIEVAL_CANDIDATE_DEPTH = 20
+RETRIEVAL_FINAL_DEPTH = 3
 AGENT_MODEL = "claude-haiku-4-5-20251001"
+
+
+def recommend_retrieval_mode(
+    baseline: dict[str, Any],
+    experiment: dict[str, Any],
+    *,
+    max_latency_increase: float = 0.10,
+    max_cost_increase: float = 0.10,
+) -> str:
+    """Recommend RRF only when gates pass and quality improves within budgets."""
+    if experiment.get("mode") not in {"rrf", "rrf+rerank"}:
+        return str(baseline.get("mode", "hybrid"))
+    if not experiment.get("regression_gates_pass", False):
+        return str(baseline.get("mode", "hybrid"))
+    for key in ("candidate_depth", "final_depth", "dataset_sha256", "reranker", "reranker_model"):
+        if key in baseline or key in experiment:
+            if baseline.get(key) != experiment.get(key):
+                return str(baseline.get("mode", "hybrid"))
+    quality = experiment.get("avg_ndcg_at_5", 0.0)
+    if quality <= baseline.get("avg_ndcg_at_5", 0.0):
+        return str(baseline.get("mode", "hybrid"))
+    base_latency = float(baseline.get("p95_latency_s", 0.0))
+    base_cost = float(baseline.get("estimated_cost", {}).get("total_cost_usd", 0.0))
+    latency = float(experiment.get("p95_latency_s", 0.0))
+    cost = float(experiment.get("estimated_cost", {}).get("total_cost_usd", 0.0))
+    if base_latency and latency > base_latency * (1 + max_latency_increase):
+        return str(baseline.get("mode", "hybrid"))
+    if base_cost and cost > base_cost * (1 + max_cost_increase):
+        return str(baseline.get("mode", "hybrid"))
+    if experiment.get("degraded_query_count", experiment.get("n_degraded", 0)) > baseline.get(
+        "degraded_query_count", baseline.get("n_degraded", 0)
+    ):
+        return str(baseline.get("mode", "hybrid"))
+    return str(experiment.get("mode", "rrf"))
 
 
 def _evaluation_metadata(dataset_path: Path, model: str | None = None) -> dict[str, Any]:
@@ -218,6 +258,237 @@ def _answer_correctness(answer: str, keywords: list[str]) -> float:
     return sum(1 for kw in keywords if kw.lower() in lower) / len(keywords)
 
 
+# ---------------------------------------------------------------------------
+# Phase 4: end-to-end answer evaluation
+# ---------------------------------------------------------------------------
+
+
+def extract_citations(answer: str) -> set[str]:
+    """Extract the stable document IDs used by the chat answer contract."""
+    import re
+
+    return {
+        value.strip() for value in re.findall(r"\[(?:source|citation):\s*([^\]]+)\]", answer, re.I)
+    }
+
+
+def _claim_supported(claim: str, context: str) -> bool:
+    """Small, deterministic entailment proxy for CI (not an LLM judge)."""
+    import re
+
+    words = {w for w in re.findall(r"[a-z0-9]+", claim.lower()) if len(w) > 2}
+    if not words:
+        return True
+    present = {w for w in re.findall(r"[a-z0-9]+", context.lower()) if len(w) > 2}
+    return len(words & present) / len(words) >= 0.6
+
+
+def _source_ids(sources: Any) -> set[str]:
+    if not isinstance(sources, list):
+        return set()
+    ids: set[str] = set()
+    for source in sources:
+        if isinstance(source, str):
+            ids.add(source)
+        elif isinstance(source, dict) and source.get("id"):
+            ids.add(str(source["id"]))
+    return ids
+
+
+def _tool_evidence(events: Any) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    if not isinstance(events, list):
+        return evidence
+    for event in events:
+        if not isinstance(event, dict) or event.get("name") != "search_knowledge_base":
+            continue
+        output = event.get("output", {})
+        matches = output.get("matches", output) if isinstance(output, dict) else output
+        if isinstance(matches, list):
+            evidence.extend(item for item in matches if isinstance(item, dict))
+    return evidence
+
+
+def evaluate_end_to_end(
+    cases: list[dict[str, Any]],
+    *,
+    retrieve: Any | None = None,
+    generate: Any | None = None,
+    chat: Any | None = None,
+    judge: Any | None = None,
+    judge_model: str | None = None,
+    prompt_version: str | None = None,
+    dataset_version: str | None = None,
+    score_sink: Any | None = None,
+) -> dict[str, Any]:
+    """Run retrieval plus generation and score the final answer.
+
+    ``retrieve`` and ``generate`` are injectable for deterministic offline tests.
+    With no injections, ``chat`` defaults to the production ``handle_message``
+    path.  The optional judge and score sink are both fail-open.
+    """
+    import inspect
+    import uuid
+
+    if chat is None and (retrieve is None or generate is None):
+        from backend.app.agent import handle_message
+
+        chat = handle_message
+    rows: list[dict[str, Any]] = []
+    started = time.perf_counter()
+    for case in cases:
+        query = case.get("query", "")
+        retrieved: list[dict[str, Any]] = []
+        if retrieve is not None:
+            retrieved = retrieve(query) or []
+            generated = (
+                generate(query, retrieved)
+                if len(inspect.signature(generate).parameters) > 1
+                else generate(query)
+            )
+        else:
+            try:
+                generated = chat(f"eval-{uuid.uuid4().hex[:8]}", query, mode="phase3")
+            except TypeError:
+                generated = chat(query)
+            retrieved = (
+                _tool_evidence(generated.get("tool_events")) if isinstance(generated, dict) else []
+            )
+        if isinstance(generated, str):
+            generated = {"reply": generated}
+        generated = generated or {}
+        answer = str(generated.get("reply", generated.get("answer", "")))
+        claims = case.get("reference_claims", [])
+        claims = [c.get("claim", "") if isinstance(c, dict) else str(c) for c in claims]
+        context = "\n".join(str(r.get("content", "")) for r in retrieved if isinstance(r, dict))
+        faithfulness = (
+            (
+                sum(_claim_supported(c, context) and _claim_supported(c, answer) for c in claims)
+                / len(claims)
+            )
+            if claims
+            else (1.0 if case.get("answerable", True) else 1.0)
+        )
+        expected = {str(x) for x in case.get("expected_supporting_document_ids", [])}
+        citations = extract_citations(answer) | _source_ids(generated.get("sources"))
+        cited_docs = {str(r.get("id")): r for r in retrieved if isinstance(r, dict) and r.get("id")}
+        citation_docs_valid = citations <= expected and citations == expected
+        citation_content_valid = all(
+            any(_claim_supported(c, str(cited_docs[doc].get("content", ""))) for c in claims)
+            for doc in citations
+            if doc in cited_docs
+        ) and citations <= set(cited_docs)
+        citation_accuracy = (
+            float(citation_docs_valid and citation_content_valid)
+            if expected
+            else float(not citations)
+        )
+        lower = answer.lower()
+        refused = bool(generated.get("refused") or generated.get("escalated")) or any(
+            phrase in lower
+            for phrase in (
+                "cannot answer",
+                "can't answer",
+                "not able to help",
+                "escalat",
+                "follow-up ticket",
+            )
+        )
+        correct_refusal = float(refused == (not case.get("answerable", True)))
+        row = {
+            "id": case.get("id"),
+            "faithfulness": round(faithfulness, 4),
+            "citation_accuracy": round(citation_accuracy, 4),
+            "correct_refusal": correct_refusal,
+            "answer": answer,
+            "citations": sorted(citations),
+            "retrieved_doc_ids": [r.get("id") for r in retrieved if isinstance(r, dict)],
+        }
+        if judge is not None:
+            try:
+                judged = judge(case, generated, retrieved)
+                if isinstance(judged, dict):
+                    row["judge"] = judged
+            except Exception:
+                row["judge_error"] = True
+        rows.append(row)
+    n = len(rows)
+    result: dict[str, Any] = {
+        "metadata": {
+            "dataset_version": dataset_version or "local",
+            "dataset_sha256": hashlib.sha256(
+                json.dumps(cases, sort_keys=True).encode()
+            ).hexdigest(),
+            "metric_version": "e2e-v1",
+        },
+        "n_cases": n,
+        "avg_faithfulness": round(sum(r["faithfulness"] for r in rows) / n, 4) if n else 0.0,
+        "avg_citation_accuracy": round(sum(r["citation_accuracy"] for r in rows) / n, 4)
+        if n
+        else 0.0,
+        "avg_correct_refusal": round(sum(r["correct_refusal"] for r in rows) / n, 4) if n else 0.0,
+        "per_case": rows,
+    }
+    if judge is not None:
+        result["judge"] = {
+            "model": judge_model,
+            "prompt_version": prompt_version,
+            "dataset_version": dataset_version,
+            "runtime_s": round(time.perf_counter() - started, 4),
+        }
+    if score_sink is not None:
+        try:
+            score_sink(result)
+        except Exception:
+            result["score_sink_failed"] = True
+    return result
+
+
+def run_e2e_eval(langfuse_client: Any | None = None) -> dict[str, Any]:
+    """Evaluate fixed answer cases through the same public chat handler."""
+    from backend.app.agent import handle_message
+
+    with E2E_CASES_PATH.open() as f:
+        cases = json.load(f)
+    if langfuse_client is None:
+        try:
+            from langfuse import Langfuse
+
+            from backend.app.config import get_settings
+
+            settings = get_settings()
+            if settings.langfuse_public_key and settings.langfuse_secret_key:
+                langfuse_client = Langfuse(
+                    public_key=settings.langfuse_public_key,
+                    secret_key=settings.langfuse_secret_key,
+                    host=settings.langfuse_host,
+                )
+        except Exception:
+            langfuse_client = None
+    result = evaluate_end_to_end(cases, chat=handle_message, dataset_version="e2e-v1")
+    result["langfuse_score_sent"] = send_experiment_scores(result, langfuse_client)
+    return result
+
+
+def send_experiment_scores(
+    result: dict[str, Any], langfuse_client: Any, trace_id: str | None = None
+) -> bool:
+    """Send aggregate scores to Langfuse when configured; never fail an eval run."""
+    if langfuse_client is None:
+        return False
+    try:
+        for name in ("faithfulness", "citation_accuracy", "correct_refusal"):
+            langfuse_client.create_score(
+                trace_id=trace_id,
+                name=f"e2e_{name}",
+                value=float(result[f"avg_{name}"]),
+                data_type="NUMERIC",
+            )
+        return True
+    except Exception:
+        return False
+
+
 def compute_context_relevance(query: str, chunk_text: str, api_key: str) -> float | None:
     """Cosine similarity between a query and a chunk, embedded via voyage-3-lite.
 
@@ -297,14 +568,19 @@ def _llm_judge_context_relevance(
         return 0.0, 0.0
 
 
-def _estimate_cost(n_queries: int, uses_rerank: bool, uses_embed: bool = True) -> dict[str, float]:
+def _estimate_cost(
+    n_queries: int,
+    uses_rerank: bool,
+    uses_embed: bool = True,
+    candidate_depth: int = RETRIEVAL_CANDIDATE_DEPTH,
+) -> dict[str, float]:
     embed_cost = 0.0
     if uses_embed:
         embed_tokens = n_queries * AVG_QUERY_TOKENS
         embed_cost = (embed_tokens / 1_000_000) * VOYAGE_EMBED_PRICE_PER_M
     rerank_cost = 0.0
     if uses_rerank:
-        rerank_tokens = n_queries * (AVG_QUERY_TOKENS + 3 * AVG_CHUNK_TOKENS)
+        rerank_tokens = n_queries * (AVG_QUERY_TOKENS + candidate_depth * AVG_CHUNK_TOKENS)
         rerank_cost = (rerank_tokens / 1_000_000) * VOYAGE_RERANK_PRICE_PER_M
     return {
         "embed_cost_usd": round(embed_cost, 6),
@@ -338,15 +614,32 @@ def evaluate_mode(
         repo = PostgresRepository(database_url=database_url, fallback=fallback, voyage_api_key=None)
     elif mode == "hybrid":
         repo = PostgresRepository(
-            database_url=database_url, fallback=fallback, voyage_api_key=voyage_api_key
+            database_url=database_url,
+            fallback=fallback,
+            voyage_api_key=voyage_api_key,
+            candidate_depth=RETRIEVAL_CANDIDATE_DEPTH,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
         )
-    elif mode == "hybrid+rerank":
+    elif mode == "rrf":
+        repo = PostgresRepository(
+            database_url=database_url,
+            fallback=fallback,
+            voyage_api_key=voyage_api_key,
+            retrieval_mode="rrf",
+            candidate_depth=RETRIEVAL_CANDIDATE_DEPTH,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
+        )
+    elif mode in ("hybrid+rerank", "hybrid+rerank-deep", "rrf+rerank"):
         uses_rerank = True
+        candidate_depth = 3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH
         repo = PostgresRepository(
             database_url=database_url,
             fallback=fallback,
             voyage_api_key=voyage_api_key,
             enable_reranking=True,
+            candidate_depth=candidate_depth,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
+            retrieval_mode="rrf" if mode == "rrf+rerank" else "weighted",
         )
     else:
         raise ValueError(f"Unknown mode: {mode}")
@@ -378,7 +671,12 @@ def evaluate_mode(
     # calls succeed on the first try. This is an eval-harness concern (sequential
     # single-query calls are what trip the limit); production's per-request
     # embed_query is unaffected.
-    pace_seconds = 21.0 if mode in ("hybrid", "hybrid+rerank") and voyage_api_key else 0.0
+    pace_seconds = (
+        21.0
+        if mode in ("hybrid", "rrf", "hybrid+rerank", "hybrid+rerank-deep", "rrf+rerank")
+        and voyage_api_key
+        else 0.0
+    )
 
     search_results: list[
         tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], float]
@@ -487,7 +785,12 @@ def evaluate_mode(
     p50 = latencies[len(latencies) // 2]
     p95 = latencies[int(len(latencies) * 0.95)]
     uses_embed = mode not in ("keyword", "fulltext")
-    cost = _estimate_cost(len(queries), uses_rerank, uses_embed=uses_embed)
+    cost = _estimate_cost(
+        len(queries),
+        uses_rerank,
+        uses_embed=uses_embed,
+        candidate_depth=(3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH),
+    )
     if total_judge_cost:
         cost["judge_cost_usd"] = round(total_judge_cost, 6)
         cost["total_cost_usd"] = round(cost["total_cost_usd"] + total_judge_cost, 6)
@@ -511,11 +814,20 @@ def evaluate_mode(
         "p50_latency_s": round(p50, 4),
         "p95_latency_s": round(p95, 4),
         "estimated_cost": cost,
+        "candidate_depth": (3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH),
+        "final_depth": RETRIEVAL_FINAL_DEPTH,
         "n_queries": len(queries),
         "n_answerable": len(answerable),
         "n_degraded": sum(1 for r in per_query if r.get("degraded")),
+        "degraded_query_count": sum(1 for r in per_query if r.get("degraded")),
+        "dataset": QUERIES_PATH.name,
+        "dataset_sha256": hashlib.sha256(QUERIES_PATH.read_bytes()).hexdigest(),
+        "regression_gates_pass": False,
         "per_query": per_query,
     }
+    if uses_rerank:
+        result["reranker"] = "voyage"
+        result["reranker_model"] = "rerank-2-lite"
     if use_llm_judge and anthropic_api_key:
         result["avg_context_relevance_llm"] = _avg("context_relevance_llm")
     return result
@@ -841,6 +1153,12 @@ def _generate_benchmark_md(
     history_path: Path = BENCHMARK_HISTORY_PATH,
 ) -> None:
     """Write a committed markdown comparison table from eval results."""
+    baseline = next((r for r in mode_results if r.get("mode") == "hybrid+rerank-deep"), None)
+    experiment = next((r for r in mode_results if r.get("mode") == "rrf+rerank"), None)
+    if baseline and experiment:
+        recommended = recommend_retrieval_mode(baseline, experiment)
+    else:
+        recommended = max(mode_results, key=lambda r: r.get("avg_ndcg_at_5", 0.0)).get("mode")
     has_llm = any("avg_context_relevance_llm" in r for r in mode_results)
     backends = {r.get("backend", "unknown") for r in mode_results}
     backend_label = "Postgres (Supabase)" if "postgres" in backends else "In-memory"
@@ -851,6 +1169,8 @@ def _generate_benchmark_md(
         f"Results from: {backend_label}, {datetime.utcnow().strftime('%Y-%m-%d')}  ",
         f"Queries: {mode_results[0]['n_queries']} total, {mode_results[0]['n_answerable']} answerable  ",
         "Eval dataset: `backend/eval/queries.json`",
+        f"Retrieval depth: {mode_results[0].get('candidate_depth', RETRIEVAL_CANDIDATE_DEPTH)} candidates, "
+        f"{mode_results[0].get('final_depth', RETRIEVAL_FINAL_DEPTH)} final results  ",
         "",
         "## Mode × Metric",
         "",
@@ -875,8 +1195,8 @@ def _generate_benchmark_md(
     for r in mode_results:
         row = [
             f"`{r['mode']}`",
-            f"{r['avg_precision_at_3']:.3f}",
-            f"{r['avg_recall_at_3']:.3f}",
+            f"{r.get('avg_precision_at_3', 0.0):.3f}",
+            f"{r.get('avg_recall_at_3', 0.0):.3f}",
             f"{r.get('avg_precision_at_3_doc', 0.0):.3f}",
             f"{r.get('avg_recall_at_3_doc', 0.0):.3f}",
             f"{r.get('avg_hit_rate_at_1', 0.0):.3f}",
@@ -890,6 +1210,20 @@ def _generate_benchmark_md(
 
     # Quality + latency + cost table
     lines += ["", "## Quality, Latency & Cost", ""]
+    lines += ["", "## Retrieval Configuration", ""]
+    for r in mode_results:
+        lines.append(
+            f"- `{r['mode']}`: {r.get('candidate_depth', '—')} candidates, "
+            f"{r.get('final_depth', '—')} final results, "
+            f"estimated cost ${r.get('estimated_cost', {}).get('total_cost_usd', 0.0):.6f}."
+        )
+    lines += [
+        "",
+        f"Recommended mode: `{recommended}`.",
+        "",
+        "The `hybrid+rerank` row is the legacy top-3 reranking baseline when its candidate depth is 3; `hybrid+rerank-deep` is the Phase 1 experiment using the same final depth and a larger candidate pool.",
+        "",
+    ]
     qual_cols = ["Mode", "CtxRel", "KwCorr", "KwCorr chars"]
     if has_llm:
         qual_cols.append("CtxRelLLM")
@@ -910,8 +1244,8 @@ def _generate_benchmark_md(
             ctx_rel_llm = r.get("avg_context_relevance_llm")
             row.append(f"{ctx_rel_llm:.3f}" if ctx_rel_llm is not None else "—")
         row += [
-            f"{r['p50_latency_s']:.4f}",
-            f"{r['p95_latency_s']:.4f}",
+            f"{r.get('p50_latency_s', 0.0):.4f}",
+            f"{r.get('p95_latency_s', 0.0):.4f}",
             f"{cost:.6f}" if cost > 0 else "$0",
         ]
         lines.append("| " + " | ".join(row) + " |")
@@ -1244,7 +1578,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="SupportBot eval runner")
     parser.add_argument(
         "--mode",
-        choices=["keyword", "fulltext", "hybrid", "hybrid+rerank"],
+        choices=[
+            "keyword",
+            "fulltext",
+            "hybrid",
+            "rrf",
+            "hybrid+rerank",
+            "hybrid+rerank-deep",
+            "rrf+rerank",
+        ],
     )
     parser.add_argument("--all-modes", action="store_true", help="Run all retrieval modes")
     parser.add_argument(
@@ -1259,6 +1601,9 @@ def main() -> None:
     parser.add_argument("--agent-eval", action="store_true", help="6c: run agent fixture eval")
     parser.add_argument(
         "--adversarial-eval", action="store_true", help="9e: run adversarial query eval"
+    )
+    parser.add_argument(
+        "--e2e-eval", action="store_true", help="Phase 4: evaluate generated answers"
     )
     parser.add_argument("--knowledge-dir", default="backend/knowledge")
     parser.add_argument(
@@ -1284,6 +1629,23 @@ def main() -> None:
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY") or env.get("ANTHROPIC_API_KEY")
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.e2e_eval:
+        result = run_e2e_eval()
+        out_path = RESULTS_DIR / "e2e_eval.json"
+        # Replace only after serialization succeeds, so a failed run cannot
+        # leave a truncated result that strict CI might treat as authoritative.
+        with tempfile.NamedTemporaryFile(
+            "w", dir=RESULTS_DIR, prefix="e2e_eval-", suffix=".tmp", delete=False
+        ) as tmp:
+            tmp.write(json.dumps(result, indent=2))
+            tmp_path = Path(tmp.name)
+        tmp_path.replace(out_path)
+        print(f"Faithfulness: {result['avg_faithfulness']:.3f}")
+        print(f"Citation accuracy: {result['avg_citation_accuracy']:.3f}")
+        print(f"Correct refusal: {result['avg_correct_refusal']:.3f}")
+        print(f"Results saved to {out_path}")
+        return
 
     if args.agent_eval:
         print("=== 6c: Agent Fixture Eval ===")
@@ -1342,7 +1704,7 @@ def main() -> None:
         print(f"Results saved to {out_path}")
         return
 
-    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank"]
+    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank-deep", "rrf+rerank"]
     modes = all_modes if args.all_modes else ([args.mode] if args.mode else None)
     if not modes:
         parser.print_help()

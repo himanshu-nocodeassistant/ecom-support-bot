@@ -146,7 +146,9 @@ def _run_retrieval_comparison(database_url: str, voyage_api_key: str | None) -> 
         order by score desc limit 1
     """
 
-    THRESHOLD = 0.25
+    from .repository import HYBRID_CONFIDENCE_THRESHOLD
+
+    THRESHOLD = HYBRID_CONFIDENCE_THRESHOLD
     header = f"{'Query':<48}  {'FTS result':<26}  {'Hybrid result':<26}  Correct?"
     print(header)
     print("-" * len(header))
