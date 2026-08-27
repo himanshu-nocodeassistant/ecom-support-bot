@@ -13,7 +13,12 @@ from .customer_store import CustomerStore, InMemoryCustomerStore
 from .data import KNOWLEDGE_BASE, ORDERS
 from .memory_context import build_customer_context, build_system_prompt
 from .prompts import SYSTEM_PROMPT
-from .repository import InMemoryRepository, PostgresRepository, get_repository
+from .repository import (
+    HYBRID_CONFIDENCE_THRESHOLD,
+    InMemoryRepository,
+    PostgresRepository,
+    get_repository,
+)
 from .tracing import begin_trace, finish_trace, timed_fields
 
 SESSION_MEMORY: dict[str, list[dict[str, Any]]] = {}
@@ -689,7 +694,7 @@ def _handle_message_deterministic(
         tool_events.append(
             ToolEvent("search_knowledge_base", {"query": message}, {"matches": results})
         )
-        if results and results[0]["score"] >= 0.25:
+        if results and results[0]["score"] >= HYBRID_CONFIDENCE_THRESHOLD:
             top = results[0]
             reply = f"Here's the best answer I found from {top['title']}: {top['content']}"
         else:

@@ -8,6 +8,8 @@ from typing import Any, Protocol
 from .config import get_settings
 from .data import KNOWLEDGE_BASE, ORDERS
 
+HYBRID_CONFIDENCE_THRESHOLD = 0.30
+
 
 class Repository(Protocol):
     def get_order(self, order_id: str) -> dict[str, Any] | None: ...
