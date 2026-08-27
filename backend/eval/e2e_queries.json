@@ -1,0 +1,26 @@
+[
+  {
+    "id": "e2e-refund",
+    "category": "refund",
+    "query": "Can I get a refund for a damaged item?",
+    "reference_claims": ["Damaged items are eligible for a refund within 30 days of delivery"],
+    "expected_supporting_document_ids": ["refund-policy"],
+    "answerable": true
+  },
+  {
+    "id": "e2e-shipping",
+    "category": "shipping",
+    "query": "How long does standard delivery take?",
+    "reference_claims": ["Standard delivery takes 3 to 7 business days"],
+    "expected_supporting_document_ids": ["shipping-policy"],
+    "answerable": true
+  },
+  {
+    "id": "e2e-unsupported",
+    "category": "unsupported",
+    "query": "Can you diagnose my medical condition?",
+    "reference_claims": [],
+    "expected_supporting_document_ids": [],
+    "answerable": false
+  }
+]

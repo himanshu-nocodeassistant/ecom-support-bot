@@ -53,6 +53,24 @@ def _current_adversarial() -> dict | None:
     return _load_json(p) if p.exists() else None
 
 
+def _current_e2e() -> dict | None:
+    p = RESULTS_DIR / "e2e_eval.json"
+    return _load_json(p) if p.exists() else None
+
+
+def check_e2e_regression(thresholds: dict, current: dict, strict: bool = False) -> list[str]:
+    """Apply absolute CI floors to generated-answer metrics."""
+    failures: list[str] = []
+    for metric, minimum in thresholds.get("e2e_metrics_min", {}).items():
+        value = current.get(metric)
+        if value is None:
+            if strict:
+                failures.append(f"  --strict: e2e metric missing from current run: {metric}")
+        elif value < minimum:
+            failures.append(f"  {metric}: current={value:.4f} < minimum={minimum:.2f}")
+    return failures
+
+
 def validate_live_eval_metadata(
     current: dict, dataset_path: Path, model: str, strict: bool = False
 ) -> list[str]:
@@ -281,6 +299,24 @@ def main(strict: bool = False) -> None:
                 c = current_adversarial.get(m, "n/a")
                 print(f"  {m}: current={c}  minimum={min_val}")
 
+    # Generated-answer regression (absolute floors; local result is authoritative).
+    current_e2e = _current_e2e()
+    if current_e2e is None:
+        msg = "no e2e_eval.json found; skipping end-to-end answer check"
+        if strict and thresholds.get("e2e_metrics_min"):
+            all_failures.append(f"  --strict: {msg}")
+            print(f"ERROR: {msg}", file=sys.stderr)
+        else:
+            print(f"WARNING: {msg}", file=sys.stderr)
+    else:
+        failures = check_e2e_regression(thresholds, current_e2e, strict=strict)
+        if failures:
+            print("END-TO-END REGRESSION DETECTED:")
+            print("\n".join(failures))
+            all_failures.extend(failures)
+        else:
+            print("End-to-end answer eval OK")
+
     if all_failures:
         print(f"\n{len(all_failures)} regression(s) found. Failing CI.")
         sys.exit(1)
@@ -307,6 +343,11 @@ def save_baseline() -> None:
     if adversarial:
         adv_keys = list(thresholds.get("adversarial_metrics_min", {}).keys())
         snapshot["adversarial"] = {m: adversarial.get(m) for m in adv_keys}
+
+    e2e = _current_e2e()
+    if e2e:
+        e2e_keys = list(thresholds.get("e2e_metrics_min", {}).keys())
+        snapshot["e2e"] = {m: e2e.get(m) for m in e2e_keys}
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     BASELINE_PATH.write_text(json.dumps(snapshot, indent=2))

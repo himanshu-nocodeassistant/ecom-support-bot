@@ -26,3 +26,8 @@ def test_prompt_blocks_refunds_without_a_customer_reason() -> None:
         in SYSTEM_PROMPT
     )
     assert "ask for the reason instead of processing it" in SYSTEM_PROMPT
+
+
+def test_prompt_requires_exact_knowledge_base_citations() -> None:
+    assert "[source:<document-id>]" in SYSTEM_PROMPT
+    assert "Do not cite documents that do not support the claim" in SYSTEM_PROMPT

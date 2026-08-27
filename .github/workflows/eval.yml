@@ -41,6 +41,9 @@ jobs:
         if: env.ANTHROPIC_API_KEY != ''
         run: python -m backend.eval.run --adversarial-eval
 
+      - name: Run end-to-end answer eval
+        run: python -m backend.eval.run --e2e-eval
+
       - name: Check for regressions
         id: regression_check
         if: env.DATABASE_URL != '' && env.VOYAGE_API_KEY != '' && env.ANTHROPIC_API_KEY != ''

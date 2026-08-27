@@ -16,6 +16,7 @@ import hashlib
 import json
 import math
 import sys
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,6 +40,7 @@ SYNTHETIC_QUERIES_PATH = EVAL_DIR / "queries_synthetic.json"
 # need real candidates past rank 3 to mean anything, so eval fetches deeper via an
 # eval-only `k=EVAL_DEPTH` call; production behavior (k=3 default) is unchanged.
 EVAL_DEPTH = 10
+E2E_CASES_PATH = EVAL_DIR / "e2e_queries.json"
 # Production uses a deep candidate pool and a small final context. The eval also
 # records these settings so benchmark rows are reproducible.
 RETRIEVAL_CANDIDATE_DEPTH = 20
@@ -254,6 +256,237 @@ def _answer_correctness(answer: str, keywords: list[str]) -> float:
         return 1.0
     lower = answer.lower()
     return sum(1 for kw in keywords if kw.lower() in lower) / len(keywords)
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: end-to-end answer evaluation
+# ---------------------------------------------------------------------------
+
+
+def extract_citations(answer: str) -> set[str]:
+    """Extract the stable document IDs used by the chat answer contract."""
+    import re
+
+    return {
+        value.strip() for value in re.findall(r"\[(?:source|citation):\s*([^\]]+)\]", answer, re.I)
+    }
+
+
+def _claim_supported(claim: str, context: str) -> bool:
+    """Small, deterministic entailment proxy for CI (not an LLM judge)."""
+    import re
+
+    words = {w for w in re.findall(r"[a-z0-9]+", claim.lower()) if len(w) > 2}
+    if not words:
+        return True
+    present = {w for w in re.findall(r"[a-z0-9]+", context.lower()) if len(w) > 2}
+    return len(words & present) / len(words) >= 0.6
+
+
+def _source_ids(sources: Any) -> set[str]:
+    if not isinstance(sources, list):
+        return set()
+    ids: set[str] = set()
+    for source in sources:
+        if isinstance(source, str):
+            ids.add(source)
+        elif isinstance(source, dict) and source.get("id"):
+            ids.add(str(source["id"]))
+    return ids
+
+
+def _tool_evidence(events: Any) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    if not isinstance(events, list):
+        return evidence
+    for event in events:
+        if not isinstance(event, dict) or event.get("name") != "search_knowledge_base":
+            continue
+        output = event.get("output", {})
+        matches = output.get("matches", output) if isinstance(output, dict) else output
+        if isinstance(matches, list):
+            evidence.extend(item for item in matches if isinstance(item, dict))
+    return evidence
+
+
+def evaluate_end_to_end(
+    cases: list[dict[str, Any]],
+    *,
+    retrieve: Any | None = None,
+    generate: Any | None = None,
+    chat: Any | None = None,
+    judge: Any | None = None,
+    judge_model: str | None = None,
+    prompt_version: str | None = None,
+    dataset_version: str | None = None,
+    score_sink: Any | None = None,
+) -> dict[str, Any]:
+    """Run retrieval plus generation and score the final answer.
+
+    ``retrieve`` and ``generate`` are injectable for deterministic offline tests.
+    With no injections, ``chat`` defaults to the production ``handle_message``
+    path.  The optional judge and score sink are both fail-open.
+    """
+    import inspect
+    import uuid
+
+    if chat is None and (retrieve is None or generate is None):
+        from backend.app.agent import handle_message
+
+        chat = handle_message
+    rows: list[dict[str, Any]] = []
+    started = time.perf_counter()
+    for case in cases:
+        query = case.get("query", "")
+        retrieved: list[dict[str, Any]] = []
+        if retrieve is not None:
+            retrieved = retrieve(query) or []
+            generated = (
+                generate(query, retrieved)
+                if len(inspect.signature(generate).parameters) > 1
+                else generate(query)
+            )
+        else:
+            try:
+                generated = chat(f"eval-{uuid.uuid4().hex[:8]}", query, mode="phase3")
+            except TypeError:
+                generated = chat(query)
+            retrieved = (
+                _tool_evidence(generated.get("tool_events")) if isinstance(generated, dict) else []
+            )
+        if isinstance(generated, str):
+            generated = {"reply": generated}
+        generated = generated or {}
+        answer = str(generated.get("reply", generated.get("answer", "")))
+        claims = case.get("reference_claims", [])
+        claims = [c.get("claim", "") if isinstance(c, dict) else str(c) for c in claims]
+        context = "\n".join(str(r.get("content", "")) for r in retrieved if isinstance(r, dict))
+        faithfulness = (
+            (
+                sum(_claim_supported(c, context) and _claim_supported(c, answer) for c in claims)
+                / len(claims)
+            )
+            if claims
+            else (1.0 if case.get("answerable", True) else 1.0)
+        )
+        expected = {str(x) for x in case.get("expected_supporting_document_ids", [])}
+        citations = extract_citations(answer) | _source_ids(generated.get("sources"))
+        cited_docs = {str(r.get("id")): r for r in retrieved if isinstance(r, dict) and r.get("id")}
+        citation_docs_valid = citations <= expected and citations == expected
+        citation_content_valid = all(
+            any(_claim_supported(c, str(cited_docs[doc].get("content", ""))) for c in claims)
+            for doc in citations
+            if doc in cited_docs
+        ) and citations <= set(cited_docs)
+        citation_accuracy = (
+            float(citation_docs_valid and citation_content_valid)
+            if expected
+            else float(not citations)
+        )
+        lower = answer.lower()
+        refused = bool(generated.get("refused") or generated.get("escalated")) or any(
+            phrase in lower
+            for phrase in (
+                "cannot answer",
+                "can't answer",
+                "not able to help",
+                "escalat",
+                "follow-up ticket",
+            )
+        )
+        correct_refusal = float(refused == (not case.get("answerable", True)))
+        row = {
+            "id": case.get("id"),
+            "faithfulness": round(faithfulness, 4),
+            "citation_accuracy": round(citation_accuracy, 4),
+            "correct_refusal": correct_refusal,
+            "answer": answer,
+            "citations": sorted(citations),
+            "retrieved_doc_ids": [r.get("id") for r in retrieved if isinstance(r, dict)],
+        }
+        if judge is not None:
+            try:
+                judged = judge(case, generated, retrieved)
+                if isinstance(judged, dict):
+                    row["judge"] = judged
+            except Exception:
+                row["judge_error"] = True
+        rows.append(row)
+    n = len(rows)
+    result: dict[str, Any] = {
+        "metadata": {
+            "dataset_version": dataset_version or "local",
+            "dataset_sha256": hashlib.sha256(
+                json.dumps(cases, sort_keys=True).encode()
+            ).hexdigest(),
+            "metric_version": "e2e-v1",
+        },
+        "n_cases": n,
+        "avg_faithfulness": round(sum(r["faithfulness"] for r in rows) / n, 4) if n else 0.0,
+        "avg_citation_accuracy": round(sum(r["citation_accuracy"] for r in rows) / n, 4)
+        if n
+        else 0.0,
+        "avg_correct_refusal": round(sum(r["correct_refusal"] for r in rows) / n, 4) if n else 0.0,
+        "per_case": rows,
+    }
+    if judge is not None:
+        result["judge"] = {
+            "model": judge_model,
+            "prompt_version": prompt_version,
+            "dataset_version": dataset_version,
+            "runtime_s": round(time.perf_counter() - started, 4),
+        }
+    if score_sink is not None:
+        try:
+            score_sink(result)
+        except Exception:
+            result["score_sink_failed"] = True
+    return result
+
+
+def run_e2e_eval(langfuse_client: Any | None = None) -> dict[str, Any]:
+    """Evaluate fixed answer cases through the same public chat handler."""
+    from backend.app.agent import handle_message
+
+    with E2E_CASES_PATH.open() as f:
+        cases = json.load(f)
+    if langfuse_client is None:
+        try:
+            from langfuse import Langfuse
+
+            from backend.app.config import get_settings
+
+            settings = get_settings()
+            if settings.langfuse_public_key and settings.langfuse_secret_key:
+                langfuse_client = Langfuse(
+                    public_key=settings.langfuse_public_key,
+                    secret_key=settings.langfuse_secret_key,
+                    host=settings.langfuse_host,
+                )
+        except Exception:
+            langfuse_client = None
+    result = evaluate_end_to_end(cases, chat=handle_message, dataset_version="e2e-v1")
+    result["langfuse_score_sent"] = send_experiment_scores(result, langfuse_client)
+    return result
+
+
+def send_experiment_scores(
+    result: dict[str, Any], langfuse_client: Any, trace_id: str | None = None
+) -> bool:
+    """Send aggregate scores to Langfuse when configured; never fail an eval run."""
+    if langfuse_client is None:
+        return False
+    try:
+        for name in ("faithfulness", "citation_accuracy", "correct_refusal"):
+            langfuse_client.create_score(
+                trace_id=trace_id,
+                name=f"e2e_{name}",
+                value=float(result[f"avg_{name}"]),
+                data_type="NUMERIC",
+            )
+        return True
+    except Exception:
+        return False
 
 
 def compute_context_relevance(query: str, chunk_text: str, api_key: str) -> float | None:
@@ -1369,6 +1602,9 @@ def main() -> None:
     parser.add_argument(
         "--adversarial-eval", action="store_true", help="9e: run adversarial query eval"
     )
+    parser.add_argument(
+        "--e2e-eval", action="store_true", help="Phase 4: evaluate generated answers"
+    )
     parser.add_argument("--knowledge-dir", default="backend/knowledge")
     parser.add_argument(
         "--query-set",
@@ -1393,6 +1629,23 @@ def main() -> None:
     anthropic_api_key = os.getenv("ANTHROPIC_API_KEY") or env.get("ANTHROPIC_API_KEY")
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.e2e_eval:
+        result = run_e2e_eval()
+        out_path = RESULTS_DIR / "e2e_eval.json"
+        # Replace only after serialization succeeds, so a failed run cannot
+        # leave a truncated result that strict CI might treat as authoritative.
+        with tempfile.NamedTemporaryFile(
+            "w", dir=RESULTS_DIR, prefix="e2e_eval-", suffix=".tmp", delete=False
+        ) as tmp:
+            tmp.write(json.dumps(result, indent=2))
+            tmp_path = Path(tmp.name)
+        tmp_path.replace(out_path)
+        print(f"Faithfulness: {result['avg_faithfulness']:.3f}")
+        print(f"Citation accuracy: {result['avg_citation_accuracy']:.3f}")
+        print(f"Correct refusal: {result['avg_correct_refusal']:.3f}")
+        print(f"Results saved to {out_path}")
+        return
 
     if args.agent_eval:
         print("=== 6c: Agent Fixture Eval ===")
