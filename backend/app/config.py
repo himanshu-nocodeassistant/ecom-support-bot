@@ -16,6 +16,10 @@ class Settings:
     retrieval_candidate_depth: int
     retrieval_final_depth: int
     retrieval_mode: str
+    trace_enabled: bool
+    langfuse_public_key: str | None
+    langfuse_secret_key: str | None
+    langfuse_host: str
 
 
 def _read_env_file() -> dict[str, str]:
@@ -64,4 +68,8 @@ def get_settings() -> Settings:
         retrieval_candidate_depth=env_int("SUPPORTBOT_RETRIEVAL_CANDIDATE_DEPTH", 20),
         retrieval_final_depth=env_int("SUPPORTBOT_RETRIEVAL_FINAL_DEPTH", 3),
         retrieval_mode=env_value("SUPPORTBOT_RETRIEVAL_MODE", "weighted"),
+        trace_enabled=env_bool("SUPPORTBOT_TRACE_ENABLED", True),
+        langfuse_public_key=os.getenv("LANGFUSE_PUBLIC_KEY", env_values.get("LANGFUSE_PUBLIC_KEY")),
+        langfuse_secret_key=os.getenv("LANGFUSE_SECRET_KEY", env_values.get("LANGFUSE_SECRET_KEY")),
+        langfuse_host=env_value("LANGFUSE_HOST", "https://cloud.langfuse.com"),
     )

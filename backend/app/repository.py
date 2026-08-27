@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Protocol
@@ -127,6 +128,7 @@ class PostgresRepository:
             raise ValueError("retrieval_mode must be 'weighted' or 'rrf'")
         self.retrieval_mode = retrieval_mode
         self.rrf_k = max(1, rrf_k)
+        self.tracer = None
 
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         try:
@@ -186,6 +188,8 @@ class PostgresRepository:
         """Run PostgreSQL full-text search as an independent ranked list."""
         import psycopg
 
+        started = time.monotonic()
+
         sql = """
             select kd.id, kd.title, kd.category, kc.chunk_text,
                    ts_rank(kc.search_vector, plainto_tsquery('english', %(q)s)) as score
@@ -199,15 +203,40 @@ class PostgresRepository:
                     cur.execute(sql, {"q": query_text, "limit": k})
                     rows = cur.fetchall()
         except psycopg.Error:
+            if self.tracer:
+                self.tracer.observe(
+                    "sparse_retrieval",
+                    {
+                        "candidate_depth": k,
+                        "document_ids": [],
+                        "stage_ranks": [],
+                        "degraded": True,
+                        "latency_ms": round((time.monotonic() - started) * 1000, 2),
+                    },
+                )
             return []
-        return [
+        results = [
             {"id": r[0], "title": r[1], "category": r[2], "content": r[3], "score": float(r[4])}
             for r in rows
         ]
+        if self.tracer:
+            self.tracer.observe(
+                "sparse_retrieval",
+                {
+                    "candidate_depth": k,
+                    "document_ids": [r["id"] for r in results],
+                    "stage_ranks": list(range(1, len(results) + 1)),
+                    "degraded": not results,
+                    "latency_ms": round((time.monotonic() - started) * 1000, 2),
+                },
+            )
+        return results
 
     def _dense_search(self, query_text: str, k: int = 20) -> list[dict[str, Any]]:
         """Run pgvector search as an independent ranked list."""
         import psycopg
+
+        started = time.monotonic()
 
         from .data_loader import embed_query
 
@@ -226,16 +255,57 @@ class PostgresRepository:
                     cur.execute(sql, {"emb": emb, "limit": k})
                     rows = cur.fetchall()
         except Exception:
+            if self.tracer:
+                self.tracer.observe(
+                    "dense_retrieval",
+                    {
+                        "candidate_depth": k,
+                        "document_ids": [],
+                        "stage_ranks": [],
+                        "degraded": True,
+                        "latency_ms": round((time.monotonic() - started) * 1000, 2),
+                    },
+                )
             return []
-        return [
+        results = [
             {"id": r[0], "title": r[1], "category": r[2], "content": r[3], "score": float(r[4])}
             for r in rows
         ]
+        if self.tracer:
+            self.tracer.observe(
+                "dense_retrieval",
+                {
+                    "candidate_depth": k,
+                    "document_ids": [r["id"] for r in results],
+                    "stage_ranks": list(range(1, len(results) + 1)),
+                    "degraded": not results,
+                    "latency_ms": round((time.monotonic() - started) * 1000, 2),
+                },
+            )
+        return results
 
     def _rrf_search(self, query_text: str, k: int = 20) -> list[dict[str, Any]]:
         sparse = self._sparse_search(query_text, k=k)
         dense = self._dense_search(query_text, k=k)
         fused = self._rrf_fuse(sparse, dense, k=self.rrf_k)
+        if self.tracer:
+            self.tracer.observe(
+                "fusion",
+                {
+                    "candidate_depth": k,
+                    "document_ids": [r["id"] for r in fused],
+                    "stage_ranks": [
+                        {
+                            "id": r["id"],
+                            "sparse": r.get("sparse_rank"),
+                            "dense": r.get("dense_rank"),
+                            "fused": r.get("fused_rank"),
+                        }
+                        for r in fused
+                    ],
+                    "degraded": not sparse or not dense,
+                },
+            )
         if not fused:
             fallback = self.fallback.search_knowledge(query_text, k=k)
             for result in fallback:
@@ -392,6 +462,16 @@ class PostgresRepository:
                 r["score"] = float(item.relevance_score)
                 r["reranked"] = True
                 reranked_results.append(r)
+            if self.tracer:
+                self.tracer.observe(
+                    "reranking",
+                    {
+                        "candidate_depth": len(results),
+                        "final_depth": k,
+                        "document_ids": [r["id"] for r in reranked_results],
+                        "degraded": False,
+                    },
+                )
             return reranked_results
         except Exception:
             # A reranker outage must remain observable to callers and metrics.
@@ -400,6 +480,16 @@ class PostgresRepository:
                 degraded = dict(result)
                 degraded["degraded"] = "rerank_failed"
                 degraded_results.append(degraded)
+            if self.tracer:
+                self.tracer.observe(
+                    "reranking",
+                    {
+                        "candidate_depth": len(results),
+                        "final_depth": k,
+                        "document_ids": [r["id"] for r in degraded_results],
+                        "degraded": True,
+                    },
+                )
             return degraded_results
 
 
