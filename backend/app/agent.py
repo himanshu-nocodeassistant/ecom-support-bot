@@ -161,6 +161,7 @@ def _repo_for_mode(mode: str):
                 enable_reranking=getattr(settings, "enable_reranking", False),
                 candidate_depth=getattr(settings, "retrieval_candidate_depth", 20),
                 final_depth=getattr(settings, "retrieval_final_depth", 3),
+                retrieval_mode=getattr(settings, "retrieval_mode", "weighted"),
             )
         return fallback
 

@@ -15,6 +15,7 @@ class Settings:
     enable_reranking: bool
     retrieval_candidate_depth: int
     retrieval_final_depth: int
+    retrieval_mode: str
 
 
 def _read_env_file() -> dict[str, str]:
@@ -62,4 +63,5 @@ def get_settings() -> Settings:
         enable_reranking=env_bool("SUPPORTBOT_ENABLE_RERANKING", False),
         retrieval_candidate_depth=env_int("SUPPORTBOT_RETRIEVAL_CANDIDATE_DEPTH", 20),
         retrieval_final_depth=env_int("SUPPORTBOT_RETRIEVAL_FINAL_DEPTH", 3),
+        retrieval_mode=env_value("SUPPORTBOT_RETRIEVAL_MODE", "weighted"),
     )

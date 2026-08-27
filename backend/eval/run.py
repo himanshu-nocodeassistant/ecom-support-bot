@@ -46,6 +46,40 @@ RETRIEVAL_FINAL_DEPTH = 3
 AGENT_MODEL = "claude-haiku-4-5-20251001"
 
 
+def recommend_retrieval_mode(
+    baseline: dict[str, Any],
+    experiment: dict[str, Any],
+    *,
+    max_latency_increase: float = 0.10,
+    max_cost_increase: float = 0.10,
+) -> str:
+    """Recommend RRF only when gates pass and quality improves within budgets."""
+    if experiment.get("mode") not in {"rrf", "rrf+rerank"}:
+        return str(baseline.get("mode", "hybrid"))
+    if not experiment.get("regression_gates_pass", False):
+        return str(baseline.get("mode", "hybrid"))
+    for key in ("candidate_depth", "final_depth", "dataset_sha256", "reranker", "reranker_model"):
+        if key in baseline or key in experiment:
+            if baseline.get(key) != experiment.get(key):
+                return str(baseline.get("mode", "hybrid"))
+    quality = experiment.get("avg_ndcg_at_5", 0.0)
+    if quality <= baseline.get("avg_ndcg_at_5", 0.0):
+        return str(baseline.get("mode", "hybrid"))
+    base_latency = float(baseline.get("p95_latency_s", 0.0))
+    base_cost = float(baseline.get("estimated_cost", {}).get("total_cost_usd", 0.0))
+    latency = float(experiment.get("p95_latency_s", 0.0))
+    cost = float(experiment.get("estimated_cost", {}).get("total_cost_usd", 0.0))
+    if base_latency and latency > base_latency * (1 + max_latency_increase):
+        return str(baseline.get("mode", "hybrid"))
+    if base_cost and cost > base_cost * (1 + max_cost_increase):
+        return str(baseline.get("mode", "hybrid"))
+    if experiment.get("degraded_query_count", experiment.get("n_degraded", 0)) > baseline.get(
+        "degraded_query_count", baseline.get("n_degraded", 0)
+    ):
+        return str(baseline.get("mode", "hybrid"))
+    return str(experiment.get("mode", "rrf"))
+
+
 def _evaluation_metadata(dataset_path: Path, model: str | None = None) -> dict[str, Any]:
     """Record the inputs required to compare a live-model evaluation honestly."""
     dataset_bytes = dataset_path.read_bytes()
@@ -353,7 +387,16 @@ def evaluate_mode(
             candidate_depth=RETRIEVAL_CANDIDATE_DEPTH,
             final_depth=RETRIEVAL_FINAL_DEPTH,
         )
-    elif mode in ("hybrid+rerank", "hybrid+rerank-deep"):
+    elif mode == "rrf":
+        repo = PostgresRepository(
+            database_url=database_url,
+            fallback=fallback,
+            voyage_api_key=voyage_api_key,
+            retrieval_mode="rrf",
+            candidate_depth=RETRIEVAL_CANDIDATE_DEPTH,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
+        )
+    elif mode in ("hybrid+rerank", "hybrid+rerank-deep", "rrf+rerank"):
         uses_rerank = True
         candidate_depth = 3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH
         repo = PostgresRepository(
@@ -363,6 +406,7 @@ def evaluate_mode(
             enable_reranking=True,
             candidate_depth=candidate_depth,
             final_depth=RETRIEVAL_FINAL_DEPTH,
+            retrieval_mode="rrf" if mode == "rrf+rerank" else "weighted",
         )
     else:
         raise ValueError(f"Unknown mode: {mode}")
@@ -396,7 +440,8 @@ def evaluate_mode(
     # embed_query is unaffected.
     pace_seconds = (
         21.0
-        if mode in ("hybrid", "hybrid+rerank", "hybrid+rerank-deep") and voyage_api_key
+        if mode in ("hybrid", "rrf", "hybrid+rerank", "hybrid+rerank-deep", "rrf+rerank")
+        and voyage_api_key
         else 0.0
     )
 
@@ -541,8 +586,15 @@ def evaluate_mode(
         "n_queries": len(queries),
         "n_answerable": len(answerable),
         "n_degraded": sum(1 for r in per_query if r.get("degraded")),
+        "degraded_query_count": sum(1 for r in per_query if r.get("degraded")),
+        "dataset": QUERIES_PATH.name,
+        "dataset_sha256": hashlib.sha256(QUERIES_PATH.read_bytes()).hexdigest(),
+        "regression_gates_pass": False,
         "per_query": per_query,
     }
+    if uses_rerank:
+        result["reranker"] = "voyage"
+        result["reranker_model"] = "rerank-2-lite"
     if use_llm_judge and anthropic_api_key:
         result["avg_context_relevance_llm"] = _avg("context_relevance_llm")
     return result
@@ -868,6 +920,12 @@ def _generate_benchmark_md(
     history_path: Path = BENCHMARK_HISTORY_PATH,
 ) -> None:
     """Write a committed markdown comparison table from eval results."""
+    baseline = next((r for r in mode_results if r.get("mode") == "hybrid+rerank-deep"), None)
+    experiment = next((r for r in mode_results if r.get("mode") == "rrf+rerank"), None)
+    if baseline and experiment:
+        recommended = recommend_retrieval_mode(baseline, experiment)
+    else:
+        recommended = max(mode_results, key=lambda r: r.get("avg_ndcg_at_5", 0.0)).get("mode")
     has_llm = any("avg_context_relevance_llm" in r for r in mode_results)
     backends = {r.get("backend", "unknown") for r in mode_results}
     backend_label = "Postgres (Supabase)" if "postgres" in backends else "In-memory"
@@ -904,8 +962,8 @@ def _generate_benchmark_md(
     for r in mode_results:
         row = [
             f"`{r['mode']}`",
-            f"{r['avg_precision_at_3']:.3f}",
-            f"{r['avg_recall_at_3']:.3f}",
+            f"{r.get('avg_precision_at_3', 0.0):.3f}",
+            f"{r.get('avg_recall_at_3', 0.0):.3f}",
             f"{r.get('avg_precision_at_3_doc', 0.0):.3f}",
             f"{r.get('avg_recall_at_3_doc', 0.0):.3f}",
             f"{r.get('avg_hit_rate_at_1', 0.0):.3f}",
@@ -927,6 +985,8 @@ def _generate_benchmark_md(
             f"estimated cost ${r.get('estimated_cost', {}).get('total_cost_usd', 0.0):.6f}."
         )
     lines += [
+        "",
+        f"Recommended mode: `{recommended}`.",
         "",
         "The `hybrid+rerank` row is the legacy top-3 reranking baseline when its candidate depth is 3; `hybrid+rerank-deep` is the Phase 1 experiment using the same final depth and a larger candidate pool.",
         "",
@@ -951,8 +1011,8 @@ def _generate_benchmark_md(
             ctx_rel_llm = r.get("avg_context_relevance_llm")
             row.append(f"{ctx_rel_llm:.3f}" if ctx_rel_llm is not None else "—")
         row += [
-            f"{r['p50_latency_s']:.4f}",
-            f"{r['p95_latency_s']:.4f}",
+            f"{r.get('p50_latency_s', 0.0):.4f}",
+            f"{r.get('p95_latency_s', 0.0):.4f}",
             f"{cost:.6f}" if cost > 0 else "$0",
         ]
         lines.append("| " + " | ".join(row) + " |")
@@ -1285,7 +1345,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="SupportBot eval runner")
     parser.add_argument(
         "--mode",
-        choices=["keyword", "fulltext", "hybrid", "hybrid+rerank", "hybrid+rerank-deep"],
+        choices=[
+            "keyword",
+            "fulltext",
+            "hybrid",
+            "rrf",
+            "hybrid+rerank",
+            "hybrid+rerank-deep",
+            "rrf+rerank",
+        ],
     )
     parser.add_argument("--all-modes", action="store_true", help="Run all retrieval modes")
     parser.add_argument(
@@ -1383,7 +1451,7 @@ def main() -> None:
         print(f"Results saved to {out_path}")
         return
 
-    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank", "hybrid+rerank-deep"]
+    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank-deep", "rrf+rerank"]
     modes = all_modes if args.all_modes else ([args.mode] if args.mode else None)
     if not modes:
         parser.print_help()

@@ -110,6 +110,8 @@ class PostgresRepository:
         anthropic_api_key: str | None = None,
         candidate_depth: int = 20,
         final_depth: int = 3,
+        retrieval_mode: str = "weighted",
+        rrf_k: int = 60,
     ) -> None:
         self.database_url = database_url
         self.fallback = fallback
@@ -121,6 +123,10 @@ class PostgresRepository:
             raise ValueError("candidate_depth and final_depth must be positive")
         self.candidate_depth = candidate_depth
         self.final_depth = final_depth
+        if retrieval_mode not in {"weighted", "rrf"}:
+            raise ValueError("retrieval_mode must be 'weighted' or 'rrf'")
+        self.retrieval_mode = retrieval_mode
+        self.rrf_k = max(1, rrf_k)
 
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         try:
@@ -164,7 +170,9 @@ class PostgresRepository:
         if self.enable_query_rewriting and self.anthropic_api_key:
             retrieval_query = rewrite_query(query_text, api_key=self.anthropic_api_key)
 
-        if self.voyage_api_key:
+        if self.voyage_api_key and self.retrieval_mode == "rrf":
+            results = self._rrf_search(retrieval_query, k=candidate_depth)
+        elif self.voyage_api_key:
             results = self._hybrid_search(retrieval_query, k=candidate_depth)
         else:
             results = self._fulltext_search(retrieval_query, k=candidate_depth)
@@ -173,6 +181,94 @@ class PostgresRepository:
             results = self._rerank(query_text, results, k=requested_final_depth)
 
         return results[:requested_final_depth]
+
+    def _sparse_search(self, query_text: str, k: int = 20) -> list[dict[str, Any]]:
+        """Run PostgreSQL full-text search as an independent ranked list."""
+        import psycopg
+
+        sql = """
+            select kd.id, kd.title, kd.category, kc.chunk_text,
+                   ts_rank(kc.search_vector, plainto_tsquery('english', %(q)s)) as score
+            from knowledge_chunks kc join knowledge_documents kd on kd.id = kc.document_id
+            where kc.search_vector @@ plainto_tsquery('english', %(q)s)
+            order by score desc, kd.id asc limit %(limit)s
+        """
+        try:
+            with psycopg.connect(self.database_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, {"q": query_text, "limit": k})
+                    rows = cur.fetchall()
+        except psycopg.Error:
+            return []
+        return [
+            {"id": r[0], "title": r[1], "category": r[2], "content": r[3], "score": float(r[4])}
+            for r in rows
+        ]
+
+    def _dense_search(self, query_text: str, k: int = 20) -> list[dict[str, Any]]:
+        """Run pgvector search as an independent ranked list."""
+        import psycopg
+
+        from .data_loader import embed_query
+
+        try:
+            embedding = embed_query(query_text, api_key=self.voyage_api_key)
+            emb = "[" + ",".join(str(v) for v in embedding) + "]"
+            sql = """
+                select kd.id, kd.title, kd.category, kc.chunk_text,
+                       (1 - (kc.embedding <=> %(emb)s::vector)) as score
+                from knowledge_chunks kc join knowledge_documents kd on kd.id = kc.document_id
+                where kc.embedding is not null
+                order by score desc, kd.id asc limit %(limit)s
+            """
+            with psycopg.connect(self.database_url) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, {"emb": emb, "limit": k})
+                    rows = cur.fetchall()
+        except Exception:
+            return []
+        return [
+            {"id": r[0], "title": r[1], "category": r[2], "content": r[3], "score": float(r[4])}
+            for r in rows
+        ]
+
+    def _rrf_search(self, query_text: str, k: int = 20) -> list[dict[str, Any]]:
+        sparse = self._sparse_search(query_text, k=k)
+        dense = self._dense_search(query_text, k=k)
+        fused = self._rrf_fuse(sparse, dense, k=self.rrf_k)
+        if not fused:
+            fallback = self.fallback.search_knowledge(query_text, k=k)
+            for result in fallback:
+                result["degraded"] = "rrf_no_results"
+            return fallback
+        if not sparse or not dense:
+            for result in fused:
+                result["degraded"] = (
+                    "rrf_sparse_unavailable" if not sparse else "rrf_dense_unavailable"
+                )
+        return fused
+
+    @staticmethod
+    def _rrf_fuse(
+        sparse: list[dict[str, Any]], dense: list[dict[str, Any]], k: int = 60
+    ) -> list[dict[str, Any]]:
+        """Fuse lists by document id. Ties are stable and resolved by id."""
+        entries: dict[str, dict[str, Any]] = {}
+        for stage, results in (("sparse", sparse), ("dense", dense)):
+            for rank, result in enumerate(results, start=1):
+                doc_id = str(result["id"])
+                item = entries.setdefault(doc_id, dict(result))
+                item[f"{stage}_rank"] = rank
+                item[f"{stage}_score"] = float(result.get("score", 0.0))
+                item["fused_score"] = item.get("fused_score", 0.0) + 1.0 / (k + rank)
+        ordered = sorted(entries.values(), key=lambda item: (-item["fused_score"], str(item["id"])))
+        for rank, item in enumerate(ordered, start=1):
+            item.setdefault("sparse_rank", None)
+            item.setdefault("sparse_score", None)
+            item.setdefault("dense_rank", None)
+            item.setdefault("dense_score", None)
+            item["fused_rank"] = rank
+        return ordered
 
     def _fulltext_search(self, query_text: str, k: int = 3) -> list[dict[str, Any]]:
         import psycopg
@@ -320,6 +416,7 @@ def get_repository() -> Repository:
             enable_reranking=settings.enable_reranking,
             candidate_depth=settings.retrieval_candidate_depth,
             final_depth=settings.retrieval_final_depth,
+            retrieval_mode=getattr(settings, "retrieval_mode", "weighted"),
         )
 
     return fallback
