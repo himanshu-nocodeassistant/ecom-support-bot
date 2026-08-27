@@ -12,6 +12,9 @@ class Settings:
     olist_dataset_dir: str | None
     voyage_api_key: str | None
     anthropic_api_key: str | None
+    enable_reranking: bool
+    retrieval_candidate_depth: int
+    retrieval_final_depth: int
 
 
 def _read_env_file() -> dict[str, str]:
@@ -31,6 +34,19 @@ def _read_env_file() -> dict[str, str]:
 
 def get_settings() -> Settings:
     env_values = _read_env_file()
+
+    def env_value(name: str, default: str) -> str:
+        return os.getenv(name, env_values.get(name, default))
+
+    def env_bool(name: str, default: bool) -> bool:
+        return env_value(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
+    def env_int(name: str, default: int) -> int:
+        try:
+            return max(1, int(env_value(name, str(default))))
+        except ValueError:
+            return default
+
     return Settings(
         data_backend=os.getenv(
             "SUPPORTBOT_DATA_BACKEND",
@@ -43,4 +59,7 @@ def get_settings() -> Settings:
         ),
         voyage_api_key=os.getenv("VOYAGE_API_KEY", env_values.get("VOYAGE_API_KEY")),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", env_values.get("ANTHROPIC_API_KEY")),
+        enable_reranking=env_bool("SUPPORTBOT_ENABLE_RERANKING", False),
+        retrieval_candidate_depth=env_int("SUPPORTBOT_RETRIEVAL_CANDIDATE_DEPTH", 20),
+        retrieval_final_depth=env_int("SUPPORTBOT_RETRIEVAL_FINAL_DEPTH", 3),
     )

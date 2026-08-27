@@ -39,6 +39,10 @@ SYNTHETIC_QUERIES_PATH = EVAL_DIR / "queries_synthetic.json"
 # need real candidates past rank 3 to mean anything, so eval fetches deeper via an
 # eval-only `k=EVAL_DEPTH` call; production behavior (k=3 default) is unchanged.
 EVAL_DEPTH = 10
+# Production uses a deep candidate pool and a small final context. The eval also
+# records these settings so benchmark rows are reproducible.
+RETRIEVAL_CANDIDATE_DEPTH = 20
+RETRIEVAL_FINAL_DEPTH = 3
 AGENT_MODEL = "claude-haiku-4-5-20251001"
 
 
@@ -297,14 +301,19 @@ def _llm_judge_context_relevance(
         return 0.0, 0.0
 
 
-def _estimate_cost(n_queries: int, uses_rerank: bool, uses_embed: bool = True) -> dict[str, float]:
+def _estimate_cost(
+    n_queries: int,
+    uses_rerank: bool,
+    uses_embed: bool = True,
+    candidate_depth: int = RETRIEVAL_CANDIDATE_DEPTH,
+) -> dict[str, float]:
     embed_cost = 0.0
     if uses_embed:
         embed_tokens = n_queries * AVG_QUERY_TOKENS
         embed_cost = (embed_tokens / 1_000_000) * VOYAGE_EMBED_PRICE_PER_M
     rerank_cost = 0.0
     if uses_rerank:
-        rerank_tokens = n_queries * (AVG_QUERY_TOKENS + 3 * AVG_CHUNK_TOKENS)
+        rerank_tokens = n_queries * (AVG_QUERY_TOKENS + candidate_depth * AVG_CHUNK_TOKENS)
         rerank_cost = (rerank_tokens / 1_000_000) * VOYAGE_RERANK_PRICE_PER_M
     return {
         "embed_cost_usd": round(embed_cost, 6),
@@ -338,15 +347,22 @@ def evaluate_mode(
         repo = PostgresRepository(database_url=database_url, fallback=fallback, voyage_api_key=None)
     elif mode == "hybrid":
         repo = PostgresRepository(
-            database_url=database_url, fallback=fallback, voyage_api_key=voyage_api_key
+            database_url=database_url,
+            fallback=fallback,
+            voyage_api_key=voyage_api_key,
+            candidate_depth=RETRIEVAL_CANDIDATE_DEPTH,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
         )
-    elif mode == "hybrid+rerank":
+    elif mode in ("hybrid+rerank", "hybrid+rerank-deep"):
         uses_rerank = True
+        candidate_depth = 3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH
         repo = PostgresRepository(
             database_url=database_url,
             fallback=fallback,
             voyage_api_key=voyage_api_key,
             enable_reranking=True,
+            candidate_depth=candidate_depth,
+            final_depth=RETRIEVAL_FINAL_DEPTH,
         )
     else:
         raise ValueError(f"Unknown mode: {mode}")
@@ -378,7 +394,11 @@ def evaluate_mode(
     # calls succeed on the first try. This is an eval-harness concern (sequential
     # single-query calls are what trip the limit); production's per-request
     # embed_query is unaffected.
-    pace_seconds = 21.0 if mode in ("hybrid", "hybrid+rerank") and voyage_api_key else 0.0
+    pace_seconds = (
+        21.0
+        if mode in ("hybrid", "hybrid+rerank", "hybrid+rerank-deep") and voyage_api_key
+        else 0.0
+    )
 
     search_results: list[
         tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], float]
@@ -487,7 +507,12 @@ def evaluate_mode(
     p50 = latencies[len(latencies) // 2]
     p95 = latencies[int(len(latencies) * 0.95)]
     uses_embed = mode not in ("keyword", "fulltext")
-    cost = _estimate_cost(len(queries), uses_rerank, uses_embed=uses_embed)
+    cost = _estimate_cost(
+        len(queries),
+        uses_rerank,
+        uses_embed=uses_embed,
+        candidate_depth=(3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH),
+    )
     if total_judge_cost:
         cost["judge_cost_usd"] = round(total_judge_cost, 6)
         cost["total_cost_usd"] = round(cost["total_cost_usd"] + total_judge_cost, 6)
@@ -511,6 +536,8 @@ def evaluate_mode(
         "p50_latency_s": round(p50, 4),
         "p95_latency_s": round(p95, 4),
         "estimated_cost": cost,
+        "candidate_depth": (3 if mode == "hybrid+rerank" else RETRIEVAL_CANDIDATE_DEPTH),
+        "final_depth": RETRIEVAL_FINAL_DEPTH,
         "n_queries": len(queries),
         "n_answerable": len(answerable),
         "n_degraded": sum(1 for r in per_query if r.get("degraded")),
@@ -851,6 +878,8 @@ def _generate_benchmark_md(
         f"Results from: {backend_label}, {datetime.utcnow().strftime('%Y-%m-%d')}  ",
         f"Queries: {mode_results[0]['n_queries']} total, {mode_results[0]['n_answerable']} answerable  ",
         "Eval dataset: `backend/eval/queries.json`",
+        f"Retrieval depth: {mode_results[0].get('candidate_depth', RETRIEVAL_CANDIDATE_DEPTH)} candidates, "
+        f"{mode_results[0].get('final_depth', RETRIEVAL_FINAL_DEPTH)} final results  ",
         "",
         "## Mode × Metric",
         "",
@@ -890,6 +919,18 @@ def _generate_benchmark_md(
 
     # Quality + latency + cost table
     lines += ["", "## Quality, Latency & Cost", ""]
+    lines += ["", "## Retrieval Configuration", ""]
+    for r in mode_results:
+        lines.append(
+            f"- `{r['mode']}`: {r.get('candidate_depth', '—')} candidates, "
+            f"{r.get('final_depth', '—')} final results, "
+            f"estimated cost ${r.get('estimated_cost', {}).get('total_cost_usd', 0.0):.6f}."
+        )
+    lines += [
+        "",
+        "The `hybrid+rerank` row is the legacy top-3 reranking baseline when its candidate depth is 3; `hybrid+rerank-deep` is the Phase 1 experiment using the same final depth and a larger candidate pool.",
+        "",
+    ]
     qual_cols = ["Mode", "CtxRel", "KwCorr", "KwCorr chars"]
     if has_llm:
         qual_cols.append("CtxRelLLM")
@@ -1244,7 +1285,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="SupportBot eval runner")
     parser.add_argument(
         "--mode",
-        choices=["keyword", "fulltext", "hybrid", "hybrid+rerank"],
+        choices=["keyword", "fulltext", "hybrid", "hybrid+rerank", "hybrid+rerank-deep"],
     )
     parser.add_argument("--all-modes", action="store_true", help="Run all retrieval modes")
     parser.add_argument(
@@ -1342,7 +1383,7 @@ def main() -> None:
         print(f"Results saved to {out_path}")
         return
 
-    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank"]
+    all_modes = ["keyword", "fulltext", "hybrid", "hybrid+rerank", "hybrid+rerank-deep"]
     modes = all_modes if args.all_modes else ([args.mode] if args.mode else None)
     if not modes:
         parser.print_help()

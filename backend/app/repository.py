@@ -11,7 +11,7 @@ from .data import KNOWLEDGE_BASE, ORDERS
 class Repository(Protocol):
     def get_order(self, order_id: str) -> dict[str, Any] | None: ...
 
-    def search_knowledge(self, query: str, k: int = 3) -> list[dict[str, Any]]: ...
+    def search_knowledge(self, query: str, k: int | None = None) -> list[dict[str, Any]]: ...
 
 
 @dataclass
@@ -22,7 +22,7 @@ class InMemoryRepository:
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         return self.orders.get(order_id)
 
-    def search_knowledge(self, query: str, k: int = 3) -> list[dict[str, Any]]:
+    def search_knowledge(self, query: str, k: int | None = None) -> list[dict[str, Any]]:
         import re
 
         stop_words = {
@@ -69,7 +69,7 @@ class InMemoryRepository:
                         "content": doc["content"],
                     }
                 )
-        return sorted(ranked, key=lambda item: item["score"], reverse=True)[:k]
+        return sorted(ranked, key=lambda item: item["score"], reverse=True)[: k or 3]
 
 
 def rewrite_query(query: str, api_key: str) -> str:
@@ -108,6 +108,8 @@ class PostgresRepository:
         enable_reranking: bool = False,
         enable_query_rewriting: bool = False,
         anthropic_api_key: str | None = None,
+        candidate_depth: int = 20,
+        final_depth: int = 3,
     ) -> None:
         self.database_url = database_url
         self.fallback = fallback
@@ -115,6 +117,10 @@ class PostgresRepository:
         self.enable_reranking = enable_reranking
         self.enable_query_rewriting = enable_query_rewriting
         self.anthropic_api_key = anthropic_api_key
+        if candidate_depth < 1 or final_depth < 1:
+            raise ValueError("candidate_depth and final_depth must be positive")
+        self.candidate_depth = candidate_depth
+        self.final_depth = final_depth
 
     def get_order(self, order_id: str) -> dict[str, Any] | None:
         try:
@@ -146,25 +152,27 @@ class PostgresRepository:
             "delivered": bool(row[6]),
         }
 
-    def search_knowledge(self, query_text: str, k: int = 3) -> list[dict[str, Any]]:
+    def search_knowledge(self, query_text: str, k: int | None = None) -> list[dict[str, Any]]:
+        requested_final_depth = self.final_depth if k is None else max(1, k)
+        candidate_depth = max(self.candidate_depth, requested_final_depth)
         try:
             import psycopg  # noqa: F401
         except ImportError:
-            return self.fallback.search_knowledge(query_text, k=k)
+            return self.fallback.search_knowledge(query_text, k=requested_final_depth)
 
         retrieval_query = query_text
         if self.enable_query_rewriting and self.anthropic_api_key:
             retrieval_query = rewrite_query(query_text, api_key=self.anthropic_api_key)
 
         if self.voyage_api_key:
-            results = self._hybrid_search(retrieval_query, k=k)
+            results = self._hybrid_search(retrieval_query, k=candidate_depth)
         else:
-            results = self._fulltext_search(retrieval_query, k=k)
+            results = self._fulltext_search(retrieval_query, k=candidate_depth)
 
         if self.enable_reranking and self.voyage_api_key and results:
-            results = self._rerank(query_text, results, k=k)
+            results = self._rerank(query_text, results, k=requested_final_depth)
 
-        return results
+        return results[:requested_final_depth]
 
     def _fulltext_search(self, query_text: str, k: int = 3) -> list[dict[str, Any]]:
         import psycopg
@@ -290,7 +298,13 @@ class PostgresRepository:
                 reranked_results.append(r)
             return reranked_results
         except Exception:
-            return results
+            # A reranker outage must remain observable to callers and metrics.
+            degraded_results = []
+            for result in results[:k]:
+                degraded = dict(result)
+                degraded["degraded"] = "rerank_failed"
+                degraded_results.append(degraded)
+            return degraded_results
 
 
 @lru_cache(maxsize=1)
@@ -303,6 +317,9 @@ def get_repository() -> Repository:
             database_url=settings.database_url,
             fallback=fallback,
             voyage_api_key=settings.voyage_api_key,
+            enable_reranking=settings.enable_reranking,
+            candidate_depth=settings.retrieval_candidate_depth,
+            final_depth=settings.retrieval_final_depth,
         )
 
     return fallback

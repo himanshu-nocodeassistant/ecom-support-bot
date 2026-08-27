@@ -158,6 +158,9 @@ def _repo_for_mode(mode: str):
                 voyage_api_key=settings.voyage_api_key
                 if mode != "phase2" or settings.voyage_api_key
                 else None,
+                enable_reranking=getattr(settings, "enable_reranking", False),
+                candidate_depth=getattr(settings, "retrieval_candidate_depth", 20),
+                final_depth=getattr(settings, "retrieval_final_depth", 3),
             )
         return fallback
 
