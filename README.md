@@ -1,104 +1,68 @@
 # SupportBot
 
-An e-commerce support agent with: knowledge retrieval, order lookup, refund flows, escalation, persistent customer memory. Each phase has numbers showing what it improved and what it broke.
+SupportBot is an e-commerce support bot that answers policy questions, looks up orders, requests eligible refunds, creates support tickets, and remembers customer context across sessions.
 
-> **Blog:** [I kept adding AI to my support bot. It kept breaking in new ways.](https://himanshu-sharma.medium.com/i-kept-adding-ai-to-my-support-bot-it-kept-breaking-in-new-ways-49b1ae4ff658)
+[Read the build notes](https://himanshu-sharma.medium.com/i-kept-adding-ai-to-my-support-bot-it-kept-breaking-in-new-ways-49b1ae4ff658)
 
-**Stack:** Python · FastAPI · Claude API (Haiku + Sonnet) · Voyage AI embeddings + rerank · Supabase/Postgres + pgvector
-
-## Why I built this
-
-I run a software agency. Clients ask for "an AI support bot" like it's one thing you buy. It isn't. It's a system that breaks in a new way every time you add a capability. Before selling one to a client, I wanted to watch each failure mode happen on my own build, with evals that catches regressions.
+Stack: Python, FastAPI, Claude API, Voyage AI, Supabase, Postgres, and pgvector.
 
 ## Measured decisions
 
-The knowledge base is small on purpose (15 docs, 62 labeled queries), so the absolute scores aren't the point. The point is that every architecture decision is important and there are instances where things didn't go as expected.
+The current evaluation set has 15 documents and 62 labelled queries. It is used to compare retrieval changes and stop regressions before release.
 
-| Decision | What the numbers said | Outcome |
+| Decision | Result | What changed |
 |---|---|---|
-| Chunking: semantic vs fixed | hit_rate@3: fixed 0.346 vs semantic 0.327 — no strong evidence either wins; original +29% claim rested on a metric biased toward finer chunking | +29% claim retired; no config change ([decision](plans/decisions/chunking.md)) |
-| Voyage reranking on/off | NDCG@5 0.934 → 0.960, H@1 0.904 → 0.942 | Recommended for prod; off by default (adds ~326ms and 15× the Voyage cost per query) ([decision](plans/decisions/reranking.md)) |
-| Category pre-filter | 4.3% hard-miss rate on multi-intent queries | Deleted |
-| "Keyword beats hybrid" baseline | Metric bias: title-string matching penalized chunked modes; the CI gate was guarding the worst-performing mode | Rebuilt metrics on document IDs ([full investigation](plans/decisions/retrieval-finding.md)) |
-| Adversarial set: 40 queries (injection, ambiguous, multi-intent, out-of-scope) | All gated at ≥ 0.80 | CI fails on regression |
-| Any gated retrieval metric | Drops more than 10% vs committed baseline | CI fails the PR |
+| Semantic or fixed chunking | hit_rate@3 was 0.327 for semantic and 0.346 for fixed | The earlier 29% claim was removed because the metric favoured smaller chunks. No config changed. ([decision](plans/decisions/chunking.md)) |
+| Voyage reranking | NDCG@5 went from 0.934 to 0.960. H@1 went from 0.904 to 0.942 | Reranking stays optional because it adds about 326 ms and increases Voyage cost per query. ([decision](plans/decisions/reranking.md)) |
+| Category filter | It caused a 4.3% hard miss rate on multi-intent queries | The filter was removed. |
+| Keyword and hybrid baseline | Title matching penalised chunked results | Metrics now compare document IDs. ([investigation](plans/decisions/retrieval-finding.md)) |
+| Confidence threshold | The highest off-topic score was 0.294. The lowest relevant score was 0.432 | The shared threshold is 0.30. |
+| CI retrieval gate | A gated metric can fall by up to 10% from the saved baseline | Larger drops fail CI. |
 
----
+## Repository guide
 
-## How this was built
+- [`plans/decisions/`](plans/decisions/) contains the measured architecture decisions.
+- [`docs/changelog.md`](docs/changelog.md) contains the phase history.
+- [`docs/benchmark.md`](docs/benchmark.md) contains benchmark results.
+- [`docs/eval.md`](docs/eval.md) defines the metrics and evaluation limits.
+- [`plans/roadmap.md`](plans/roadmap.md) lists remaining work.
+- [`plans/archive/`](plans/archive/) contains old plans.
 
-Pair-programmed with [Claude Code](https://claude.ai/code). I planned the architecture, scoping, the eval design etc. Major decision are in [`plans/decisions/`](plans/decisions/) and [`docs/changelog.md`](docs/changelog.md), including the things I did but which didn't survive measurement.
+## Request flow
 
----
+Start the server, open [`frontend/index.html`](frontend/index.html), and send:
 
-## How to read this repo
+> My order ORD-1002 arrived damaged, I want a refund.
 
-**If you want to judge the engineering,** read [`plans/decisions/`](plans/decisions/) first. Eight short docs, each one an architecture call with the numbers behind it — including two where the measurement said to delete what I'd just built. [`retrieval-finding.md`](plans/decisions/retrieval-finding.md) is the one to start with.
+The request shows:
 
-**If you want the story,** read [`docs/changelog.md`](docs/changelog.md). Ten releases, newest first, each with what changed, why it mattered, and what was still weak at the time.
+- streamed response tokens.
+- `lookup_order` and `request_refund` tool activity.
+- the knowledge documents used for the answer.
+- phase 1, 2, and 3 responses on the same query.
 
-**If you want to see the numbers,** [`docs/benchmark.md`](docs/benchmark.md) is the mode × metric table, regenerated by `--benchmark`. [`docs/eval.md`](docs/eval.md) explains what each metric means and what the eval suite does not cover. Raw output lands in [`backend/eval/results/`](backend/eval/results/).
+## Current features
 
-**If you want to know what's missing,** [`plans/roadmap.md`](plans/roadmap.md) is the unstarted work, led by a production-hardening phase. The Known gaps section at the bottom of this file is the short version.
-
-Older planning docs are in [`plans/archive/`](plans/archive/). They're kept to show how the work was scoped before it existed, not as a status board.
-
----
-
-## Demo
-
-Start the server and open the frontend. Send this query:
-
-> **"My order ORD-1002 arrived damaged, I want a refund"**
-
-What to look at:
-1. The chat streams tokens live while the agent calls `lookup_order` then `request_refund`
-2. Tool activity cards appear inline as each tool runs
-3. Source chips below the reply show which KB document grounded the answer
-4. Switch to the Compare tab to see phase1/2/3 side by side on the same query
-
----
-
-## Current capabilities
-
-| Capability | Status |
+| Feature | Status |
 |---|---|
-| Product questions from knowledge base (15 docs) | ✅ Hybrid semantic + keyword retrieval, optional Voyage rerank |
-| Order status lookup | ✅ Supabase (10k Olist rows) + in-memory fallback |
-| Refund flow with delivery validation | ✅ Model-driven, multi-step |
-| Escalation to support ticket | ✅ Conversational, contextual ticket subject |
-| Streaming chat UI | ✅ SSE tokens + live tool activity cards + source chips |
-| Cross-session customer memory | ✅ Postgres-backed; prior orders + facts injected into system prompt |
-| Welcome-back banner for returning customers | ✅ Email-gated, 90-day TTL on memory facts |
-| Eval: doc-id P@3/R@3 (bias-corrected) | ✅ Fixes structural bias against chunked retrieval modes |
-| Eval: hit@k, NDCG@5, MRR | ✅ Full ranking metric suite |
-| Eval: LLM-judged context relevance | ✅ `--llm-judge` flag; scores the top retrieved chunk against the query, not a generated answer |
-| Eval: adversarial query set (40 queries) | ✅ Injection, ambiguous, multi-intent, OOS — all CI-gated ≥ 0.80 |
-| Eval: synthetic query generation | ✅ Claude generates 5 paraphrase + 2 adversarial per doc; dedup by embedding |
-| Eval dashboard | ✅ `GET /eval` + `/eval/memory` |
-| Benchmark trend history | ✅ `docs/benchmark-history.jsonl` + sparklines in `benchmark.md` |
-| Pareto visualisation | ✅ Cost vs NDCG@5, latency vs NDCG@5 — embedded in `benchmark.md` |
-| CI regression gate | ✅ Fails on >10% drop in doc-id P@3/R@3; gated adversarial metrics |
-
----
+| Knowledge questions | Hybrid text and vector retrieval with optional Voyage reranking |
+| Order lookup | Supabase with an in-memory fallback |
+| Refund requests | Checks delivery status before the request |
+| Support tickets | Creates a ticket from the conversation |
+| Chat UI | Streams tokens, tool activity, and sources over SSE |
+| Customer memory | Stores orders and facts in Postgres with a 90-day fact TTL |
+| Evaluation | Retrieval, agent, adversarial, synthetic, and end-to-end checks |
+| Evaluation dashboard | Available at `GET /eval` and `GET /eval/memory` |
+| CI | Checks saved retrieval and adversarial baselines |
+| Tracing | Optional Langfuse traces for live evaluation |
 
 ## Known gaps
 
-This repo shows how a RAG support system gets complex at each stage. It is not a deploy-ready codebase, and that's deliberate.
+Before production use, add authentication, rate limiting, connection pooling, and an iteration limit for the tool loop. CORS is open. Settings are read from `.env` on each request. Customer memory is added to the system prompt without sanitisation. Raw errors can reach clients.
 
-A client reviewing this repo pointed out there's no rate limiting or auth. Correct, and intentional: they belong to the deployment layer (API gateway, JWT middleware), and adding them here would have buried what each phase was demonstrating. That conversation is why this section exists. I've listed 10+ gaps below; none affect the output quality of the RAG agent, all need attention before anything ships to production.
+[`plans/roadmap.md`](plans/roadmap.md) tracks this work.
 
-**Out of scope by design.** CORS, auth, rate limiting, session security. These belong to the deployment layer, not the RAG layer. An API gateway, a JWT middleware, an auth service. Adding them here would have buried what each phase was actually demonstrating.
-
-**Deferred.** The tool loop has no iteration cap. Postgres stores hold a single persistent connection with no pooling. Settings are read from `.env` on every request. A new DB connection is created per request. All straightforward fixes. Left because adding connection pooling in phase 3 wouldn't have affected the outcome of phase 3.
-
-**Worth fixing.** Customer memory facts are included into the system prompt without sanitization. If adversarial text gets written as a fact in a prior session, it shows up in every future session for that customer. And error messages are sent raw to the client, which would expose DB internals. Again, these are intentional because for demo purposes, hardening is left out.
-
-These are now scheduled rather than just acknowledged: [`plans/roadmap.md`](plans/roadmap.md) turns the deferred and worth-fixing items into a measured hardening phase, on the same rule as every phase before it — record the failure first, then fix it, then publish the difference.
-
----
-
-## Local run (no external deps)
+## Local run without external services
 
 ```bash
 pip install -r backend/requirements.txt
@@ -111,99 +75,86 @@ Run tests:
 python3 -m pytest backend/tests/ -v --tb=short
 ```
 
-Integration tests self-skip when `DATABASE_URL` or `VOYAGE_API_KEY` is absent. Without `.env`, the bot uses in-memory data and deterministic routing — no API keys required.
+Integration tests skip when `DATABASE_URL` or `VOYAGE_API_KEY` is absent. Without `.env`, the bot uses in-memory data and deterministic routing.
 
----
+## Full setup
 
-## Full setup (Supabase + Voyage AI + Claude)
+Add these values to `.env`:
 
-Copy and fill in `.env`:
-
-```
+```text
 SUPPORTBOT_DATA_BACKEND=postgres
 DATABASE_URL=<supabase-postgres-url>
 VOYAGE_API_KEY=<voyage-api-key>
 ANTHROPIC_API_KEY=<anthropic-api-key>
 ```
 
-Apply the schema, then import data:
+Apply [`backend/sql/schema.sql`](backend/sql/schema.sql) in Supabase. Then apply these migrations:
+
+- `migrate_5c_metadata.sql`
+- `migrate_7_customer_memory.sql`
+- `migrate_8_memory_wiring.sql`
+
+Import the included Olist data and the knowledge documents:
 
 ```bash
-# Apply schema in Supabase SQL editor: backend/sql/schema.sql
-# Apply migrations: migrate_5c_metadata.sql, migrate_7_customer_memory.sql, migrate_8_memory_wiring.sql
-
-# Import orders from Olist dataset
-# The public Olist CSV files are included in this repository under ./data-set.
 python3 -m backend.app.cli import-orders --dataset-dir ./data-set --limit 10000
-
-# Import and embed knowledge docs (15 documents)
 python3 -m backend.app.cli import-knowledge --knowledge-dir ./backend/knowledge
 ```
 
----
-
 ## Example requests
 
-Product question (semantic retrieval):
+Ask a policy question:
+
 ```bash
 curl -s -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id":"demo","message":"Can I get my money back?"}' | jq
+  -d '{"session_id":"example","message":"Can I get my money back?"}' | jq
 ```
 
-Multi-step refund in one message:
+Request a refund:
+
 ```bash
 curl -s -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id":"demo","message":"My order ORD-1002 arrived damaged, I want a refund."}' | jq
+  -d '{"session_id":"example","message":"My order ORD-1002 arrived damaged, I want a refund."}' | jq
 ```
 
-Returning customer with memory:
+Use customer memory:
+
 ```bash
 curl -s -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"session_id":"demo","message":"What is my order status?","customer_email":"alice@example.com"}' | jq
+  -d '{"session_id":"example","message":"What is my order status?","customer_email":"alice@example.com"}' | jq
 ```
 
----
-
-## Eval and benchmarks
+## Evaluation
 
 ```bash
-# Retrieval eval — all modes, with bias-corrected doc-id metrics
+# Run retrieval evaluation for all modes and update the benchmark.
 python -m backend.eval.run --all-modes --benchmark
 
-# With LLM-judge correctness scoring
+# Add LLM judgement of retrieved context.
 python -m backend.eval.run --all-modes --llm-judge --benchmark
 
-# Agent fixture eval (tool selection, refusal accuracy)
+# Run agent, adversarial, and end-to-end evaluations.
 python -m backend.eval.run --agent-eval
-
-# Adversarial eval (injection, ambiguous, multi-intent, out-of-scope)
 python -m backend.eval.run --adversarial-eval
+python -m backend.eval.run --e2e-eval
 
-# Synthetic query generation (5 paraphrase + 2 adversarial per doc)
+# Generate synthetic queries and evaluate them.
 python -m backend.eval.generate_queries --api-key $ANTHROPIC_API_KEY
-
-# Eval against synthetic queries
 python -m backend.eval.run --all-modes --query-set synthetic
 python -m backend.eval.run --all-modes --query-set both
 ```
 
-Per-mode and per-query JSON is written to `backend/eval/results/`. The browser dashboard is at `GET /eval` once the API is running.
+Results are written to `backend/eval/results/`. The browser dashboard is at `GET /eval` while the API is running.
 
-The `docs/benchmark.md` table includes Pareto visualisations (cost vs NDCG@5, latency vs NDCG@5) and a trend sparkline from `docs/benchmark-history.jsonl`.
+The evaluation covers retrieval, tool selection, refusals, adversarial queries, and a small end-to-end set. It doesn't cover every order ID format, every unknown order case, or all differences between the memory and Postgres backends.
 
-**Eval scope:** RAG retrieval (doc-id P@3/R@3, hit-rate, NDCG, MRR), agent tool-selection (fixture suite), and adversarial robustness (40 queries: injection, ambiguous, multi-intent, out-of-scope). Not covered: exhaustive order-lookup data correctness across ID-extraction variants, hallucination on unknown IDs, or backend-parity edge cases — those require live Supabase fixtures and are out of scope for this eval layer.
+## A retrieval metric was wrong
 
----
+An older evaluation made keyword search look better than hybrid search. The metric compared chunk titles instead of document IDs, so it penalised modes that returned several chunks from the correct document. The category filter was also removed after it caused a 4.3% hard miss rate on multi-intent queries.
 
-## Retrieval finding (Phase 9)
+The full notes are in [`plans/decisions/retrieval-finding.md`](plans/decisions/retrieval-finding.md).
 
-The Phase 6 baseline showed keyword retrieval (in-memory) outperforming hybrid (Postgres). Investigation confirmed this was a **metric bias**: `_precision_at_k` compared chunk titles by string equality, giving chunked modes a structural disadvantage when multiple chunks from the same correct document were returned. The `_infer_category` pre-filter was also deleted after measurement showed a 4.3% hard-miss rate on multi-intent queries.
-
-Details: [`plans/decisions/retrieval-finding.md`](plans/decisions/retrieval-finding.md)
-
----
-
-Built by [Himanshu Sharma](https://nocodeassistant.agency), founder of NocodeAssistant, where I build internal tools and AI automation for SMB operations teams.
+Built by [Himanshu Sharma](https://nocodeassistant.agency).
